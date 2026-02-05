@@ -1,6 +1,7 @@
 {
     "HideThemeSelector": false,
     "MaxUrlLength": 2000000,
+    "LangDefault": "en",
     "layouts": [
         {
             "id": "matrix-dark",

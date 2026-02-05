@@ -13,7 +13,8 @@ interface I18nContextType {
 }
 
 const STORAGE_KEY = 'git-page-link-create-locale';
-const DEFAULT_LOCALE: Locale = 'pt';
+const DEFAULT_LOCALE: Locale = 'en';
+let cachedDefaultLocale: Locale | null = null;
 
 const cachedTranslations: Record<Locale, Translations> = {} as Record<Locale, Translations>;
 
@@ -33,6 +34,24 @@ async function loadTranslations(locale: Locale): Promise<Translations> {
         return translations;
     } catch {
         return {};
+    }
+}
+
+async function loadDefaultLocale(): Promise<Locale> {
+    if (cachedDefaultLocale) {
+        return cachedDefaultLocale;
+    }
+
+    try {
+        const url = withBasePath('/layouts/layoutsConfig.json');
+        const response = await fetch(url);
+        const data = await response.json();
+        const lang = data?.LangDefault as Locale | undefined;
+        cachedDefaultLocale = lang && ['pt', 'en', 'es'].includes(lang) ? lang : DEFAULT_LOCALE;
+        return cachedDefaultLocale;
+    } catch {
+        cachedDefaultLocale = DEFAULT_LOCALE;
+        return cachedDefaultLocale;
     }
 }
 
@@ -67,12 +86,17 @@ export function I18nProvider({ children }: { children: ReactNode }): React.React
 
     // Load locale from localStorage on mount
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedLocale = localStorage.getItem(STORAGE_KEY) as Locale;
-            if (savedLocale && ['pt', 'en', 'es'].includes(savedLocale)) {
-                setLocaleState(savedLocale);
-            }
+        if (typeof window === 'undefined') return;
+
+        const savedLocale = localStorage.getItem(STORAGE_KEY) as Locale | null;
+        if (savedLocale && ['pt', 'en', 'es'].includes(savedLocale)) {
+            setLocaleState(savedLocale);
+            return;
         }
+
+        loadDefaultLocale().then((defaultLocale) => {
+            setLocaleState(defaultLocale);
+        });
     }, []);
 
     // Load translations when locale changes

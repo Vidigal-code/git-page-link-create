@@ -120,6 +120,100 @@ export const MarkdownWrapper = styled.div`
   }
 `;
 
+export const PlainMarkdownWrapper = styled.div`
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #24292f;
+  word-wrap: break-word;
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+
+  @media (max-width: 768px) {
+    padding: 20px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 16px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #24292f;
+  }
+
+  h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+  h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+
+  p, blockquote, ul, ol, dl, table, pre {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  a { color: #0969da; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  blockquote {
+    padding: 0 1em;
+    color: #57606a;
+    border-left: 0.25em solid #d0d7de;
+  }
+
+  pre {
+    background: #f6f8fa;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 85%;
+    line-height: 1.45;
+  }
+
+  code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: #f6f8fa;
+    border-radius: 3px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    color: #24292f;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow: auto;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 1px solid #d0d7de;
+    padding: 6px 13px;
+  }
+
+  tr:nth-child(2n) {
+    background-color: #f6f8fa;
+  }
+
+  pre > code {
+    background-color: transparent;
+    padding: 0;
+  }
+`;
+
 export const TableScrollWrapper = styled.div`
   width: 100%;
   overflow-x: auto;

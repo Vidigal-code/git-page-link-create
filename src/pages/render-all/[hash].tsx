@@ -12,7 +12,7 @@ import {
     PageWrapper,
     StyledCard,
     ScrollableContent,
-    MarkdownWrapper,
+    PlainMarkdownWrapper,
     TableScrollWrapper,
     StyledTable,
     FullScreenIframe,
@@ -119,7 +119,7 @@ export default function RenderAll() {
                 </Head>
                 <StyledCard>
                     <ScrollableContent>
-                        <MarkdownWrapper dangerouslySetInnerHTML={{ __html: htmlContent }} />
+                        <PlainMarkdownWrapper dangerouslySetInnerHTML={{ __html: htmlContent }} />
                     </ScrollableContent>
                 </StyledCard>
             </PageWrapper>
