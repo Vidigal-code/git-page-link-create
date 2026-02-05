@@ -1,4 +1,4 @@
-import React, { ButtonHTMLAttributes, AnchorHTMLAttributes } from 'react';
+import React, { ButtonHTMLAttributes } from 'react';
 import { StyledButton, SecondaryButton } from './Button.styles';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,7 +13,7 @@ export const Button: React.FC<ButtonProps> = ({
     as,
     ...props
 }) => {
-    const Component = (variant === 'secondary' ? SecondaryButton : StyledButton) as any;
+    const Component = variant === 'secondary' ? SecondaryButton : StyledButton;
 
-    return <Component as={as as any} {...props}>{children}</Component>;
+    return <Component as={as} {...props}>{children}</Component>;
 };

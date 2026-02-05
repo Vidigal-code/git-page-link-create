@@ -7,7 +7,10 @@
 export function downloadFile(content: string | Uint8Array, filename: string, type: string): void {
     try {
         // Create a Blob from the content
-        const blob = new Blob([content as any], { type });
+        const blobPart: BlobPart = typeof content === 'string'
+            ? content
+            : (content.buffer as ArrayBuffer);
+        const blob = new Blob([blobPart], { type });
 
         // Create a temporary URL for the blob
         const url = URL.createObjectURL(blob);
@@ -24,8 +27,7 @@ export function downloadFile(content: string | Uint8Array, filename: string, typ
         // Cleanup
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error('Download error:', error);
+    } catch {
         throw new Error('Failed to download file');
     }
 }

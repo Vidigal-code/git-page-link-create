@@ -5,7 +5,7 @@ import { ThemeProvider } from 'styled-components';
 import { GlobalStyle } from '@/shared/styles/GlobalStyle';
 import { Layout } from '@/shared/ui/Layout';
 import { I18nProvider } from '@/shared/lib/i18n';
-import { loadTheme, loadAvailableThemes, getSavedThemeId, saveThemeId, getOppositeModeThemeId, getAvailableThemes, getHideThemeSelector } from '@/shared/lib/theme';
+import { loadTheme, loadAvailableThemes, getSavedThemeId, saveThemeId, getOppositeModeThemeId, getHideThemeSelector } from '@/shared/lib/theme';
 import { Theme } from '@/shared/styles/theme.d';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -13,6 +13,7 @@ export default function App({ Component, pageProps }: AppProps) {
     const [currentThemeId, setCurrentThemeId] = useState<string>('matrix-dark');
     const [availableThemes, setAvailableThemes] = useState<{ id: string; name: string }[]>([]);
     const [hideThemeSelector, setHideThemeSelector] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         // Load saved theme ID
@@ -47,8 +48,6 @@ export default function App({ Component, pageProps }: AppProps) {
     if (!theme) {
         return null; // Or a loading spinner
     }
-
-    const router = useRouter(); // You'll need to import useRouter
     const isRenderAll = router.pathname.startsWith('/render-all');
 
     return (

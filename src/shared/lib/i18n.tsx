@@ -1,11 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { withBasePath } from './basePath';
 
-type Locale = 'pt' | 'en' | 'es';
+export type Locale = 'pt' | 'en' | 'es';
 
-interface Translations {
-    [key: string]: any;
-}
+type Translations = Record<string, unknown>;
 
 interface I18nContextType {
     locale: Locale;
@@ -17,7 +15,7 @@ interface I18nContextType {
 const STORAGE_KEY = 'git-page-link-create-locale';
 const DEFAULT_LOCALE: Locale = 'pt';
 
-let cachedTranslations: Record<Locale, Translations> = {} as Record<Locale, Translations>;
+const cachedTranslations: Record<Locale, Translations> = {} as Record<Locale, Translations>;
 
 /**
  * Load translations from JSON files
@@ -29,13 +27,11 @@ async function loadTranslations(locale: Locale): Promise<Translations> {
 
     try {
         const url = withBasePath(`/locales/${locale}.json`);
-        console.log(`[i18n] Fetching from: ${url}`);
         const response = await fetch(url);
         const translations = await response.json();
         cachedTranslations[locale] = translations;
         return translations;
-    } catch (error) {
-        console.error(`Failed to load translations for ${locale}:`, error);
+    } catch {
         return {};
     }
 }
@@ -43,13 +39,13 @@ async function loadTranslations(locale: Locale): Promise<Translations> {
 /**
  * Get a nested translation value by key path
  */
-function getNestedValue(obj: any, path: string): string {
+function getNestedValue(obj: Record<string, unknown>, path: string): string {
     const keys = path.split('.');
-    let value = obj;
+    let value: unknown = obj;
 
     for (const key of keys) {
         if (value && typeof value === 'object' && key in value) {
-            value = value[key];
+            value = (value as Record<string, unknown>)[key];
         } else {
             return path; // Return key if not found
         }

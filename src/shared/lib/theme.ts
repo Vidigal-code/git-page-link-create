@@ -4,7 +4,7 @@ import { withBasePath } from './basePath';
 const STORAGE_KEY = 'git-page-link-create-theme';
 const DEFAULT_THEME_ID = 'matrix-dark';
 
-let cachedThemes: Record<string, Theme> = {};
+const cachedThemes: Record<string, Theme> = {};
 let hideThemeSelector = false;
 let maxUrlLength = 8000;
 let availableThemes: {
@@ -27,15 +27,13 @@ export async function loadAvailableThemes(): Promise<typeof availableThemes> {
 
     try {
         const url = withBasePath('/layouts/layoutsConfig.json');
-        console.log(`[Theme] Fetching config from: ${url}`);
         const response = await fetch(url);
         const data = await response.json();
         availableThemes = data.layouts || [];
         hideThemeSelector = data.HideThemeSelector || false;
         maxUrlLength = data.MaxUrlLength || 8000;
         return availableThemes;
-    } catch (error) {
-        console.error('Failed to load available themes:', error);
+    } catch {
         return [];
     }
 }
@@ -59,7 +57,6 @@ export async function loadTheme(themeId: string): Promise<Theme> {
             ? withBasePath(`/layouts/${themeInfo.file}`)
             : withBasePath(`/layouts/templates/${themeId}.json`);
 
-        console.log(`[Theme] Fetching from: ${url}`);
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -67,13 +64,12 @@ export async function loadTheme(themeId: string): Promise<Theme> {
         const theme: Theme = await response.json();
         cachedThemes[themeId] = theme;
         return theme;
-    } catch (error) {
-        console.error(`Failed to load theme ${themeId}:`, error);
+    } catch {
         // Return default theme if loading fails
         if (themeId !== DEFAULT_THEME_ID) {
             return loadDefaultTheme();
         }
-        throw error; // Prevent infinite loop if default theme fails
+        throw new Error('Failed to load theme'); // Prevent infinite loop if default theme fails
     }
 }
 

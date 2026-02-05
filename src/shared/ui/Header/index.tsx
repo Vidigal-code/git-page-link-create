@@ -15,7 +15,7 @@ import {
 } from './Header.styles';
 import { Select } from '../Select';
 import { ThemeModeToggle } from '../ThemeModeToggle';
-import { useI18n, getAvailableLocales } from '@/shared/lib/i18n';
+import { useI18n, getAvailableLocales, Locale } from '@/shared/lib/i18n';
 
 interface HeaderProps {
     currentTheme: string;
@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     <Select
                         value={locale}
-                        onChange={(e) => setLocale(e.target.value as any)}
+                        onChange={(e) => setLocale(e.target.value as Locale)}
                         options={locales.map(l => ({ value: l.code, label: t(`langmenu.${l.code}`) }))}
                         aria-label={t('common.language')}
                         configKey="languageSelect"
@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <MobileControls>
                     <Select
                         value={locale}
-                        onChange={(e) => setLocale(e.target.value as any)}
+                        onChange={(e) => setLocale(e.target.value as Locale)}
                         options={locales.map(l => ({ value: l.code, label: t(`langmenu.${l.code}`) }))}
                         aria-label={t('common.language')}
                         configKey="languageSelect"
