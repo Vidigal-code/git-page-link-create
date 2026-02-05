@@ -1,5 +1,185 @@
 # git-page-link-create
 
+> Create permanent links for HTML, Markdown, and CSV/XLS content using a static Next.js app.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-14.0-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+
+## Overview
+
+**git-page-link-create** turns content into static JSON files and generates short links to render them. Everything runs in the browser—no backend required.
+
+## Key features
+
+- Permanent links: `/render/{hash}/` and `/render-all/{hash}/`
+- Supports **HTML**, **Markdown**, and **CSV/XLS**
+- Secure HTML rendering via sandboxed iframe
+- Theme system via JSON
+- Internationalization (pt, en, es)
+- Compatible with Next.js static export
+
+## How it works (short)
+
+1. Content is normalized to a string.
+2. Content is compressed (gzip) and hashed with SHA-256 (8 chars).
+3. JSON is saved to `public/data/{hash}.json`.
+4. A short render link is generated.
+
+> **Important**: JSON file creation is manual before deploy. Generate the link on `/create`, copy the JSON from the browser console, and save it to `public/data/{hash}.json`.
+
+## Project structure
+
+```
+src/
+├── pages/
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   ├── index.tsx
+│   ├── create.tsx
+│   ├── render/
+│   │   └── [hash].tsx
+│   └── render-all/
+│       └── [hash].tsx
+└── shared/
+    ├── lib/
+    │   ├── compression.ts
+    │   ├── crypto.ts
+    │   ├── download.ts
+    │   ├── i18n.tsx
+    │   └── theme.ts
+    ├── ui/
+    └── styles/
+```
+
+## Running locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+### Useful scripts
+
+```bash
+npm run dev
+npm run build
+npm run export
+npm run lint
+npm run type-check
+```
+
+## GitHub Pages deployment (short)
+
+1. Set `basePath` and `assetPrefix` in `next.config.js`.
+2. Run `npm run build` and `npm run export`.
+3. Publish the `out/` folder to the `gh-pages` branch.
+
+## Themes
+
+Themes live in `public/layouts/templates/`. The catalog is defined in `public/layouts/layoutsConfig.json`.
+
+## Internationalization
+
+Translations live in `public/locales/{lang}.json`. Update `getAvailableLocales()` in `src/shared/lib/i18n.tsx` when adding languages.
+
+## License
+
+MIT — see `LICENSE`.
+# git-page-link-create
+
+> Crie links permanentes para conteúdos HTML, Markdown e CSV/XLS usando um app Next.js estático.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-14.0-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+
+## Visão geral
+
+O **git-page-link-create** transforma conteúdos em arquivos JSON estáticos e gera links curtos para renderização. Tudo acontece no navegador, sem backend.
+
+## Principais recursos
+
+- Links permanentes no formato `/render/{hash}/` e `/render-all/{hash}/`
+- Suporte a **HTML**, **Markdown** e **CSV/XLS**
+- Renderização segura de HTML em iframe com sandbox
+- Temas configuráveis via JSON
+- Interface internacionalizada (pt, en, es)
+- Compatível com exportação estática do Next.js
+
+## Como funciona (resumo)
+
+1. O conteúdo é convertido para string.
+2. O conteúdo é comprimido (gzip) e recebe um hash SHA-256 (8 caracteres).
+3. O JSON é salvo em `public/data/{hash}.json`.
+4. O link curto aponta para a página de renderização.
+
+> **Importante**: a criação do arquivo JSON é manual antes do deploy. Gere o link no `/create`, copie o JSON exibido no console e salve em `public/data/{hash}.json`.
+
+## Estrutura do projeto
+
+```
+src/
+├── pages/
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   ├── index.tsx
+│   ├── create.tsx
+│   ├── render/
+│   │   └── [hash].tsx
+│   └── render-all/
+│       └── [hash].tsx
+└── shared/
+    ├── lib/
+    │   ├── compression.ts
+    │   ├── crypto.ts
+    │   ├── download.ts
+    │   ├── i18n.tsx
+    │   └── theme.ts
+    ├── ui/
+    └── styles/
+```
+
+## Rodando localmente
+
+```bash
+npm install
+npm run dev
+```
+
+Abra `http://localhost:3000`.
+
+### Scripts úteis
+
+```bash
+npm run dev
+npm run build
+npm run export
+npm run lint
+npm run type-check
+```
+
+## Deploy no GitHub Pages (resumo)
+
+1. Ajuste `basePath` e `assetPrefix` em `next.config.js`.
+2. Faça `npm run build` e `npm run export`.
+3. Publique o conteúdo da pasta `out/` na branch `gh-pages`.
+
+## Temas
+
+Os temas ficam em `public/layouts/templates/`. O catálogo é definido em `public/layouts/layoutsConfig.json`.
+
+## Internacionalização
+
+Traduções em `public/locales/{lang}.json`. Atualize `getAvailableLocales()` em `src/shared/lib/i18n.tsx` para novos idiomas.
+
+## Licença
+
+MIT — veja `LICENSE`.
+# git-page-link-create
+
 > Transform HTML, Markdown, and CSV content into permanent, shareable links
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
