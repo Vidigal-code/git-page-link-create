@@ -173,4 +173,9 @@ export const ButtonGroup = styled.div`
   flex-wrap: wrap;
   margin-top: 16px;
   align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;

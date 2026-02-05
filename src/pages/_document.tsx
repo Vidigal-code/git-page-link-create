@@ -34,7 +34,7 @@ export default class MyDocument extends Document {
             <Html lang="pt">
                 <Head>
                     <meta charSet="utf-8" />
-                    <link rel="icon" href={withBasePath('/favicon.ico')} />
+                    <link rel="icon" href={withBasePath('/icon-site/icon.svg')} type="image/svg+xml" />
                 </Head>
                 <body>
                     <Main />

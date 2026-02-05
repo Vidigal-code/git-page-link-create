@@ -51,9 +51,10 @@ const Subtitle = styled.p`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 30px;
   margin-bottom: 30px;
+  justify-items: center;
 
   @media (max-width: 1024px) {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -69,9 +70,12 @@ const Grid = styled.div`
 
 const FeatureCard = styled(Card)`
   text-align: center;
+  width: 100%;
+  max-width: 340px;
 
   @media (max-width: 768px) {
     padding: 20px;
+    max-width: 100%;
   }
 `;
 
@@ -199,6 +203,12 @@ export default function Home() {
             <FeatureTitle>{t('home.csv')}</FeatureTitle>
             <FeatureDescription>{t('home.csvDesc')}</FeatureDescription>
           </FeatureCard>
+
+          <FeatureCard>
+            <FeatureIcon>🔳</FeatureIcon>
+            <FeatureTitle>{t('home.qrTitle')}</FeatureTitle>
+            <FeatureDescription>{t('home.qrDescription')}</FeatureDescription>
+          </FeatureCard>
         </Grid>
 
         <Section>
@@ -212,6 +222,19 @@ export default function Home() {
           <Card>
             <SectionTitle>{t('home.howWorks')}</SectionTitle>
             <p>{t('home.howWorksDescription')}</p>
+          </Card>
+        </Section>
+
+        <Section>
+          <Card>
+            <SectionTitle>{t('home.qrHowWorksTitle')}</SectionTitle>
+            <p>{t('home.qrHowWorksDescription')}</p>
+            <List>
+              <ListItem>{t('home.qrFeatureGenerate')}</ListItem>
+              <ListItem>{t('home.qrFeatureCustomize')}</ListItem>
+              <ListItem>{t('home.qrFeatureExport')}</ListItem>
+              <ListItem>{t('home.qrFeatureRenderLink')}</ListItem>
+            </List>
           </Card>
         </Section>
 

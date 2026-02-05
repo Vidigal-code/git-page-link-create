@@ -33,6 +33,26 @@
             "mode": "light"
         },
         {
+            "id": "github-dark",
+            "name": "GitHub Dark",
+            "author": "Kauan Vidigal",
+            "file": "templates/github-dark.json",
+            "preview": "GitHub-inspired dark theme",
+            "supportsLightAndDarkModes": true,
+            "supportsLightAndDarkModesReference": "github-1-dark",
+            "mode": "dark"
+        },
+        {
+            "id": "github-light",
+            "name": "GitHub Light",
+            "author": "Kauan Vidigal",
+            "file": "templates/github-light.json",
+            "preview": "GitHub-inspired light theme",
+            "supportsLightAndDarkModes": true,
+            "supportsLightAndDarkModesReference": "github-1-light",
+            "mode": "light"
+        },
+        {
             "id": "cyberpunk-dark",
             "name": "Cyberpunk Dark",
             "author": "Kauan Vidigal",
@@ -53,5 +73,5 @@
             "mode": "light"
         }
     ],
-    "default": "matrix-dark"
+    "default": "github-dark"
 }
