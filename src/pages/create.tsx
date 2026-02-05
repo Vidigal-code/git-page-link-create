@@ -6,12 +6,13 @@ import * as XLSX from 'xlsx';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Select } from '@/shared/ui/Select';
-import { TextArea } from '@/shared/ui/Input';
+import { Input, TextArea } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/download';
 import { loadAvailableThemes, getMaxUrlLength } from '@/shared/lib/theme';
 import { withBasePath } from '@/shared/lib/basePath';
+import { generateQrCodeDataUrl, generateQrCodeSvg } from '@/shared/lib/qr';
 import {
         Container,
         SplitView,
@@ -32,6 +33,15 @@ import {
         PreviewContent,
         MarkdownPreview,
         TablePreview,
+        QrSection,
+        QrOptionsGrid,
+        QrPreview,
+        QrImage,
+        QrPlaceholder,
+        ErrorPageContainer,
+        ErrorTitle,
+        ErrorDescription,
+        ErrorHint,
 } from '@/shared/styles/pages/create.styles';
 
 type ContentType = 'html' | 'md' | 'csv' | 'xlsx';
@@ -49,6 +59,15 @@ export default function Create() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [recoveryHash, setRecoveryHash] = useState('');
+    const [qrInput, setQrInput] = useState('');
+    const [qrDataUrl, setQrDataUrl] = useState('');
+    const [qrIsProcessing, setQrIsProcessing] = useState(false);
+    const [qrHasError, setQrHasError] = useState(false);
+    const [qrSvg, setQrSvg] = useState('');
+    const [qrRenderLink, setQrRenderLink] = useState('');
+    const [qrSize, setQrSize] = useState(320);
+    const [qrMargin, setQrMargin] = useState(1);
+    const [qrCorrection, setQrCorrection] = useState<'L' | 'M' | 'Q' | 'H'>('M');
 
     useEffect(() => {
         loadAvailableThemes();
@@ -272,6 +291,131 @@ export default function Create() {
         return null;
     };
 
+    const handleGenerateQr = async () => {
+        try {
+            setQrIsProcessing(true);
+            const dataUrl = await generateQrCodeDataUrl(qrInput, {
+                width: qrSize,
+                margin: qrMargin,
+                errorCorrectionLevel: qrCorrection,
+            });
+            const svgContent = await generateQrCodeSvg(qrInput, {
+                width: qrSize,
+                margin: qrMargin,
+                errorCorrectionLevel: qrCorrection,
+            });
+            setQrDataUrl(dataUrl);
+            setQrSvg(svgContent);
+        } catch {
+            setQrHasError(true);
+        } finally {
+            setQrIsProcessing(false);
+        }
+    };
+
+    const handleClearQr = () => {
+        setQrInput('');
+        setQrDataUrl('');
+        setQrSvg('');
+        setQrRenderLink('');
+    };
+
+    const handleDownloadQr = () => {
+        if (!qrDataUrl || typeof window === 'undefined') return;
+        const link = document.createElement('a');
+        link.href = qrDataUrl;
+        link.download = 'qrcode.png';
+        link.click();
+    };
+
+    const handleCopyQrImage = async () => {
+        if (!qrDataUrl || !navigator.clipboard) return;
+        const response = await fetch(qrDataUrl);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+            new ClipboardItem({ [blob.type]: blob }),
+        ]);
+        setSuccessMessage(t('create.qrCopied'));
+    };
+
+    const handleOpenQr = async () => {
+        if (!qrDataUrl) return;
+        const response = await fetch(qrDataUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        if (!newWindow) {
+            URL.revokeObjectURL(blobUrl);
+            return;
+        }
+        newWindow.addEventListener('beforeunload', () => URL.revokeObjectURL(blobUrl));
+    };
+
+    const handleOpenQrPopup = async () => {
+        if (!qrDataUrl) return;
+        const response = await fetch(qrDataUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const size = Math.max(320, Math.min(qrSize, 800));
+        const left = window.screenX + (window.outerWidth - size) / 2;
+        const top = window.screenY + (window.outerHeight - size) / 2;
+        const popup = window.open(
+            blobUrl,
+                                '_blank',
+                                `noopener,noreferrer,width=${size},height=${size},left=${left},top=${top}`
+                        );
+        if (!popup) {
+            URL.revokeObjectURL(blobUrl);
+            return;
+        }
+        popup.addEventListener('beforeunload', () => URL.revokeObjectURL(blobUrl));
+    };
+
+    const handleDownloadQrSvg = () => {
+        if (!qrSvg) return;
+        const blob = new Blob([qrSvg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'qrcode.svg';
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleGenerateQrRenderLink = () => {
+        if (!qrDataUrl) return;
+        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;}img{max-width:90vw;max-height:90vh;}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
+        const compressed = compress(html);
+        const fullPath = withBasePath(`render?data=html-${compressed}`);
+        const baseUrl = window.location.origin;
+        setQrRenderLink(`${baseUrl}${fullPath}`);
+    };
+
+    if (qrHasError) {
+        return (
+            <>
+                <Head>
+                    <title>{t('renderError.title')} - {t('common.appName')}</title>
+                </Head>
+                <Container>
+                    <ErrorPageContainer>
+                        <ErrorTitle>{t('renderError.title')}</ErrorTitle>
+                        <ErrorDescription>{t('renderError.description')}</ErrorDescription>
+                        <ErrorHint>{t('renderError.hint')}</ErrorHint>
+                        <ButtonGroup style={{ justifyContent: 'center' }}>
+                            <Button onClick={() => setQrHasError(false)} variant="secondary">
+                                {t('notFound.goBack')}
+                            </Button>
+                            <Button onClick={() => window.location.href = '/'}>
+                                {t('notFound.backHome')}
+                            </Button>
+                        </ButtonGroup>
+                    </ErrorPageContainer>
+                </Container>
+            </>
+        );
+    }
+
     return (
         <>
             <Head>
@@ -384,6 +528,131 @@ export default function Create() {
                                         </Button>
                                     </ButtonGroup>
                                 </FormSection>
+                            </Card>
+                        </div>
+
+                        <div style={{ marginTop: '24px' }}>
+                            <Card title={t('create.qrTitle')}>
+                                <QrSection>
+                                    <TextArea
+                                        label={t('create.qrInputLabel')}
+                                        value={qrInput}
+                                        onChange={(e) => setQrInput(e.target.value)}
+                                        placeholder={t('create.qrInputPlaceholder')}
+                                        rows={3}
+                                    />
+                                    <QrOptionsGrid>
+                                        <Input
+                                            label={t('create.qrSize')}
+                                            type="number"
+                                            min={120}
+                                            max={800}
+                                            value={qrSize}
+                                            onChange={(e) => setQrSize(Number(e.target.value))}
+                                        />
+                                        <Input
+                                            label={t('create.qrMargin')}
+                                            type="number"
+                                            min={0}
+                                            max={8}
+                                            value={qrMargin}
+                                            onChange={(e) => setQrMargin(Number(e.target.value))}
+                                        />
+                                        <Select
+                                            label={t('create.qrErrorCorrection')}
+                                            value={qrCorrection}
+                                            onChange={(e) => setQrCorrection(e.target.value as 'L' | 'M' | 'Q' | 'H')}
+                                            options={[
+                                                { value: 'L', label: t('create.qrLevelL') },
+                                                { value: 'M', label: t('create.qrLevelM') },
+                                                { value: 'Q', label: t('create.qrLevelQ') },
+                                                { value: 'H', label: t('create.qrLevelH') },
+                                            ]}
+                                        />
+                                    </QrOptionsGrid>
+                                    <QrPreview>
+                                        {qrDataUrl ? (
+                                            <QrImage src={qrDataUrl} alt="QR code" />
+                                        ) : (
+                                            <QrPlaceholder>{t('create.qrHint')}</QrPlaceholder>
+                                        )}
+                                    </QrPreview>
+                                    <ButtonGroup>
+                                        <Button
+                                            onClick={handleGenerateQr}
+                                            disabled={!qrInput.trim() || qrIsProcessing}
+                                        >
+                                            {qrIsProcessing ? t('create.processing') : t('create.qrGenerate')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleDownloadQr}
+                                            variant="secondary"
+                                            disabled={!qrDataUrl}
+                                        >
+                                            {t('create.qrDownload')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleDownloadQrSvg}
+                                            variant="secondary"
+                                            disabled={!qrSvg}
+                                        >
+                                            {t('create.qrDownloadSvg')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleOpenQr}
+                                            variant="secondary"
+                                            disabled={!qrDataUrl}
+                                        >
+                                            {t('create.qrOpen')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleOpenQrPopup}
+                                            variant="secondary"
+                                            disabled={!qrDataUrl}
+                                        >
+                                            {t('create.qrPopup')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleCopyQrImage}
+                                            variant="secondary"
+                                            disabled={!qrDataUrl}
+                                        >
+                                            {t('create.qrCopy')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleGenerateQrRenderLink}
+                                            variant="secondary"
+                                            disabled={!qrDataUrl}
+                                        >
+                                            {t('create.qrRenderLink')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleClearQr}
+                                            variant="secondary"
+                                            disabled={!qrInput && !qrDataUrl}
+                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
+                                        >
+                                            {t('create.qrClear')}
+                                        </Button>
+                                    </ButtonGroup>
+                                    {qrRenderLink && (
+                                        <ResultSection>
+                                            <p><strong>{t('create.qrRenderLinkTitle')}:</strong></p>
+                                            <LinkDisplay>{qrRenderLink}</LinkDisplay>
+                                            <ButtonGroup>
+                                                <Button onClick={() => handleCopyLink(qrRenderLink)}>
+                                                    {t('create.copyLink')}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => window.open(qrRenderLink, '_blank')}
+                                                    variant="secondary"
+                                                >
+                                                    {t('create.openLink')}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </ResultSection>
+                                    )}
+                                </QrSection>
                             </Card>
                         </div>
 

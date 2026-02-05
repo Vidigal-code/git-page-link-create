@@ -226,3 +226,64 @@ export const TablePreview = styled.table`
     background-color: ${({ theme }) => theme.colors.background};
   }
 `;
+
+export const QrSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const QrOptionsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+`;
+
+export const QrPreview = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border: 2px dashed ${({ theme }) => theme.colors.cardBorder || theme.colors.primary};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  min-height: 220px;
+`;
+
+export const QrImage = styled.img`
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+`;
+
+export const QrPlaceholder = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
+export const ErrorPageContainer = styled.div`
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+`;
+
+export const ErrorTitle = styled.h1`
+  font-size: ${({ theme }) => theme.typography.fontSize.xlarge};
+  color: ${({ theme }) => theme.colors.error};
+  margin-bottom: 16px;
+`;
+
+export const ErrorDescription = styled.p`
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: 12px;
+`;
+
+export const ErrorHint = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-style: italic;
+  margin-bottom: 24px;
+`;
