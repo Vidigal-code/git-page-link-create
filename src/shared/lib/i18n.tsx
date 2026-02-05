@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { withBasePath } from './basePath';
 
 type Locale = 'pt' | 'en' | 'es';
 
@@ -27,7 +28,9 @@ async function loadTranslations(locale: Locale): Promise<Translations> {
     }
 
     try {
-        const response = await fetch(`/locales/${locale}.json`);
+        const url = withBasePath(`/locales/${locale}.json`);
+        console.log(`[i18n] Fetching from: ${url}`);
+        const response = await fetch(url);
         const translations = await response.json();
         cachedTranslations[locale] = translations;
         return translations;

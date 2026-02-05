@@ -1,5 +1,6 @@
 import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
 import { ServerStyleSheet } from 'styled-components';
+import { withBasePath } from '@/shared/lib/basePath';
 
 export default class MyDocument extends Document {
     static async getInitialProps(ctx: DocumentContext) {
@@ -33,7 +34,7 @@ export default class MyDocument extends Document {
             <Html lang="pt">
                 <Head>
                     <meta charSet="utf-8" />
-                    <link rel="icon" href="/favicon.ico" />
+                    <link rel="icon" href={withBasePath('/favicon.ico')} />
                 </Head>
                 <body>
                     <Main />

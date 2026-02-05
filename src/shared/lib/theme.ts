@@ -1,4 +1,5 @@
 import { Theme } from '../styles/theme.d';
+import { withBasePath } from './basePath';
 
 const STORAGE_KEY = 'git-page-link-create-theme';
 const DEFAULT_THEME_ID = 'matrix-dark';
@@ -25,7 +26,9 @@ export async function loadAvailableThemes(): Promise<typeof availableThemes> {
     }
 
     try {
-        const response = await fetch('/layouts/layoutsConfig.json');
+        const url = withBasePath('/layouts/layoutsConfig.json');
+        console.log(`[Theme] Fetching config from: ${url}`);
+        const response = await fetch(url);
         const data = await response.json();
         availableThemes = data.layouts || [];
         hideThemeSelector = data.HideThemeSelector || false;
@@ -53,9 +56,10 @@ export async function loadTheme(themeId: string): Promise<Theme> {
 
         const themeInfo = availableThemes.find(t => t.id === themeId);
         const url = themeInfo?.file
-            ? `/layouts/${themeInfo.file}`
-            : `/layouts/templates/${themeId}.json`;
+            ? withBasePath(`/layouts/${themeInfo.file}`)
+            : withBasePath(`/layouts/templates/${themeId}.json`);
 
+        console.log(`[Theme] Fetching from: ${url}`);
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

@@ -157,7 +157,7 @@ Themes can support both light and dark modes using the `supportsLightAndDarkMode
 
 ### Theme Structure
 
-Themes are defined in `public/layouts/{theme-id}.json`:
+Themes are defined in `public/layouts/templates/{theme-id}.json`:
 
 ```json
 {
@@ -246,10 +246,10 @@ git clone https://github.com/Vidigal-code/git-page-link-create.git
 cd git-page-link-create
 ```
 
-2. Create a new theme file in `public/layouts/`:
+2. Create a new theme file in `public/layouts/templates/`:
 ```bash
 # Example: Cyberpunk theme
-touch public/layouts/cyberpunk.json
+touch public/layouts/templates/cyberpunk.json
 ```
 
 3. Define your theme using the Matrix theme as a template:
@@ -317,7 +317,7 @@ touch public/layouts/cyberpunk.json
 
 ### Step 2: Register Your Theme
 
-Add your theme to `public/layouts/layouts.json`:
+Add your theme to `public/layouts/layoutsConfig.json`:
 
 ```json
 {
@@ -326,14 +326,14 @@ Add your theme to `public/layouts/layouts.json`:
       "id": "matrix",
       "name": "Matrix Theme",
       "author": "Kauan Vidigal",
-      "file": "matrix.json",
+      "file": "templates/matrix.json",
       "preview": "Dark theme with neon green accents inspired by The Matrix"
     },
     {
       "id": "cyberpunk",
       "name": "Cyberpunk 2077",
       "author": "Your Name",
-      "file": "cyberpunk.json",
+      "file": "templates/cyberpunk.json",
       "preview": "Futuristic theme with pink and cyan neon colors"
     }
   ],
@@ -368,7 +368,7 @@ Before submitting a Pull Request, ensure:
 
 ```bash
 git checkout -b theme/cyberpunk
-git add public/layouts/cyberpunk.json public/layouts/layouts.json
+git add public/layouts/templates/cyberpunk.json public/layouts/layoutsConfig.json
 git commit -m "Add Cyberpunk 2077 theme"
 git push origin theme/cyberpunk
 ```
@@ -400,14 +400,16 @@ src/
 │   ├── _document.tsx  # SSR document
 │   ├── index.tsx      # Home page
 │   ├── create.tsx     # Create page
-│   └── render/
-│       └── [hash].tsx # Render page
+│   ├── render/
+│   │   └── [hash].tsx # Render page
+│   └── render-all/
+│       └── [hash].tsx # Full-width render page
 ├── shared/            # Shared resources
 │   ├── lib/          # Utilities
 │   │   ├── compression.ts
 │   │   ├── crypto.ts
 │   │   ├── download.ts
-│   │   ├── i18n.ts
+│   │   ├── i18n.tsx
 │   │   └── theme.ts
 │   ├── ui/           # UI components
 │   │   ├── Button/
@@ -420,16 +422,12 @@ src/
 │   └── styles/       # Global styles
 │       ├── GlobalStyle.ts
 │       └── theme.d.ts
-├── features/         # Feature modules
-└── widgets/          # Complex UI blocks
 ```
 
 ### Layer Responsibilities
 
 - **Pages**: Routing and page composition
 - **Shared**: Reusable utilities and components
-- **Features**: Business logic and feature-specific components
-- **Widgets**: Complex, composed UI blocks
 
 ## 🛠️ Tech Stack
 
@@ -619,7 +617,7 @@ The app supports three languages:
 ### Adding New Languages
 
 1. Create translation file in `public/locales/{lang}.json`
-2. Update `getAvailableLocales()` in `src/shared/lib/i18n.ts`
+2. Update `getAvailableLocales()` in `src/shared/lib/i18n.tsx`
 3. Add language option to header selector
 
 Translation files follow this structure:

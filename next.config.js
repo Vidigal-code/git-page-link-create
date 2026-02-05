@@ -18,6 +18,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: '/git-page-link-create',
+  },
 }
 
 module.exports = nextConfig

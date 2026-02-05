@@ -13,6 +13,7 @@ import { compress, compressBytes, decompress, decompressBytes } from '@/shared/l
 import { generateHash } from '@/shared/lib/crypto';
 import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/download';
 import { loadAvailableThemes, getMaxUrlLength } from '@/shared/lib/theme';
+import { withBasePath } from '@/shared/lib/basePath';
 
 const Container = styled.div`
   max-width: 1600px;
@@ -360,12 +361,13 @@ export default function Create() {
             ? compress(targetContent)
             : compressBytes(targetContent);
 
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        if (typeof window === 'undefined') return '';
 
-        // Use render-all for full link, standard render for normal link
-        const path = isFull ? 'render-all' : 'render';
-        return `${baseUrl}/${path}/${type}-${compressed}`;
-    }
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`${isFull ? 'render-all' : 'render'}/${type}-${compressed}`);
+
+        return `${baseUrl}${fullPath}`;
+    };
 
     const handleGenerateLink = async () => {
         if (content.length === 0) {
