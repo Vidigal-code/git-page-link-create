@@ -19,15 +19,6 @@
 - Internationalization (pt, en, es)
 - Compatible with Next.js static export
 
-## How it works (short)
-
-1. Content is normalized to a string.
-2. Content is compressed (gzip) and hashed with SHA-256 (8 chars).
-3. JSON is saved to `public/data/{hash}.json`.
-4. A short render link is generated.
-
-> **Important**: JSON file creation is manual before deploy. Generate the link on `/create`, copy the JSON from the browser console, and save it to `public/data/{hash}.json`.
-
 ## Project structure
 
 ```
