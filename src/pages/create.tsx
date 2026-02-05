@@ -32,7 +32,7 @@ import {
         PreviewContent,
         MarkdownPreview,
         TablePreview,
-} from './styleds/create.styles';
+} from '@/shared/styles/pages/create.styles';
 
 type ContentType = 'html' | 'md' | 'csv' | 'xlsx';
 

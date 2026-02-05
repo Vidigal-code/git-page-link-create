@@ -22,7 +22,7 @@ import {
         ErrorTitle,
         ErrorDescription,
         ButtonGroup,
-} from './styleds';
+} from '@/shared/styles/pages/render.styles';
 
 type TableCell = string | number | null;
 type TableData = TableCell[][];

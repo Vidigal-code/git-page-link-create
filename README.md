@@ -8,6 +8,95 @@
 
 ## Overview
 
+**git-page-link-create** generates short links that render content directly in the browser with no backend.
+
+## Key features
+
+- Permanent links: `/render?data={hash}` and `/render-all?data={hash}`
+- Supports **HTML**, **Markdown**, and **CSV/XLS**
+- Secure HTML rendering via sandboxed iframe
+- Theme system via JSON
+- Internationalization (pt, en, es)
+- Compatible with Next.js static export
+
+## Project structure
+
+```
+src/
+├── pages/
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   ├── index.tsx
+│   ├── create.tsx
+│   ├── render/
+│   │   ├── [hash].tsx
+│   │   └── index.tsx
+│   └── render-all/
+│       ├── [hash].tsx
+│       └── index.tsx
+└── shared/
+    ├── lib/
+    │   ├── compression.ts
+    │   ├── crypto.ts
+    │   ├── download.ts
+    │   ├── i18n.tsx
+    │   └── theme.ts
+    ├── styles/
+    │   ├── GlobalStyle.ts
+    │   ├── theme.d.ts
+    │   └── pages/
+    │       ├── create.styles.ts
+    │       ├── render.styles.ts
+    │       └── render-all.styles.ts
+    └── ui/
+```
+
+## Running locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+### Useful scripts
+
+```bash
+npm run dev
+npm run build
+npm run export
+npm run lint
+npm run type-check
+```
+
+## GitHub Pages deployment (short)
+
+1. Set `basePath` and `assetPrefix` in `next.config.js`.
+2. Run `npm run build` and `npm run export`.
+3. Publish the `out/` folder to the `gh-pages` branch.
+
+## Themes
+
+Themes live in `public/layouts/templates/`. The catalog is defined in `public/layouts/layoutsConfig.json`.
+
+## Internationalization
+
+Translations live in `public/locales/{lang}.json`. Update `getAvailableLocales()` in `src/shared/lib/i18n.tsx` when adding languages.
+
+## License
+
+MIT — see `LICENSE`.
+# git-page-link-create
+
+> Create permanent links for HTML, Markdown, and CSV/XLS content using a static Next.js app.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-14.0-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+
+## Overview
+
 **git-page-link-create** turns content into static JSON files and generates short links to render them. Everything runs in the browser—no backend required.
 
 ## Key features

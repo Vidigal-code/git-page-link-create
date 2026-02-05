@@ -14,6 +14,7 @@ export const Button: React.FC<ButtonProps> = ({
     ...props
 }) => {
     const Component = variant === 'secondary' ? SecondaryButton : StyledButton;
+    const PolymorphicComponent = Component as any;
 
-    return <Component as={as} {...props}>{children}</Component>;
+    return <PolymorphicComponent as={as} {...props}>{children}</PolymorphicComponent>;
 };

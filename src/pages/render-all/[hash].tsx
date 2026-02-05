@@ -20,7 +20,7 @@ import {
     ErrorContainer,
     ErrorTitle,
     ErrorDescription,
-} from './styleds';
+} from '@/shared/styles/pages/render-all.styles';
 
 export default function RenderAll() {
     const router = useRouter();
