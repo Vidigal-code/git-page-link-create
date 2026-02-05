@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import styled from 'styled-components';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
+import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
 
 const Container = styled.div`
   display: flex;
@@ -38,6 +40,34 @@ const ButtonGroup = styled.div`
 
 export default function Custom404() {
     const { t } = useI18n();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const normalizedBase = BASE_PATH.startsWith('/') ? BASE_PATH : `/${BASE_PATH}`;
+    const cleanBase = normalizedBase.endsWith('/') ? normalizedBase.slice(0, -1) : normalizedBase;
+    let path = window.location.pathname;
+
+    if (cleanBase && path.startsWith(cleanBase)) {
+      path = path.slice(cleanBase.length);
+    }
+
+    if (!path.startsWith('/')) {
+      path = `/${path}`;
+    }
+
+    const isRenderAll = path.startsWith('/render-all/');
+    const isRender = path.startsWith('/render/');
+    const prefix = isRenderAll ? '/render-all/' : isRender ? '/render/' : '';
+
+    if (!prefix) return;
+
+    const slug = path.slice(prefix.length).replace(/\/$/, '');
+    if (!slug) return;
+
+    const target = withBasePath(`${isRenderAll ? 'render-all' : 'render'}?data=${slug}`);
+    window.location.replace(target);
+  }, []);
 
     return (
         <Container>

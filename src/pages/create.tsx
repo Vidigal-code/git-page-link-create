@@ -363,8 +363,8 @@ export default function Create() {
 
         if (typeof window === 'undefined') return '';
 
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`${isFull ? 'render-all' : 'render'}/${type}-${compressed}`);
+    const baseUrl = window.location.origin;
+    const fullPath = withBasePath(`${isFull ? 'render-all' : 'render'}?data=${type}-${compressed}`);
 
         return `${baseUrl}${fullPath}`;
     };

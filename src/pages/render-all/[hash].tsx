@@ -222,7 +222,7 @@ const ErrorDescription = styled.p`
 
 export default function RenderAll() {
     const router = useRouter();
-    const { hash } = router.query;
+  const { hash, data } = router.query;
     const { t } = useI18n();
 
     const [content, setContent] = useState<string | Uint8Array>('');
@@ -230,10 +230,16 @@ export default function RenderAll() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
 
-    useEffect(() => {
-        if (!hash || typeof hash !== 'string') return;
+  const resolvedHash = typeof hash === 'string'
+    ? hash
+    : typeof data === 'string'
+      ? data
+      : '';
 
-        const separatorIndex = hash.indexOf('-');
+  useEffect(() => {
+    if (!resolvedHash) return;
+
+  const separatorIndex = resolvedHash.indexOf('-');
 
         if (separatorIndex === -1) {
             setError(true);
@@ -241,8 +247,8 @@ export default function RenderAll() {
             return;
         }
 
-        const type = hash.substring(0, separatorIndex);
-        const compressedContent = hash.substring(separatorIndex + 1);
+  const type = resolvedHash.substring(0, separatorIndex);
+  const compressedContent = resolvedHash.substring(separatorIndex + 1);
 
         try {
             if (type === 'xlsx') {
@@ -259,7 +265,7 @@ export default function RenderAll() {
             setError(true);
             setIsLoading(false);
         }
-    }, [hash]);
+  }, [resolvedHash]);
 
     if (isLoading) return <LoadingContainer>{t('create.processing')}</LoadingContainer>; // reusing processing string or similar
 

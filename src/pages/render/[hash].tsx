@@ -196,7 +196,7 @@ interface ContentData {
 
 export default function Render() {
     const router = useRouter();
-    const { hash } = router.query;
+    const { hash, data } = router.query;
     const { t } = useI18n();
 
     const [content, setContent] = useState<string | Uint8Array>('');
@@ -204,11 +204,17 @@ export default function Render() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
 
+    const resolvedHash = typeof hash === 'string'
+        ? hash
+        : typeof data === 'string'
+            ? data
+            : '';
+
     useEffect(() => {
-        if (!hash || typeof hash !== 'string') return;
+        if (!resolvedHash) return;
 
         // The hash format is now: [type]-[compressed_content]
-        const separatorIndex = hash.indexOf('-');
+    const separatorIndex = resolvedHash.indexOf('-');
 
         if (separatorIndex === -1) {
             // Fallback for old style or invalid links
@@ -217,8 +223,8 @@ export default function Render() {
             return;
         }
 
-        const type = hash.substring(0, separatorIndex);
-        const compressedContent = hash.substring(separatorIndex + 1);
+    const type = resolvedHash.substring(0, separatorIndex);
+    const compressedContent = resolvedHash.substring(separatorIndex + 1);
 
         try {
             if (type === 'xlsx') {
@@ -234,7 +240,7 @@ export default function Render() {
             setError(true);
             setIsLoading(false);
         }
-    }, [hash]);
+    }, [resolvedHash]);
 
     const handleDownloadOriginal = () => {
         if (!content || !contentType) return;
