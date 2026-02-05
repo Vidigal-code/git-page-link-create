@@ -1,0 +1,90 @@
+{
+    "common": {
+        "appName": "git-page-link-create",
+        "language": "Idioma",
+        "theme": "Tema"
+    },
+    "langmenu": {
+        "pt": "Português",
+        "en": "Inglês",
+        "es": "Espanhol"
+    },
+    "home": {
+        "navTitle": "Início",
+        "title": "Crie e Compartilhe Conteúdo Estático",
+        "subtitle": "Transforme HTML, Markdown, CSV e arquivos Excel em links permanentes e compartilháveis",
+        "whatIs": "O que é?",
+        "whatIsDescription": "Uma aplicação estática poderosa que permite criar páginas e arquivos compartilháveis via link. Seu conteúdo é comprimido e codificado na própria URL, tornando-o acessível de qualquer dispositivo sem necessidade de banco de dados ou armazenamento em servidor. Recursos incluem preview ao vivo, recuperação de conteúdo, personalização de temas e renderização segura.",
+        "howWorks": "Como funciona?",
+        "howWorksDescription": "Seu conteúdo é comprimido usando algoritmos avançados e codificado diretamente na URL. A aplicação suporta múltiplos modos de renderização: visualização padrão com cabeçalho/rodapé, ou modo tela cheia para exibição imersiva. Todo conteúdo HTML é renderizado com segurança em iframes isolados, e você pode baixar os arquivos originais a qualquer momento.",
+        "supportedTypes": "Tipos Suportados",
+        "html": "HTML",
+        "htmlDesc": "Páginas web completas com renderização segura em iframe, links clicáveis e modo tela cheia opcional",
+        "markdown": "Markdown",
+        "markdownDesc": "Documentos formatados com renderização adaptada ao tema e destaque de sintaxe",
+        "csv": "CSV / Excel",
+        "csvDesc": "Planilhas (CSV e XLSX) convertidas em tabelas interativas e ordenáveis",
+        "limits": "Limites Recomendados",
+        "limitsDescription": "Para desempenho e experiência ideais:",
+        "htmlLimit": "HTML: até 200-300 KB",
+        "markdownLimit": "Markdown: até 100-200 KB",
+        "csvLimit": "CSV/Excel: até 100-150 KB",
+        "limitsNote": "Arquivos maiores funcionam, mas podem gerar URLs mais longas e impactar o tempo de carregamento.",
+        "useCases": "Casos de Uso",
+        "portfolio": "Portfólios de projetos interativos com demos ao vivo",
+        "showcase": "Showcase de trabalhos com modo de apresentação em tela cheia",
+        "sharing": "Compartilhamento rápido de documentos formatados e tabelas de dados",
+        "getStarted": "Começar Agora"
+    },
+    "create": {
+        "navTitle": "Criar",
+        "title": "Criar Novo Link",
+        "selectType": "Selecione o tipo de conteúdo",
+        "pasteContent": "Cole o conteúdo",
+        "uploadFile": "Ou faça upload de um arquivo",
+        "clearContent": "Limpar Conteúdo",
+        "fullScreenOption": "Gerar Link Tela Cheia (Ocultar Cabeçalho/Rodapé)",
+        "preview": "Visualizar",
+        "generateFullLink": "Gerar Link Tela Cheia",
+        "generateLink": "Gerar Link",
+        "generatedLink": "Link Gerado",
+        "copyLink": "Copiar Link",
+        "downloadOriginal": "Baixar Arquivo Original",
+        "linkCopied": "Link copiado!",
+        "linkGenerated": "Link gerado!",
+        "error": "Erro ao gerar link",
+        "emptyContent": "Por favor, insira algum conteúdo",
+        "urlTooLong": "O conteúdo é muito grande para gerar um link seguro (limite excedido). Tente reduzir o tamanho.",
+        "processing": "Processando...",
+        "recoveryTitle": "Recuperar de Hash",
+        "pasteHash": "Cole o código do link aqui (ex: md-H4s...)",
+        "recoverButton": "Recuperar Arquivo",
+        "clearHash": "Limpar",
+        "invalidHash": "Formato de hash inválido",
+        "recoverySuccess": "Conteúdo recuperado com sucesso!",
+        "openLink": "Abrir Link"
+    },
+    "render": {
+        "title": "Visualizar Conteúdo",
+        "downloadOriginal": "Baixar Arquivo Original",
+        "notFound": "Conteúdo não encontrado",
+        "notFoundDescription": "O hash fornecido não corresponde a nenhum conteúdo armazenado.",
+        "backHome": "Voltar para Home",
+        "error": "Erro ao carregar conteúdo"
+    },
+    "notFound": {
+        "title": "Página Não Encontrada",
+        "description": "A página que você está procurando não existe.",
+        "backHome": "Voltar para Início",
+        "goBack": "Voltar"
+    },
+    "renderError": {
+        "title": "Erro ao Processar Arquivo",
+        "description": "O conteúdo do arquivo parece estar corrompido ou em um formato inválido.",
+        "hint": "Geralmente isso acontece quando o tipo de arquivo errado foi selecionado durante a criação."
+    },
+    "footer": {
+        "createdBy": "Criado por:",
+        "github": "GitHub:"
+    }
+}

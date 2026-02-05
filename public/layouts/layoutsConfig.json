@@ -1,0 +1,56 @@
+{
+    "HideThemeSelector": false,
+    "MaxUrlLength": 2000000,
+    "layouts": [
+        {
+            "id": "matrix-dark",
+            "name": "Matrix Dark",
+            "author": "Kauan Vidigal",
+            "file": "templates/matrix-dark.json",
+            "preview": "Dark theme with neon green accents inspired by The Matrix",
+            "supportsLightAndDarkModes": true,
+            "supportsLightAndDarkModesReference": "matrix-1-dark",
+            "mode": "dark"
+        },
+        {
+            "id": "matrix-light",
+            "name": "Matrix Light",
+            "author": "Kauan Vidigal",
+            "file": "templates/matrix-light.json",
+            "preview": "Light theme with green accents inspired by The Matrix",
+            "supportsLightAndDarkModes": true,
+            "supportsLightAndDarkModesReference": "matrix-1-light",
+            "mode": "light"
+        },
+        {
+            "id": "default",
+            "name": "Default Theme",
+            "author": "Kauan Vidigal",
+            "file": "templates/default.json",
+            "preview": "Clean and minimal default theme",
+            "supportsLightAndDarkModes": false,
+            "mode": "light"
+        },
+        {
+            "id": "cyberpunk-dark",
+            "name": "Cyberpunk Dark",
+            "author": "Kauan Vidigal",
+            "file": "templates/cyberpunk-dark.json",
+            "preview": "Futuristic dark theme with neon pink and cyan accents",
+            "supportsLightAndDarkModes": true,
+            "supportsLightAndDarkModesReference": "cyberpunk-1-dark",
+            "mode": "dark"
+        },
+        {
+            "id": "cyberpunk-light",
+            "name": "Cyberpunk Light",
+            "author": "Kauan Vidigal",
+            "file": "templates/cyberpunk-light.json",
+            "preview": "Futuristic light theme with bright pink and cyan accents",
+            "supportsLightAndDarkModes": true,
+            "supportsLightAndDarkModesReference": "cyberpunk-1-light",
+            "mode": "light"
+        }
+    ],
+    "default": "matrix-dark"
+}

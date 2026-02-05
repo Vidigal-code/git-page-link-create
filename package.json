@@ -1,0 +1,39 @@
+{
+  "name": "git-page-link-create",
+  "version": "1.0.0",
+  "description": "Static application for creating shareable links to HTML, Markdown, and CSV/XLS content",
+  "author": "Kauan Vidigal <@Vidigal-code>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "export": "next export",
+    "deploy": "next build && next export",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "marked": "^11.1.1",
+    "next": "^14.0.4",
+    "pako": "^2.1.0",
+    "papaparse": "^5.4.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "styled-components": "^6.1.8",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/pako": "^2.0.3",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "babel-plugin-styled-components": "^2.1.4",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "typescript": "^5.3.3"
+  }
+}

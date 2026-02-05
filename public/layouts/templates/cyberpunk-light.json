@@ -1,0 +1,105 @@
+{
+    "id": "cyberpunk-light",
+    "name": "Cyberpunk Light",
+    "author": "Kauan Vidigal",
+    "version": "1.0.0",
+    "mode": "light",
+    "supportsLightAndDarkModes": true,
+    "colors": {
+        "background": "#f0f0ff",
+        "primary": "#d6006e",
+        "secondary": "#00c5d4",
+        "text": "#1a1a2e",
+        "textSecondary": "#4a4a6a",
+        "cardBackground": "#ffffff",
+        "cardBorder": "#d6006e",
+        "error": "#e63366",
+        "success": "#00d98f"
+    },
+    "typography": {
+        "fontFamily": "'Orbitron', 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "fontSize": {
+            "small": "0.875rem",
+            "base": "1rem",
+            "medium": "1.125rem",
+            "large": "1.25rem",
+            "xlarge": "2rem"
+        }
+    },
+    "components": {
+        "header": {
+            "height": "80px",
+            "backgroundColor": "#ffffff",
+            "borderBottom": "2px solid #d6006e"
+        },
+        "footer": {
+            "height": "60px",
+            "backgroundColor": "#ffffff",
+            "borderTop": "2px solid #d6006e"
+        },
+        "card": {
+            "borderRadius": "4px",
+            "padding": "24px",
+            "boxShadow": "0 0 15px rgba(214, 0, 110, 0.2), 0 0 30px rgba(0, 197, 212, 0.15)"
+        },
+        "button": {
+            "borderRadius": "2px",
+            "padding": "12px 24px",
+            "border": "2px solid #d6006e",
+            "hoverGlow": "0 0 15px rgba(214, 0, 110, 0.5)"
+        },
+        "select": {
+            "borderRadius": "2px",
+            "padding": "10px 40px 10px 16px",
+            "border": "2px solid #d6006e",
+            "backgroundColor": "#ffffff",
+            "textAlign": "center",
+            "iconColor": "#00c5d4",
+            "hoverBorderColor": "#00c5d4",
+            "focusBorderColor": "#00c5d4",
+            "focusGlow": "0 0 10px rgba(0, 197, 212, 0.4)"
+        },
+        "checkbox": {
+            "width": "20px",
+            "height": "20px",
+            "accentColor": "#d6006e",
+            "borderColor": "#d6006e",
+            "hoverBorderColor": "#00c5d4",
+            "checkMarkColor": "#ffffff",
+            "borderRadius": "2px"
+        },
+        "headerControls": {
+            "common": {
+                "height": "42px",
+                "padding": "0 16px",
+                "borderRadius": "2px",
+                "border": "2px solid #d6006e",
+                "backgroundColor": "#ffffff",
+                "fontSize": "0.9rem",
+                "fontWeight": "600",
+                "hoverBorderColor": "#00c5d4",
+                "focusBorderColor": "#00c5d4"
+            },
+            "homeButton": {
+                "width": "80px"
+            },
+            "createButton": {
+                "width": "80px"
+            },
+            "languageSelect": {
+                "width": "130px"
+            },
+            "themeSelect": {
+                "width": "150px"
+            },
+            "modeToggle": {
+                "width": "42px"
+            }
+        }
+    },
+    "animations": {
+        "enableTypingEffect": false,
+        "enableGlow": true,
+        "transitionDuration": "0.3s"
+    }
+}

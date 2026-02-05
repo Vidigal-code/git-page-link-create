@@ -1,0 +1,90 @@
+{
+    "common": {
+        "appName": "git-page-link-create",
+        "language": "Language",
+        "theme": "Theme"
+    },
+    "langmenu": {
+        "pt": "Portuguese",
+        "en": "English",
+        "es": "Spanish"
+    },
+    "home": {
+        "navTitle": "Home",
+        "title": "Create and Share Static Content",
+        "subtitle": "Transform HTML, Markdown, CSV and Excel files into permanent, shareable links",
+        "whatIs": "What is it?",
+        "whatIsDescription": "A powerful static application that allows you to create shareable pages and files via link. Your content is compressed and encoded into the URL itself, making it accessible from any device without requiring a database or server storage. Features include live preview, content recovery, theme customization, and secure rendering.",
+        "howWorks": "How does it work?",
+        "howWorksDescription": "Your content is compressed using advanced algorithms and encoded directly into the URL. The application supports multiple rendering modes: standard view with header/footer, or full-screen mode for immersive content display. All HTML content is rendered securely in sandboxed iframes, and you can download the original files at any time.",
+        "supportedTypes": "Supported Types",
+        "html": "HTML",
+        "htmlDesc": "Complete web pages with secure iframe rendering, clickable links, and optional full-screen mode",
+        "markdown": "Markdown",
+        "markdownDesc": "Formatted documents with theme-aware rendering and syntax highlighting",
+        "csv": "CSV / Excel",
+        "csvDesc": "Spreadsheets (CSV and XLSX) converted to interactive, sortable tables",
+        "limits": "Recommended Limits",
+        "limitsDescription": "For optimal performance and user experience:",
+        "htmlLimit": "HTML: up to 200-300 KB",
+        "markdownLimit": "Markdown: up to 100-200 KB",
+        "csvLimit": "CSV/Excel: up to 100-150 KB",
+        "limitsNote": "Larger files work, but may generate longer URLs and impact loading time.",
+        "useCases": "Use Cases",
+        "portfolio": "Interactive project portfolios with live demos",
+        "showcase": "Work showcase with full-screen presentation mode",
+        "sharing": "Quick sharing of formatted documents and data tables",
+        "getStarted": "Get Started"
+    },
+    "create": {
+        "navTitle": "Create",
+        "title": "Create New Link",
+        "selectType": "Select content type",
+        "pasteContent": "Paste content",
+        "uploadFile": "Or upload a file",
+        "clearContent": "Clear Content",
+        "fullScreenOption": "Generate Full Screen Link (Hide Header/Footer)",
+        "preview": "Preview",
+        "generateFullLink": "Generate Full Screen Link",
+        "generateLink": "Generate Link",
+        "generatedLink": "Generated Link",
+        "copyLink": "Copy Link",
+        "downloadOriginal": "Download Original File",
+        "linkCopied": "Link copied!",
+        "linkGenerated": "Link generated!",
+        "error": "Error generating link",
+        "emptyContent": "Please enter some content",
+        "urlTooLong": "Content is too large to generate a safe link (limit exceeded). Try reducing the size.",
+        "processing": "Processing...",
+        "recoveryTitle": "Recover from Hash",
+        "pasteHash": "Paste the full link code here (e.g., md-H4s...)",
+        "recoverButton": "Recover File",
+        "clearHash": "Clear",
+        "invalidHash": "Invalid hash format",
+        "recoverySuccess": "Content recovered successfully!",
+        "openLink": "Open Link"
+    },
+    "render": {
+        "title": "View Content",
+        "downloadOriginal": "Download Original File",
+        "notFound": "Content not found",
+        "notFoundDescription": "The provided hash does not match any stored content.",
+        "backHome": "Back to Home",
+        "error": "Error loading content"
+    },
+    "notFound": {
+        "title": "Page Not Found",
+        "description": "The page you are looking for does not exist.",
+        "backHome": "Back to Home",
+        "goBack": "Go Back"
+    },
+    "renderError": {
+        "title": "Error Processing File",
+        "description": "The file content appears to be corrupted or in an invalid format.",
+        "hint": "Usually this happens when the wrong file type was selected during creation."
+    },
+    "footer": {
+        "createdBy": "Created by:",
+        "github": "GitHub:"
+    }
+}
