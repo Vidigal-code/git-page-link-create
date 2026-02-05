@@ -6,8 +6,8 @@ const nextConfig = {
     styledComponents: true,
   },
   // Configure for GitHub Pages deployment
-  basePath: '/git-page-create-link',
-  assetPrefix: '/git-page-create-link/',
+  basePath: '/git-page-link-create',
+  assetPrefix: '/git-page-link-create/',
   trailingSlash: true,
   images: {
     unoptimized: true, // Required for static export
