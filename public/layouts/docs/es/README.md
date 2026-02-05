@@ -1,3 +1,47 @@
+# Layouts y Temas
+
+Esta carpeta guarda la configuración de temas y los archivos de plantilla usados por la app.
+
+## Archivos
+
+- `public/layouts/layoutsConfig.json` — catálogo de temas y límites globales
+- `public/layouts/templates/*.json` — definiciones de tema
+
+## `layoutsConfig.json`
+
+**Campos principales**
+
+- `HideThemeSelector` (boolean) — oculta el selector de tema en el encabezado
+- `MaxUrlLength` (number) — longitud máxima permitida para URLs
+- `default` (string) — id del tema por defecto
+- `layouts` (array) — lista de temas disponibles
+
+**Campos de cada tema**
+
+- `id` (string)
+- `name` (string)
+- `author` (string)
+- `file` (string) — ruta relativa a `public/layouts`
+- `preview` (string)
+- `supportsLightAndDarkModes` (boolean)
+- `supportsLightAndDarkModesReference` (string, opcional) — para emparejar temas claro/oscuro
+- `mode` (`"light"` | `"dark"`)
+
+## Estructura del JSON de tema (templates)
+
+Cada archivo en `public/layouts/templates/` sigue esta forma:
+
+- **Metadatos**: `id`, `name`, `author`, `version`, `mode`, `supportsLightAndDarkModes`
+- **colors**: `background`, `primary`, `secondary`, `text`, `textSecondary`, `cardBackground`, `cardBorder`, `error`, `success`
+- **typography**: `fontFamily`, `fontSize` (`small`, `base`, `medium`, `large`, `xlarge`)
+- **components**: `header`, `footer`, `card`, `button`, `select`, `checkbox`, `headerControls`
+- **animations**: `enableTypingEffect`, `enableGlow`, `transitionDuration`
+
+## Añadir un tema
+
+1. Crea un JSON en `public/layouts/templates/`.
+2. Regístralo en `layoutsConfig.json` dentro de `layouts`.
+3. Recarga la app y selecciona el tema.
 # Configuración de Diseños (Layouts)
 
 Este directorio contiene los archivos de configuración y plantillas para los temas y diseños de la aplicación.

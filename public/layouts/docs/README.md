@@ -1,3 +1,47 @@
+# Layouts & Themes
+
+This folder stores the theme configuration and template files used by the app.
+
+## Files
+
+- `public/layouts/layoutsConfig.json` — theme catalog and global limits
+- `public/layouts/templates/*.json` — theme definitions
+
+## `layoutsConfig.json`
+
+**Top-level fields**
+
+- `HideThemeSelector` (boolean) — hide the theme selector in the header
+- `MaxUrlLength` (number) — maximum allowed URL length for generated links
+- `default` (string) — default theme id
+- `layouts` (array) — list of available themes
+
+**Theme item fields**
+
+- `id` (string)
+- `name` (string)
+- `author` (string)
+- `file` (string) — path relative to `public/layouts`
+- `preview` (string)
+- `supportsLightAndDarkModes` (boolean)
+- `supportsLightAndDarkModesReference` (string, optional) — used to pair light/dark themes
+- `mode` (`"light"` | `"dark"`)
+
+## Theme JSON structure (templates)
+
+Each file in `public/layouts/templates/` follows this shape:
+
+- **Metadata**: `id`, `name`, `author`, `version`, `mode`, `supportsLightAndDarkModes`
+- **colors**: `background`, `primary`, `secondary`, `text`, `textSecondary`, `cardBackground`, `cardBorder`, `error`, `success`
+- **typography**: `fontFamily`, `fontSize` (`small`, `base`, `medium`, `large`, `xlarge`)
+- **components**: `header`, `footer`, `card`, `button`, `select`, `checkbox`, `headerControls`
+- **animations**: `enableTypingEffect`, `enableGlow`, `transitionDuration`
+
+## Add a new theme
+
+1. Create a JSON file in `public/layouts/templates/`.
+2. Add it to `layoutsConfig.json` under `layouts`.
+3. Refresh the app and select the new theme.
 # Layouts Configuration
 
 This directory contains the configuration and template files for the application's themes and layouts.
