@@ -6,8 +6,8 @@ const nextConfig = {
     styledComponents: true,
   },
   // Configure for GitHub Pages deployment
-  // basePath: '/git-page-link-create', // Uncomment and set your repo name for GitHub Pages
-  // assetPrefix: '/git-page-link-create/', // Uncomment and set your repo name for GitHub Pages
+  basePath: '/git-page-create-link',
+  assetPrefix: '/git-page-create-link/',
   trailingSlash: true,
   images: {
     unoptimized: true, // Required for static export
