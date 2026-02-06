@@ -94,7 +94,7 @@ export default function RenderOffice() {
 
     const viewerUrl = getOfficeViewerUrl(sourceUrl);
 
-    if (isFullscreen) {
+    if (isFullscreen && !decodedData) {
         return (
             <>
                 <Head>
@@ -136,6 +136,20 @@ export default function RenderOffice() {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+                        ) : decodedData.type === 'txt' ? (
+                            <div style={{ marginTop: '20px', overflowX: 'auto' }}>
+                                <pre style={{
+                                    padding: '16px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    borderRadius: '8px',
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-all',
+                                    color: 'inherit',
+                                    fontFamily: 'monospace'
+                                }}>
+                                    {new TextDecoder().decode(decodedData.bytes)}
+                                </pre>
                             </div>
                         ) : (
                             <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>

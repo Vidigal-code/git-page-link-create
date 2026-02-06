@@ -57,7 +57,7 @@ import {
     TablePreview,
 } from '@/shared/styles/pages/create.styles';
 
-type ContentType = 'html' | 'md' | 'csv' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'image' | 'pdf' | 'video' | 'audio';
+type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 
 export default function Create() {
@@ -148,6 +148,7 @@ export default function Create() {
         { value: 'html', label: t('home.html') },
         { value: 'md', label: t('home.markdown') },
         { value: 'csv', label: t('home.csv') },
+        { value: 'txt', label: 'Plain Text (TXT)' },
         { value: 'xlsx', label: t('home.xlsx') },
         { value: 'xls', label: 'Excel (XLS)' },
         { value: 'docx', label: 'Word (DOCX)' },
