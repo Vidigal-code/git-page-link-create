@@ -43,6 +43,13 @@ export function getMimeType(fileType: string): string {
         md: 'text/markdown',
         csv: 'text/csv',
         xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        xls: 'application/vnd.ms-excel',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        image: 'image/png', // Default to png for recovered images
+        pdf: 'application/pdf',
+        video: 'video/mp4',
+        audio: 'audio/mpeg',
     };
 
     return mimeTypes[fileType] || 'text/plain';
@@ -59,6 +66,13 @@ export function getFileExtension(fileType: string): string {
         md: '.md',
         csv: '.csv',
         xlsx: '.xlsx',
+        xls: '.xls',
+        docx: '.docx',
+        pptx: '.pptx',
+        image: '.png',
+        pdf: '.pdf',
+        video: '.mp4',
+        audio: '.mp3',
     };
 
     return extensions[fileType] || '.txt';

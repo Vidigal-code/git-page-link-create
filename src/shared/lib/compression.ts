@@ -37,7 +37,7 @@ export function compressBytes(bytes: Uint8Array): string {
         // Make URL safe: + -> -, / -> _, remove =
         return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     } catch (error) {
-        console.error('Compression error:', error);
+        //console.error('Compression error:', error);
         throw new Error('Failed to compress content');
     }
 }
@@ -77,7 +77,7 @@ export function decompressBytes(compressed: string): Uint8Array {
         // Decompress using pako
         return pako.ungzip(bytes);
     } catch (error) {
-        console.error('Decompression error:', error);
+        //console.error('Decompression error:', error);
         throw new Error('Failed to decompress content');
     }
 }

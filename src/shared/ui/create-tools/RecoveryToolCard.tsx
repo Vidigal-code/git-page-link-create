@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { TextArea } from '@/shared/ui/Input';
+import { Select } from '@/shared/ui/Select';
 import { ButtonGroup, FormSection } from '@/shared/styles/pages/create.styles';
 
 interface RecoveryToolCardProps {
@@ -13,6 +14,18 @@ interface RecoveryToolCardProps {
     onHashChange: (value: string) => void;
     onRecover: () => void;
     onClear: () => void;
+    // New props for improved recovery flow
+    isRecovered: boolean;
+    onDownload: () => void;
+    onView: () => void;
+    onCreateNew: () => void;
+    contentType: string;
+    onContentTypeChange: (value: string) => void;
+    contentTypeOptions: { value: string; label: string }[];
+    downloadLabel: string;
+    viewLabel: string;
+    createNewLabel: string;
+    selectTypeLabel: string;
 }
 
 export function RecoveryToolCard({
@@ -24,7 +37,22 @@ export function RecoveryToolCard({
     onHashChange,
     onRecover,
     onClear,
+    isRecovered,
+    onDownload,
+    onView,
+    onCreateNew,
+    contentType,
+    onContentTypeChange,
+    contentTypeOptions,
+    downloadLabel,
+    viewLabel,
+    createNewLabel,
+    selectTypeLabel,
 }: RecoveryToolCardProps) {
+    const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        onContentTypeChange(event.target.value);
+    };
+
     return (
         <Card title={title}>
             <FormSection>
@@ -52,6 +80,31 @@ export function RecoveryToolCard({
                     </Button>
                 </ButtonGroup>
             </FormSection>
+
+            {isRecovered && (
+                <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <FormSection>
+                        <Select
+                            label={selectTypeLabel}
+                            value={contentType}
+                            onChange={handleTypeChange}
+                            options={contentTypeOptions}
+                        />
+                    </FormSection>
+
+                    <ButtonGroup style={{ marginTop: '20px' }}>
+                        <Button onClick={onView} variant="secondary">
+                            {viewLabel}
+                        </Button>
+                        <Button onClick={onDownload} variant="secondary">
+                            {downloadLabel}
+                        </Button>
+                        <Button onClick={onCreateNew}>
+                            {createNewLabel}
+                        </Button>
+                    </ButtonGroup>
+                </div>
+            )}
         </Card>
     );
 }

@@ -48,6 +48,7 @@ interface OfficeToolCardProps {
     onCopyLink: (value: string) => void;
     getViewerUrl: (value: string) => string;
     isValidUrl: (value: string) => boolean;
+    officeFile: File | null;
 }
 
 export function OfficeToolCard({
@@ -82,6 +83,7 @@ export function OfficeToolCard({
     onCopyLink,
     getViewerUrl,
     isValidUrl,
+    officeFile,
 }: OfficeToolCardProps) {
     return (
         <Card title={title}>
@@ -119,7 +121,16 @@ export function OfficeToolCard({
                     />
                 </FormSection>
                 <OfficePreview>
-                    {officeSourceUrl && isValidUrl(officeSourceUrl) ? (
+                    {officeFile ? (
+                        <div style={{ padding: '20px', textAlign: 'center' }}>
+                            <p><strong>Arquivo carregado:</strong> {officeFile.name}</p>
+                            <p><strong>Tamanho:</strong> {(officeFile.size / 1024).toFixed(2)} KB</p>
+                            <p><strong>Tipo:</strong> {officeFile.type || 'Office Document'}</p>
+                            <div style={{ marginTop: '10px', color: '#4caf50' }}>
+                                ✓ Pronto para gerar o link
+                            </div>
+                        </div>
+                    ) : officeSourceUrl && isValidUrl(officeSourceUrl) ? (
                         <OfficeFrame
                             title={title}
                             src={getViewerUrl(officeSourceUrl)}

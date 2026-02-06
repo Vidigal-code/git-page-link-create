@@ -57,7 +57,7 @@ import {
     TablePreview,
 } from '@/shared/styles/pages/create.styles';
 
-type ContentType = 'html' | 'md' | 'csv' | 'xlsx';
+type ContentType = 'html' | 'md' | 'csv' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'image' | 'pdf' | 'video' | 'audio';
 type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 
 export default function Create() {
@@ -83,6 +83,7 @@ export default function Create() {
     const [contentSourceError, setContentSourceError] = useState('');
 
     const [recoveryHash, setRecoveryHash] = useState('');
+    const [isRecovered, setIsRecovered] = useState(false);
     const [qrInput, setQrInput] = useState('');
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [qrIsProcessing, setQrIsProcessing] = useState(false);
@@ -137,17 +138,25 @@ export default function Create() {
     const [officeRenderAllLink, setOfficeRenderAllLink] = useState('');
     const [officeError, setOfficeError] = useState('');
     const [officeCode, setOfficeCode] = useState('');
+    const [officeFile, setOfficeFile] = useState<File | null>(null);
 
     useEffect(() => {
         loadAvailableThemes();
     }, []);
 
-    const contentTypeOptions = useMemo(() => ([
-        { value: 'html', label: 'HTML' },
-        { value: 'md', label: 'Markdown' },
-        { value: 'csv', label: 'CSV' },
-        { value: 'xlsx', label: 'XLSX' },
-    ]), []);
+    const contentTypeOptions = useMemo(() => [
+        { value: 'html', label: t('home.html') },
+        { value: 'md', label: t('home.markdown') },
+        { value: 'csv', label: t('home.csv') },
+        { value: 'xlsx', label: t('home.xlsx') },
+        { value: 'xls', label: 'Excel (XLS)' },
+        { value: 'docx', label: 'Word (DOCX)' },
+        { value: 'pptx', label: 'PowerPoint (PPTX)' },
+        { value: 'image', label: t('home.image') },
+        { value: 'pdf', label: t('home.pdf') },
+        { value: 'video', label: t('home.video') },
+        { value: 'audio', label: t('home.audio') },
+    ], [t]);
 
     const toolOptions = useMemo(() => ([
         { value: 'create', label: t('create.title') },
@@ -205,7 +214,7 @@ export default function Create() {
         return extracted || codeValue;
     };
 
-    const hasOfficeSource = () => Boolean(officeSourceUrl.trim() || officeCode.trim());
+    const hasOfficeSource = () => Boolean(officeSourceUrl.trim() || officeCode.trim() || officeFile);
 
     const resetContentMessages = () => {
         setError('');
@@ -406,6 +415,7 @@ export default function Create() {
         if (!recoveryHash) return;
 
         try {
+            setIsRecovered(false);
             const separatorIndex = recoveryHash.indexOf('-');
             if (separatorIndex === -1) {
                 setError(t('create.invalidHash'));
@@ -426,13 +436,31 @@ export default function Create() {
 
             setContentType(type);
             setContent(decompressed);
+            setIsRecovered(true);
             setSuccessMessage(t('create.recoverySuccess'));
             setGeneratedLink('');
-            setRecoveryHash('');
             setError('');
         } catch {
+            setIsRecovered(false);
             setError(t('create.invalidHash'));
         }
+    };
+
+    const handleDownloadRecovered = () => {
+        if (!content) return;
+        const filename = `recovered${getFileExtension(contentType)}`;
+        const mimeType = getMimeType(contentType);
+        downloadFile(content, filename, mimeType);
+    };
+
+    const handleViewRecovered = () => {
+        setShowPreview(true);
+        setSelectedTool('create');
+    };
+
+    const handleGoToCreate = () => {
+        setSelectedTool('create');
+        setIsRecovered(false);
     };
 
     const processImageFile = async (file: File, shouldCompress: boolean) => {
@@ -852,6 +880,10 @@ export default function Create() {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        setOfficeFile(file);
+        setOfficeLink('');
+        setOfficeRenderAllLink('');
+
         try {
             const dataUrl = await fileToDataUrl(file);
             setOfficeCode(dataUrl);
@@ -864,6 +896,43 @@ export default function Create() {
     const handleGenerateOfficeLink = () => {
         const sourceValue = resolveOfficeSource();
         if (!sourceValue) return;
+
+        setOfficeError('');
+        setOfficeLink('');
+
+        if (sourceValue.startsWith('data:')) {
+            // It's an uploaded file, generate hash link
+            try {
+                // Extract base64 part
+                const base64Data = sourceValue.split(',')[1];
+                const binaryString = atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const compressed = compressBytes(bytes);
+                const type = getFileExtension(officeFile?.name || 'file.docx').replace('.', '') || 'docx';
+
+                if (typeof window === 'undefined') return;
+                const baseUrl = window.location.origin;
+                const fullPath = withBasePath(`render/office?data=${type}-${compressed}`);
+                const link = `${baseUrl}${fullPath}`;
+
+                if (link.length > getMaxOfficeUrlLength()) {
+                    setOfficeError(t('create.urlTooLong'));
+                    return;
+                }
+
+                setOfficeLink(link);
+                return;
+            } catch (err) {
+                //console.error('Error generating office hash link:', err);
+                setOfficeError(t('create.error'));
+                return;
+            }
+        }
+
         if (!isValidUrl(sourceValue)) {
             setOfficeError(t('create.officeUrlInvalid'));
             return;
@@ -879,13 +948,48 @@ export default function Create() {
             return;
         }
 
-        setOfficeError('');
         setOfficeLink(link);
     };
 
     const handleGenerateOfficeRenderAllLink = () => {
         const sourceValue = resolveOfficeSource();
         if (!sourceValue) return;
+
+        setOfficeError('');
+        setOfficeRenderAllLink('');
+
+        if (sourceValue.startsWith('data:')) {
+            // It's an uploaded file, generate hash link
+            try {
+                const base64Data = sourceValue.split(',')[1];
+                const binaryString = atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const compressed = compressBytes(bytes);
+                const type = getFileExtension(officeFile?.name || 'file.docx').replace('.', '') || 'docx';
+
+                if (typeof window === 'undefined') return;
+                const baseUrl = window.location.origin;
+                const fullPath = withBasePath(`render/office?data=${type}-${compressed}&fullscreen=1`);
+                const link = `${baseUrl}${fullPath}`;
+
+                if (link.length > getMaxOfficeUrlLength()) {
+                    setOfficeError(t('create.urlTooLong'));
+                    return;
+                }
+
+                setOfficeRenderAllLink(link);
+                return;
+            } catch (err) {
+                //console.error('Error generating office hash link:', err);
+                setOfficeError(t('create.error'));
+                return;
+            }
+        }
+
         if (!isValidUrl(sourceValue)) {
             setOfficeError(t('create.officeUrlInvalid'));
             return;
@@ -901,7 +1005,6 @@ export default function Create() {
             return;
         }
 
-        setOfficeError('');
         setOfficeRenderAllLink(link);
     };
 
@@ -911,6 +1014,7 @@ export default function Create() {
         setOfficeRenderAllLink('');
         setOfficeError('');
         setOfficeCode('');
+        setOfficeFile(null);
         if (officeInputRef.current) {
             officeInputRef.current.value = '';
         }
@@ -1078,9 +1182,26 @@ export default function Create() {
                         recoverLabel={t('create.recoverButton')}
                         clearLabel={t('create.clearHash')}
                         hashValue={recoveryHash}
-                        onHashChange={setRecoveryHash}
+                        onHashChange={(value) => {
+                            setRecoveryHash(value);
+                            setIsRecovered(false);
+                        }}
                         onRecover={handleRecoverContent}
-                        onClear={() => setRecoveryHash('')}
+                        onClear={() => {
+                            setRecoveryHash('');
+                            setIsRecovered(false);
+                        }}
+                        isRecovered={isRecovered}
+                        onDownload={handleDownloadRecovered}
+                        onView={handleViewRecovered}
+                        onCreateNew={handleGoToCreate}
+                        contentType={contentType}
+                        onContentTypeChange={(v) => setContentType(v as ContentType)}
+                        contentTypeOptions={contentTypeOptions}
+                        downloadLabel={t('create.downloadFile')}
+                        viewLabel={t('create.viewFile')}
+                        createNewLabel={t('create.createNew')}
+                        selectTypeLabel={t('create.selectType')}
                     />
                 );
             case 'image':
@@ -1264,6 +1385,7 @@ export default function Create() {
                         onCopyLink={handleCopyLink}
                         getViewerUrl={getOfficeViewerUrl}
                         isValidUrl={isValidUrl}
+                        officeFile={officeFile}
                     />
                 );
             case 'qr':

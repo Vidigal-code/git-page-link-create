@@ -37,7 +37,7 @@ export async function generateFullHash(content: string): Promise<string> {
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     } catch (error) {
-        console.error('Hash generation error:', error);
+        // console.error('Hash generation error:', error);
         throw new Error('Failed to generate hash');
     }
 }
