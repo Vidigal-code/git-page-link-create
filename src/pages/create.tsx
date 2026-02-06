@@ -59,7 +59,7 @@ import {
     TablePreview,
 } from '@/shared/styles/pages/create.styles';
 
-type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
+type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'doc' | 'ppt' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 
 export default function Create() {
@@ -236,6 +236,25 @@ export default function Create() {
         setContentSourceError('');
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
+        }
+
+        // Auto-switch tool based on content type
+        const specializedTools: Partial<Record<ContentType, ToolType>> = {
+            'pdf': 'pdf',
+            'image': 'image',
+            'video': 'video',
+            'audio': 'audio',
+            'docx': 'office',
+            'pptx': 'office',
+            'doc': 'office',
+            'xls': 'office',
+            'xlsx': 'office',
+        };
+
+        if (specializedTools[newType]) {
+            setSelectedTool(specializedTools[newType] as ToolType);
+        } else {
+            setSelectedTool('create');
         }
     };
 
@@ -517,12 +536,105 @@ export default function Create() {
     };
 
     const handleViewRecovered = () => {
-        setShowPreview(true);
-        setSelectedTool('create');
+        const specializedTools: Partial<Record<ContentType, ToolType>> = {
+            'pdf': 'pdf',
+            'image': 'image',
+            'video': 'video',
+            'audio': 'audio',
+            'docx': 'office',
+            'pptx': 'office',
+            'doc': 'office',
+            'xls': 'office',
+            'xlsx': 'office',
+        };
+
+        if (specializedTools[contentType]) {
+            setSelectedTool(specializedTools[contentType] as ToolType);
+
+            // Sync recovered data to specialized tool states
+            if (content) {
+                const mimeType = getMimeType(contentType);
+                let dataUrl = '';
+                if (content instanceof Uint8Array) {
+                    let binary = '';
+                    for (let i = 0; i < content.byteLength; i++) {
+                        binary += String.fromCharCode(content[i]);
+                    }
+                    dataUrl = `data:${mimeType};base64,${window.btoa(binary)}`;
+                } else {
+                    dataUrl = content;
+                }
+
+                switch (specializedTools[contentType]) {
+                    case 'office':
+                        setOfficeCode(dataUrl);
+                        setOfficeFile(new File([], `recovered_file.${contentType}`, { type: mimeType }));
+                        break;
+                    case 'pdf':
+                        setPdfDataUrl(dataUrl);
+                        break;
+                    case 'image':
+                        setImageDataUrl(dataUrl);
+                        break;
+                    case 'video':
+                        setVideoDataUrl(dataUrl);
+                        break;
+                    case 'audio':
+                        setAudioDataUrl(dataUrl);
+                        break;
+                }
+            }
+        } else {
+            setSelectedTool('create');
+            setShowPreview(true);
+        }
     };
 
     const handleGoToCreate = () => {
-        setSelectedTool('create');
+        const specializedTools: Partial<Record<ContentType, ToolType>> = {
+            'pdf': 'pdf',
+            'image': 'image',
+            'video': 'video',
+            'audio': 'audio',
+            'docx': 'office',
+            'pptx': 'office',
+            'doc': 'office',
+            'xls': 'office',
+            'xlsx': 'office',
+        };
+
+        if (specializedTools[contentType]) {
+            setSelectedTool(specializedTools[contentType] as ToolType);
+
+            // Sync recovered data to specialized tool states
+            if (content) {
+                const mimeType = getMimeType(contentType);
+                const dataUrl = content instanceof Uint8Array
+                    ? `data:${mimeType};base64,${Buffer.from(content).toString('base64')}`
+                    : content;
+
+                switch (specializedTools[contentType]) {
+                    case 'office':
+                        setOfficeCode(dataUrl);
+                        setOfficeFile(new File([], `recovered_file.${contentType}`, { type: mimeType }));
+                        break;
+                    case 'pdf':
+                        setPdfDataUrl(dataUrl);
+                        break;
+                    case 'image':
+                        setImageDataUrl(dataUrl);
+                        break;
+                    case 'video':
+                        setVideoDataUrl(dataUrl);
+                        break;
+                    case 'audio':
+                        setAudioDataUrl(dataUrl);
+                        break;
+                }
+            }
+        } else {
+            setSelectedTool('create');
+        }
         setIsRecovered(false);
     };
 

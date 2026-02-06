@@ -108,10 +108,31 @@ export default function Render() {
             return;
         }
 
-        const type = finalHash.substring(0, separatorIndex);
-        const compressedContent = finalHash.substring(separatorIndex + 1);
-
         try {
+            const type = finalHash.substring(0, separatorIndex);
+            const compressedContent = finalHash.substring(separatorIndex + 1);
+
+            // Redirect to specialized renderers if applicable
+            const specializedRedirects: Record<string, string> = {
+                'pdf': '/render/pdf',
+                'image': '/render/image',
+                'video': '/render/video',
+                'audio': '/render/audio',
+                'docx': '/render/office',
+                'pptx': '/render/office',
+                'doc': '/render/office',
+                'xls': '/render/office',
+                'xlsx': '/render/office',
+            };
+
+            if (specializedRedirects[type]) {
+                const targetPath = specializedRedirects[type];
+                const query = window.location.search;
+                const hash = window.location.hash;
+                router.replace(`${targetPath}${query}${hash}`);
+                return;
+            }
+
             if (type === 'xlsx') {
                 const decompressed = decompressBytes(compressedContent);
                 setContent(decompressed);

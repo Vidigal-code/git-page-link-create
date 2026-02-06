@@ -24,7 +24,7 @@ import {
 
 export default function RenderAll() {
     const router = useRouter();
-        const { hash, data } = router.query;
+    const { hash, data } = router.query;
     const { t } = useI18n();
 
     const [content, setContent] = useState<string | Uint8Array>('');
@@ -48,24 +48,24 @@ export default function RenderAll() {
         return () => URL.revokeObjectURL(url);
     }, [content, contentType]);
 
-        useEffect(() => {
-                if (typeof window === 'undefined') return;
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
 
-                const hashValue = window.location.hash || '';
-                const hashData = hashValue.startsWith('#data=') ? hashValue.slice('#data='.length) : '';
-                const resolvedHash = typeof hash === 'string'
-                        ? hash
-                        : typeof data === 'string'
-                                ? data
-                                : hashData;
+        const hashValue = window.location.hash || '';
+        const hashData = hashValue.startsWith('#data=') ? hashValue.slice('#data='.length) : '';
+        const resolvedHash = typeof hash === 'string'
+            ? hash
+            : typeof data === 'string'
+                ? data
+                : hashData;
 
-                if (!resolvedHash) {
-                        setError(true);
-                        setIsLoading(false);
-                        return;
-                }
+        if (!resolvedHash) {
+            setError(true);
+            setIsLoading(false);
+            return;
+        }
 
-                const separatorIndex = resolvedHash.indexOf('-');
+        const separatorIndex = resolvedHash.indexOf('-');
 
         if (separatorIndex === -1) {
             setError(true);
@@ -73,10 +73,33 @@ export default function RenderAll() {
             return;
         }
 
-      const type = resolvedHash.substring(0, separatorIndex);
-      const compressedContent = resolvedHash.substring(separatorIndex + 1);
-
         try {
+            const type = resolvedHash.substring(0, separatorIndex);
+            const compressedContent = resolvedHash.substring(separatorIndex + 1);
+
+            // Redirect to specialized renderers if applicable
+            const specializedRedirects: Record<string, string> = {
+                'pdf': '/render/pdf',
+                'image': '/render/image',
+                'video': '/render/video',
+                'audio': '/render/audio',
+                'docx': '/render/office',
+                'pptx': '/render/office',
+                'doc': '/render/office',
+                'xls': '/render/office',
+                'xlsx': '/render/office',
+            };
+
+            if (specializedRedirects[type]) {
+                const targetPath = specializedRedirects[type];
+                const query = window.location.search;
+                const isFullscreen = query.includes('fullscreen=1') || query.includes('fullscreen=true');
+                const finalQuery = isFullscreen ? query : (query ? `${query}&fullscreen=1` : '?fullscreen=1');
+                const hash = window.location.hash;
+                router.replace(`${targetPath}${finalQuery}${hash}`);
+                return;
+            }
+
             if (type === 'xlsx') {
                 const decompressed = decompressBytes(compressedContent);
                 setContent(decompressed);
@@ -90,7 +113,7 @@ export default function RenderAll() {
             setError(true);
             setIsLoading(false);
         }
-        }, [hash, data]);
+    }, [hash, data]);
 
     if (isLoading) return <LoadingContainer>{t('create.processing')}</LoadingContainer>; // reusing processing string or similar
 
