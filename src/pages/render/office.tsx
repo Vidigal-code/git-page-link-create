@@ -31,16 +31,26 @@ export default function RenderOffice() {
     const [tableData, setTableData] = useState<any[][] | null>(null);
 
     useEffect(() => {
+        // First try to get data from hash (fragment) - preferred for large payloads
+        let dataPayload = '';
         const hash = window.location.hash;
-        if (!hash.startsWith('#data=')) return;
+        if (hash.startsWith('#data=')) {
+            dataPayload = hash.substring(6);
+        }
+
+        // Fallback to query parameter (for legacy links)
+        if (!dataPayload && router.query.data && typeof router.query.data === 'string') {
+            dataPayload = router.query.data;
+        }
+
+        if (!dataPayload) return;
 
         try {
-            const payload = hash.substring(6);
-            const separatorIndex = payload.indexOf('-');
+            const separatorIndex = dataPayload.indexOf('-');
             if (separatorIndex === -1) return;
 
-            const type = payload.substring(0, separatorIndex);
-            const compressedContent = payload.substring(separatorIndex + 1);
+            const type = dataPayload.substring(0, separatorIndex);
+            const compressedContent = dataPayload.substring(separatorIndex + 1);
             const bytes = decompressBytes(compressedContent);
 
             setDecodedData({ type, bytes });
@@ -55,15 +65,16 @@ export default function RenderOffice() {
             //console.error('Error decoding office data:', err);
             setError(true);
         }
-    }, []);
+    }, [router.query.data]);
 
     useEffect(() => {
-        if (!sourceUrl && !window.location.hash.includes('data=')) {
+        const hasData = sourceUrl || window.location.hash.includes('data=') || router.query.data;
+        if (!hasData) {
             setError(true);
             return;
         }
         setError(false);
-    }, [sourceUrl]);
+    }, [sourceUrl, router.query.data]);
 
     if (error) {
         return (

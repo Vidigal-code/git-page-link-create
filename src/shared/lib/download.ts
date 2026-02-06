@@ -79,3 +79,36 @@ export function getFileExtension(fileType: string): string {
 
     return extensions[fileType] || '.txt';
 }
+
+/**
+ * Extract the file type from a filename
+ * @param filename - The name of the file
+ * @returns The file type identifier
+ */
+export function getFileTypeFromFilename(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase();
+
+    // Map extensions to our internal types if necessary
+    const mapping: Record<string, string> = {
+        'docx': 'docx',
+        'xlsx': 'xlsx',
+        'pptx': 'pptx',
+        'xls': 'xls',
+        'doc': 'doc',
+        'ppt': 'ppt',
+        'txt': 'txt',
+        'csv': 'csv',
+        'pdf': 'pdf',
+        'png': 'image',
+        'jpg': 'image',
+        'jpeg': 'image',
+        'gif': 'image',
+        'svg': 'image',
+        'mp4': 'video',
+        'webm': 'video',
+        'mp3': 'audio',
+        'wav': 'audio',
+    };
+
+    return (ext && mapping[ext]) || ext || 'txt';
+}

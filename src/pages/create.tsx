@@ -7,7 +7,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
-import { downloadFile, getFileExtension, getMimeType } from '@/shared/lib/download';
+import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } from '@/shared/lib/download';
 import {
     getMaxAudioUrlLength,
     getMaxCsvUrlLength,
@@ -274,8 +274,8 @@ export default function Create() {
         if (typeof window === 'undefined') return '';
 
         const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`${fullScreen ? 'render-all' : 'render'}?data=${type}-${compressed}`);
-        return `${baseUrl}${fullPath}`;
+        const fullPath = withBasePath(fullScreen ? 'render-all' : 'render');
+        return `${baseUrl}${fullPath}#data=${type}-${compressed}`;
     };
 
     const handleGenerateLink = async () => {
@@ -426,12 +426,15 @@ export default function Create() {
             const type = recoveryHash.substring(0, separatorIndex) as ContentType;
             const compressedContent = recoveryHash.substring(separatorIndex + 1);
 
-            if (!['html', 'md', 'csv', 'xlsx'].includes(type)) {
+            // Allow all supported types for recovery
+            const supportedTypes: ContentType[] = ['html', 'md', 'csv', 'xlsx', 'xls', 'docx', 'pptx', 'txt'];
+            if (!supportedTypes.includes(type)) {
                 setError(t('create.invalidHash'));
                 return;
             }
 
-            const decompressed = type === 'xlsx'
+            const isBinaryType = ['xlsx', 'xls', 'docx', 'pptx', 'image', 'pdf', 'video', 'audio'].includes(type);
+            const decompressed = isBinaryType
                 ? decompressBytes(compressedContent)
                 : decompress(compressedContent);
 
@@ -913,12 +916,12 @@ export default function Create() {
                 }
 
                 const compressed = compressBytes(bytes);
-                const type = getFileExtension(officeFile?.name || 'file.docx').replace('.', '') || 'docx';
+                const type = getFileTypeFromFilename(officeFile?.name || 'file.docx');
 
                 if (typeof window === 'undefined') return;
                 const baseUrl = window.location.origin;
-                const fullPath = withBasePath(`render/office?data=${type}-${compressed}`);
-                const link = `${baseUrl}${fullPath}`;
+                const fullPath = withBasePath('render/office');
+                const link = `${baseUrl}${fullPath}#data=${type}-${compressed}`;
 
                 if (link.length > getMaxOfficeUrlLength()) {
                     setOfficeError(t('create.urlTooLong'));
@@ -970,12 +973,12 @@ export default function Create() {
                 }
 
                 const compressed = compressBytes(bytes);
-                const type = getFileExtension(officeFile?.name || 'file.docx').replace('.', '') || 'docx';
+                const type = getFileTypeFromFilename(officeFile?.name || 'file.docx');
 
                 if (typeof window === 'undefined') return;
                 const baseUrl = window.location.origin;
-                const fullPath = withBasePath(`render/office?data=${type}-${compressed}&fullscreen=1`);
-                const link = `${baseUrl}${fullPath}`;
+                const fullPath = withBasePath('render/office?fullscreen=1');
+                const link = `${baseUrl}${fullPath}#data=${type}-${compressed}`;
 
                 if (link.length > getMaxOfficeUrlLength()) {
                     setOfficeError(t('create.urlTooLong'));

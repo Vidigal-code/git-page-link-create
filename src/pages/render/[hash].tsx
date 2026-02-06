@@ -11,17 +11,17 @@ import { useI18n } from '@/shared/lib/i18n';
 import { decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/download';
 import {
-        RenderContainer,
-        IframeContainer,
-        StyledIframe,
-        ScrollableContent,
-        MarkdownContent,
-        TableContainer,
-        StyledTable,
-        ErrorContainer,
-        ErrorTitle,
-        ErrorDescription,
-        ButtonGroup,
+    RenderContainer,
+    IframeContainer,
+    StyledIframe,
+    ScrollableContent,
+    MarkdownContent,
+    TableContainer,
+    StyledTable,
+    ErrorContainer,
+    ErrorTitle,
+    ErrorDescription,
+    ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
 
 type TableCell = string | number | null;
@@ -45,6 +45,18 @@ export default function Render() {
         : typeof data === 'string'
             ? data
             : '';
+
+    const [fragmentData, setFragmentData] = useState<string>('');
+
+    useEffect(() => {
+        // Look for data in hash (fragment)
+        const currentHash = window.location.hash;
+        if (currentHash.startsWith('#data=')) {
+            setFragmentData(currentHash.substring(6));
+        }
+    }, [hash, data]);
+
+    const finalHash = fragmentData || resolvedHash;
 
     useEffect(() => {
         if (!resolvedSource) return;
@@ -84,10 +96,10 @@ export default function Render() {
     }, [resolvedSource, resolvedType]);
 
     useEffect(() => {
-        if (!resolvedHash || resolvedSource) return;
+        if (!finalHash || resolvedSource) return;
 
         // The hash format is now: [type]-[compressed_content]
-        const separatorIndex = resolvedHash.indexOf('-');
+        const separatorIndex = finalHash.indexOf('-');
 
         if (separatorIndex === -1) {
             // Fallback for old style or invalid links
@@ -96,8 +108,8 @@ export default function Render() {
             return;
         }
 
-        const type = resolvedHash.substring(0, separatorIndex);
-        const compressedContent = resolvedHash.substring(separatorIndex + 1);
+        const type = finalHash.substring(0, separatorIndex);
+        const compressedContent = finalHash.substring(separatorIndex + 1);
 
         try {
             if (type === 'xlsx') {
@@ -113,7 +125,7 @@ export default function Render() {
             setError(true);
             setIsLoading(false);
         }
-    }, [resolvedHash, resolvedSource]);
+    }, [finalHash, resolvedSource]);
 
     const handleDownloadOriginal = async () => {
         if (!content || !contentType) return;
@@ -154,6 +166,19 @@ export default function Render() {
                         title="Rendered HTML Content"
                     />
                 </IframeContainer>
+            );
+        }
+
+        if (contentType === 'txt') {
+            const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
+            return (
+                <Card>
+                    <ScrollableContent>
+                        <pre style={{ margin: 0, padding: '16px', whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.6' }}>
+                            {strContent}
+                        </pre>
+                    </ScrollableContent>
+                </Card>
             );
         }
 
