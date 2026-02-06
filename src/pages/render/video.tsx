@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
-import { decodeImageDataUrl, getImageFileName } from '@/shared/lib/image';
+import { decodeVideoDataUrl, getVideoFileName } from '@/shared/lib/video';
 import {
     RenderContainer,
     ErrorContainer,
@@ -13,28 +13,31 @@ import {
     ErrorDescription,
     ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
-import { ImageWrapper, RenderedImage } from '@/shared/styles/pages/render-image.styles';
+import { VideoWrapper, RenderedVideo, FullScreenVideo } from '@/shared/styles/pages/render-video.styles';
 
-export default function RenderImage() {
+export default function RenderVideo() {
     const router = useRouter();
     const { t } = useI18n();
-    const { data, source } = router.query;
+    const { data, fullscreen, source } = router.query;
 
-    const [imageDataUrl, setImageDataUrl] = useState('');
-    const [imageExtension, setImageExtension] = useState('png');
-    const [imageSourceUrl, setImageSourceUrl] = useState('');
+    const [videoDataUrl, setVideoDataUrl] = useState('');
+    const [videoExtension, setVideoExtension] = useState('mp4');
+    const [videoSourceUrl, setVideoSourceUrl] = useState('');
     const [error, setError] = useState(false);
     const [isReady, setIsReady] = useState(false);
+    const [videoBlobUrl, setVideoBlobUrl] = useState('');
+
+    const isFullscreen = fullscreen === '1' || fullscreen === 'true';
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
         const sourceUrl = typeof source === 'string' ? source : '';
         if (sourceUrl) {
-            const extension = sourceUrl.split('?')[0].split('.').pop() || 'png';
-            setImageSourceUrl(sourceUrl);
-            setImageExtension(extension);
-            setImageDataUrl('');
+            const extension = sourceUrl.split('?')[0].split('.').pop() || 'mp4';
+            setVideoSourceUrl(sourceUrl);
+            setVideoExtension(extension);
+            setVideoDataUrl('');
             setError(false);
             setIsReady(true);
             return;
@@ -51,9 +54,9 @@ export default function RenderImage() {
         }
 
         try {
-            const decoded = decodeImageDataUrl(payload);
-            setImageDataUrl(decoded.dataUrl);
-            setImageExtension(decoded.extension);
+            const decoded = decodeVideoDataUrl(payload);
+            setVideoDataUrl(decoded.dataUrl);
+            setVideoExtension(decoded.extension);
             setError(false);
         } catch {
             setError(true);
@@ -62,19 +65,45 @@ export default function RenderImage() {
         }
     }, [data]);
 
+    useEffect(() => {
+        if (!videoDataUrl || typeof window === 'undefined') {
+            setVideoBlobUrl('');
+            return;
+        }
+
+        try {
+            const base64 = videoDataUrl.split(',')[1] ?? '';
+            if (!base64) {
+                setVideoBlobUrl('');
+                return;
+            }
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i += 1) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: videoDataUrl.substring(5, videoDataUrl.indexOf(';')) || 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            setVideoBlobUrl(url);
+            return () => URL.revokeObjectURL(url);
+        } catch {
+            setVideoBlobUrl('');
+        }
+    }, [videoDataUrl]);
+
     const handleDownload = () => {
-        if (imageSourceUrl) {
+        if (videoSourceUrl) {
             const link = document.createElement('a');
-            link.href = imageSourceUrl;
-            link.download = getImageFileName(imageExtension);
+            link.href = videoSourceUrl;
+            link.download = getVideoFileName(videoExtension);
             link.click();
             return;
         }
 
-        if (!imageDataUrl) return;
+        if (!videoDataUrl) return;
         const link = document.createElement('a');
-        link.href = imageDataUrl;
-        link.download = getImageFileName(imageExtension);
+        link.href = videoDataUrl;
+        link.download = getVideoFileName(videoExtension);
         link.click();
     };
 
@@ -92,7 +121,7 @@ export default function RenderImage() {
         return (
             <>
                 <Head>
-                    <title>{t('renderImage.title')} - {t('common.appName')}</title>
+                    <title>{t('renderVideo.title')} - {t('common.appName')}</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
 
@@ -115,30 +144,42 @@ export default function RenderImage() {
         );
     }
 
+    if (isFullscreen) {
+        return (
+            <>
+                <Head>
+                    <title>{t('renderVideo.title')} - {t('common.appName')}</title>
+                    <meta name="robots" content="noindex, nofollow" />
+                </Head>
+                <FullScreenVideo controls src={videoSourceUrl || videoBlobUrl || undefined} />
+            </>
+        );
+    }
+
     return (
         <>
             <Head>
-                <title>{t('renderImage.title')} - {t('common.appName')}</title>
+                <title>{t('renderVideo.title')} - {t('common.appName')}</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
             <RenderContainer>
-                <Card title={t('renderImage.title')}>
+                <Card title={t('renderVideo.title')}>
                     <ButtonGroup>
-                        <Button onClick={handleDownload} disabled={!imageDataUrl}>
-                            {t('renderImage.download')}
+                        <Button onClick={handleDownload} disabled={!videoDataUrl}>
+                            {t('renderVideo.download')}
                         </Button>
                     </ButtonGroup>
                 </Card>
 
                 <Card>
-                    <ImageWrapper>
-                        {imageSourceUrl || imageDataUrl ? (
-                            <RenderedImage src={imageSourceUrl || imageDataUrl} alt={t('renderImage.title')} />
+                    <VideoWrapper>
+                        {videoSourceUrl || videoBlobUrl ? (
+                            <RenderedVideo controls src={videoSourceUrl || videoBlobUrl} />
                         ) : (
                             <p>{t('render.error')}</p>
                         )}
-                    </ImageWrapper>
+                    </VideoWrapper>
                 </Card>
             </RenderContainer>
         </>

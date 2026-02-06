@@ -29,13 +29,16 @@ type TableData = TableCell[][];
 
 export default function Render() {
     const router = useRouter();
-    const { hash, data } = router.query;
+    const { hash, data, source, type } = router.query;
     const { t } = useI18n();
 
     const [content, setContent] = useState<string | Uint8Array>('');
     const [contentType, setContentType] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
+
+    const resolvedSource = typeof source === 'string' ? source : '';
+    const resolvedType = typeof type === 'string' ? type : '';
 
     const resolvedHash = typeof hash === 'string'
         ? hash
@@ -44,10 +47,47 @@ export default function Render() {
             : '';
 
     useEffect(() => {
-        if (!resolvedHash) return;
+        if (!resolvedSource) return;
+
+        const fetchSource = async () => {
+            setIsLoading(true);
+            setError(false);
+
+            if (!resolvedType) {
+                setError(true);
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(resolvedSource);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch source');
+                }
+
+                if (resolvedType === 'xlsx') {
+                    const buffer = await response.arrayBuffer();
+                    setContent(new Uint8Array(buffer));
+                } else {
+                    const text = await response.text();
+                    setContent(text);
+                }
+                setContentType(resolvedType);
+                setIsLoading(false);
+            } catch {
+                setError(true);
+                setIsLoading(false);
+            }
+        };
+
+        fetchSource();
+    }, [resolvedSource, resolvedType]);
+
+    useEffect(() => {
+        if (!resolvedHash || resolvedSource) return;
 
         // The hash format is now: [type]-[compressed_content]
-    const separatorIndex = resolvedHash.indexOf('-');
+        const separatorIndex = resolvedHash.indexOf('-');
 
         if (separatorIndex === -1) {
             // Fallback for old style or invalid links
@@ -56,8 +96,8 @@ export default function Render() {
             return;
         }
 
-    const type = resolvedHash.substring(0, separatorIndex);
-    const compressedContent = resolvedHash.substring(separatorIndex + 1);
+        const type = resolvedHash.substring(0, separatorIndex);
+        const compressedContent = resolvedHash.substring(separatorIndex + 1);
 
         try {
             if (type === 'xlsx') {
@@ -73,12 +113,32 @@ export default function Render() {
             setError(true);
             setIsLoading(false);
         }
-    }, [resolvedHash]);
+    }, [resolvedHash, resolvedSource]);
 
-    const handleDownloadOriginal = () => {
+    const handleDownloadOriginal = async () => {
         if (!content || !contentType) return;
         const filename = `content${getFileExtension(contentType)}`;
         const mimeType = getMimeType(contentType);
+
+        if (resolvedSource) {
+            try {
+                const response = await fetch(resolvedSource);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch source');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+            } catch {
+                setError(true);
+            }
+            return;
+        }
+
         downloadFile(content, filename, mimeType);
     };
 

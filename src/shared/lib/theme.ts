@@ -3,10 +3,20 @@ import { withBasePath } from './basePath';
 
 const STORAGE_KEY = 'git-page-link-create-theme';
 const DEFAULT_THEME_ID = 'matrix-dark';
+let defaultThemeId = DEFAULT_THEME_ID;
 
 const cachedThemes: Record<string, Theme> = {};
 let hideThemeSelector = false;
 let maxUrlLength = 8000;
+let maxHtmlUrlLength = 8000;
+let maxMarkdownUrlLength = 8000;
+let maxCsvUrlLength = 8000;
+let maxXlsxUrlLength = 8000;
+let maxImageUrlLength = 8000;
+let maxPdfUrlLength = 8000;
+let maxVideoUrlLength = 8000;
+let maxAudioUrlLength = 8000;
+let maxOfficeUrlLength = 8000;
 let availableThemes: {
     id: string;
     name: string;
@@ -29,9 +39,19 @@ export async function loadAvailableThemes(): Promise<typeof availableThemes> {
         const url = withBasePath('/layouts/layoutsConfig.json');
         const response = await fetch(url);
         const data = await response.json();
-        availableThemes = data.layouts || [];
-        hideThemeSelector = data.HideThemeSelector || false;
+    availableThemes = data.layouts || [];
+    hideThemeSelector = data.HideThemeSelector || false;
+    defaultThemeId = data.ThemeDefault || data.default || DEFAULT_THEME_ID;
         maxUrlLength = data.MaxUrlLength || 8000;
+        maxHtmlUrlLength = data.MaxHtmlUrlLength || maxUrlLength;
+        maxMarkdownUrlLength = data.MaxMarkdownUrlLength || maxUrlLength;
+        maxCsvUrlLength = data.MaxCsvUrlLength || maxUrlLength;
+        maxXlsxUrlLength = data.MaxXlsxUrlLength || maxUrlLength;
+        maxImageUrlLength = data.MaxImageUrlLength || maxUrlLength;
+        maxPdfUrlLength = data.MaxPdfUrlLength || maxUrlLength;
+        maxVideoUrlLength = data.MaxVideoUrlLength || maxUrlLength;
+        maxAudioUrlLength = data.MaxAudioUrlLength || maxUrlLength;
+    maxOfficeUrlLength = data.MaxOfficeUrlLength || maxUrlLength;
         return availableThemes;
     } catch {
         return [];
@@ -77,15 +97,26 @@ export async function loadTheme(themeId: string): Promise<Theme> {
  * Load the default theme
  */
 export async function loadDefaultTheme(): Promise<Theme> {
-    return loadTheme(DEFAULT_THEME_ID);
+    return loadTheme(defaultThemeId);
 }
 
 /**
  * Get the saved theme ID from localStorage
  */
 export function getSavedThemeId(): string {
-    if (typeof window === 'undefined') return DEFAULT_THEME_ID;
-    return localStorage.getItem(STORAGE_KEY) || DEFAULT_THEME_ID;
+    if (typeof window === 'undefined') return defaultThemeId;
+    return localStorage.getItem(STORAGE_KEY) || defaultThemeId;
+}
+
+/**
+ * Resolve the initial theme ID, honoring layoutsConfig defaults.
+ */
+export async function getInitialThemeId(): Promise<string> {
+    if (availableThemes.length === 0) {
+        await loadAvailableThemes();
+    }
+    if (typeof window === 'undefined') return defaultThemeId;
+    return localStorage.getItem(STORAGE_KEY) || defaultThemeId;
 }
 
 /**
@@ -101,6 +132,13 @@ export function saveThemeId(themeId: string): void {
  */
 export function getAvailableThemes() {
     return availableThemes;
+}
+
+/**
+ * Get the configured default theme ID
+ */
+export function getDefaultThemeId(): string {
+    return defaultThemeId;
 }
 
 /**
@@ -144,5 +182,68 @@ export function getHideThemeSelector(): boolean {
  */
 export function getMaxUrlLength(): number {
     return maxUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for HTML links
+ */
+export function getMaxHtmlUrlLength(): number {
+    return maxHtmlUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for Markdown links
+ */
+export function getMaxMarkdownUrlLength(): number {
+    return maxMarkdownUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for CSV links
+ */
+export function getMaxCsvUrlLength(): number {
+    return maxCsvUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for XLSX links
+ */
+export function getMaxXlsxUrlLength(): number {
+    return maxXlsxUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for image links
+ */
+export function getMaxImageUrlLength(): number {
+    return maxImageUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for PDF links
+ */
+export function getMaxPdfUrlLength(): number {
+    return maxPdfUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for video links
+ */
+export function getMaxVideoUrlLength(): number {
+    return maxVideoUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for audio links
+ */
+export function getMaxAudioUrlLength(): number {
+    return maxAudioUrlLength;
+}
+
+/**
+ * Get the maximum allowed URL length for Office links
+ */
+export function getMaxOfficeUrlLength(): number {
+    return maxOfficeUrlLength;
 }
 

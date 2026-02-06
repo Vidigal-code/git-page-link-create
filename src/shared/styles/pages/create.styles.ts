@@ -41,7 +41,41 @@ export const PreviewColumn = styled.div`
 `;
 
 export const FormSection = styled.div`
-  margin-bottom: 24px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 24px;
+
+  @media (max-width: 720px) {
+    max-width: 100%;
+    margin-bottom: 16px;
+  }
+`;
+
+export const ToolSelectorWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  padding: 8px 0 16px;
+  gap: 6px;
+
+  @media (max-width: 720px) {
+    align-items: stretch;
+    text-align: left;
+    padding: 6px 0 12px;
+  }
+`;
+
+export const ToolSelectorText = styled.p`
+  margin: 0 0 12px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.medium};
+
+  @media (max-width: 720px) {
+    margin-bottom: 8px;
+    font-size: ${({ theme }) => theme.typography.fontSize.base};
+  }
 `;
 
 export const FileInput = styled.input`
@@ -288,6 +322,92 @@ export const PdfFrame = styled.iframe`
 `;
 
 export const PdfPlaceholder = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
+export const VideoSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const VideoPreview = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border: 2px dashed ${({ theme }) => theme.colors.cardBorder || theme.colors.primary};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  min-height: 220px;
+`;
+
+export const VideoFrame = styled.video`
+  width: 100%;
+  max-height: 320px;
+  border-radius: 8px;
+  background: #000;
+`;
+
+export const VideoPlaceholder = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
+export const AudioSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const AudioPreview = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border: 2px dashed ${({ theme }) => theme.colors.cardBorder || theme.colors.primary};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  min-height: 140px;
+`;
+
+export const AudioPlayer = styled.audio`
+  width: 100%;
+  max-width: 520px;
+`;
+
+export const AudioPlaceholder = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
+export const OfficeSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const OfficePreview = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border: 2px dashed ${({ theme }) => theme.colors.cardBorder || theme.colors.primary};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  min-height: 220px;
+`;
+
+export const OfficeFrame = styled.iframe`
+  width: 100%;
+  height: 320px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+`;
+
+export const OfficePlaceholder = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
   margin: 0;
 `;

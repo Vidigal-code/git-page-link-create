@@ -6,12 +6,12 @@ import { ThemeProvider } from 'styled-components';
 import { GlobalStyle } from '@/shared/styles/GlobalStyle';
 import { Layout } from '@/shared/ui/Layout';
 import { I18nProvider } from '@/shared/lib/i18n';
-import { loadTheme, loadAvailableThemes, getSavedThemeId, saveThemeId, getOppositeModeThemeId, getHideThemeSelector } from '@/shared/lib/theme';
+import { loadTheme, loadAvailableThemes, getDefaultThemeId, getInitialThemeId, saveThemeId, getOppositeModeThemeId, getHideThemeSelector } from '@/shared/lib/theme';
 import { Theme } from '@/shared/styles/theme.d';
 
 export default function App({ Component, pageProps }: AppProps) {
     const [theme, setTheme] = useState<Theme | null>(null);
-    const [currentThemeId, setCurrentThemeId] = useState<string>('matrix-dark');
+    const [currentThemeId, setCurrentThemeId] = useState<string>(getDefaultThemeId());
     const [availableThemes, setAvailableThemes] = useState<{ id: string; name: string }[]>([]);
     const [hideThemeSelector, setHideThemeSelector] = useState(false);
     const router = useRouter();
@@ -21,19 +21,21 @@ export default function App({ Component, pageProps }: AppProps) {
     const canonicalUrl = siteUrl ? `${siteUrl}${router.asPath.split('#')[0]}` : '';
 
     useEffect(() => {
-        // Load saved theme ID
-        const savedThemeId = getSavedThemeId();
-        setCurrentThemeId(savedThemeId);
+        const initTheme = async () => {
+            const initialThemeId = await getInitialThemeId();
+            setCurrentThemeId(initialThemeId);
 
-        // Load theme and available themes
-        Promise.all([
-            loadTheme(savedThemeId),
-            loadAvailableThemes()
-        ]).then(([loadedTheme, themes]) => {
+            const [loadedTheme, themes] = await Promise.all([
+                loadTheme(initialThemeId),
+                loadAvailableThemes()
+            ]);
+
             setTheme(loadedTheme);
             setAvailableThemes(themes.map(t => ({ id: t.id, name: t.name })));
             setHideThemeSelector(getHideThemeSelector());
-        });
+        };
+
+        void initTheme();
     }, []);
 
     const handleThemeChange = async (themeId: string) => {
@@ -55,6 +57,9 @@ export default function App({ Component, pageProps }: AppProps) {
     }
     const isRenderAll = router.pathname.startsWith('/render-all');
     const isPdfFullscreen = router.pathname === '/render/pdf' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
+    const isVideoFullscreen = router.pathname === '/render/video' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
+    const isAudioFullscreen = router.pathname === '/render/audio' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
+    const isOfficeFullscreen = router.pathname === '/render/office' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
 
     return (
         <I18nProvider>
@@ -74,7 +79,7 @@ export default function App({ Component, pageProps }: AppProps) {
                     <meta name="twitter:image" content={ogImageUrl} />
                 </Head>
                 <GlobalStyle />
-                {isRenderAll || isPdfFullscreen ? (
+                {isRenderAll || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen ? (
                     <Component {...pageProps} />
                 ) : (
                     <Layout

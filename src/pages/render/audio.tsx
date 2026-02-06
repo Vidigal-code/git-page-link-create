@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
-import { decodeImageDataUrl, getImageFileName } from '@/shared/lib/image';
+import { decodeAudioDataUrl, getAudioFileName } from '@/shared/lib/audio';
 import {
     RenderContainer,
     ErrorContainer,
@@ -13,28 +13,30 @@ import {
     ErrorDescription,
     ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
-import { ImageWrapper, RenderedImage } from '@/shared/styles/pages/render-image.styles';
+import { AudioWrapper, RenderedAudio, FullScreenAudio } from '@/shared/styles/pages/render-audio.styles';
 
-export default function RenderImage() {
+export default function RenderAudio() {
     const router = useRouter();
     const { t } = useI18n();
-    const { data, source } = router.query;
+    const { data, fullscreen, source } = router.query;
 
-    const [imageDataUrl, setImageDataUrl] = useState('');
-    const [imageExtension, setImageExtension] = useState('png');
-    const [imageSourceUrl, setImageSourceUrl] = useState('');
+    const [audioDataUrl, setAudioDataUrl] = useState('');
+    const [audioExtension, setAudioExtension] = useState('mp3');
+    const [audioSourceUrl, setAudioSourceUrl] = useState('');
     const [error, setError] = useState(false);
     const [isReady, setIsReady] = useState(false);
+
+    const isFullscreen = fullscreen === '1' || fullscreen === 'true';
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
         const sourceUrl = typeof source === 'string' ? source : '';
         if (sourceUrl) {
-            const extension = sourceUrl.split('?')[0].split('.').pop() || 'png';
-            setImageSourceUrl(sourceUrl);
-            setImageExtension(extension);
-            setImageDataUrl('');
+            const extension = sourceUrl.split('?')[0].split('.').pop() || 'mp3';
+            setAudioSourceUrl(sourceUrl);
+            setAudioExtension(extension);
+            setAudioDataUrl('');
             setError(false);
             setIsReady(true);
             return;
@@ -51,30 +53,30 @@ export default function RenderImage() {
         }
 
         try {
-            const decoded = decodeImageDataUrl(payload);
-            setImageDataUrl(decoded.dataUrl);
-            setImageExtension(decoded.extension);
+            const decoded = decodeAudioDataUrl(payload);
+            setAudioDataUrl(decoded.dataUrl);
+            setAudioExtension(decoded.extension);
             setError(false);
         } catch {
             setError(true);
         } finally {
             setIsReady(true);
         }
-    }, [data]);
+    }, [data, source]);
 
     const handleDownload = () => {
-        if (imageSourceUrl) {
+        if (audioSourceUrl) {
             const link = document.createElement('a');
-            link.href = imageSourceUrl;
-            link.download = getImageFileName(imageExtension);
+            link.href = audioSourceUrl;
+            link.download = getAudioFileName(audioExtension);
             link.click();
             return;
         }
 
-        if (!imageDataUrl) return;
+        if (!audioDataUrl) return;
         const link = document.createElement('a');
-        link.href = imageDataUrl;
-        link.download = getImageFileName(imageExtension);
+        link.href = audioDataUrl;
+        link.download = getAudioFileName(audioExtension);
         link.click();
     };
 
@@ -92,7 +94,7 @@ export default function RenderImage() {
         return (
             <>
                 <Head>
-                    <title>{t('renderImage.title')} - {t('common.appName')}</title>
+                    <title>{t('renderAudio.title')} - {t('common.appName')}</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
 
@@ -115,30 +117,42 @@ export default function RenderImage() {
         );
     }
 
+    if (isFullscreen) {
+        return (
+            <>
+                <Head>
+                    <title>{t('renderAudio.title')} - {t('common.appName')}</title>
+                    <meta name="robots" content="noindex, nofollow" />
+                </Head>
+                <FullScreenAudio controls src={audioSourceUrl || audioDataUrl || undefined} />
+            </>
+        );
+    }
+
     return (
         <>
             <Head>
-                <title>{t('renderImage.title')} - {t('common.appName')}</title>
+                <title>{t('renderAudio.title')} - {t('common.appName')}</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
             <RenderContainer>
-                <Card title={t('renderImage.title')}>
+                <Card title={t('renderAudio.title')}>
                     <ButtonGroup>
-                        <Button onClick={handleDownload} disabled={!imageDataUrl}>
-                            {t('renderImage.download')}
+                        <Button onClick={handleDownload} disabled={!audioDataUrl && !audioSourceUrl}>
+                            {t('renderAudio.download')}
                         </Button>
                     </ButtonGroup>
                 </Card>
 
                 <Card>
-                    <ImageWrapper>
-                        {imageSourceUrl || imageDataUrl ? (
-                            <RenderedImage src={imageSourceUrl || imageDataUrl} alt={t('renderImage.title')} />
+                    <AudioWrapper>
+                        {audioSourceUrl || audioDataUrl ? (
+                            <RenderedAudio controls src={audioSourceUrl || audioDataUrl} />
                         ) : (
                             <p>{t('render.error')}</p>
                         )}
-                    </ImageWrapper>
+                    </AudioWrapper>
                 </Card>
             </RenderContainer>
         </>

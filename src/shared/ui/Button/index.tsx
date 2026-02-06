@@ -4,7 +4,7 @@ import { StyledButton, SecondaryButton } from './Button.styles';
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: 'primary' | 'secondary';
     children: React.ReactNode;
-    as?: 'button' | 'a';
+    as?: React.ElementType;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -13,7 +13,7 @@ export const Button: React.FC<ButtonProps> = ({
     as,
     ...props
 }) => {
-    const Component = variant === 'secondary' ? SecondaryButton : StyledButton;
+    const Component: React.ElementType = variant === 'secondary' ? SecondaryButton : StyledButton;
 
     return <Component as={as} {...props}>{children}</Component>;
 };

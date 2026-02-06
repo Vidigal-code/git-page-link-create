@@ -1,7 +1,17 @@
 {
     "HideThemeSelector": false,
     "MaxUrlLength": 2000000,
+    "MaxHtmlUrlLength": 2000000,
+    "MaxMarkdownUrlLength": 2000000,
+    "MaxCsvUrlLength": 2000000,
+    "MaxXlsxUrlLength": 2000000,
+    "MaxImageUrlLength": 2000000,
+    "MaxPdfUrlLength": 2000000,
+    "MaxVideoUrlLength": 2000000,
+    "MaxAudioUrlLength": 2000000,
+    "MaxOfficeUrlLength": 2000000,
     "LangDefault": "en",
+    "ThemeDefault": "github-dark",
     "layouts": [
         {
             "id": "matrix-dark",
@@ -72,6 +82,5 @@
             "supportsLightAndDarkModesReference": "cyberpunk-1-light",
             "mode": "light"
         }
-    ],
-    "default": "github-dark"
+    ]
 }

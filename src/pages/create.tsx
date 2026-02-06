@@ -1,65 +1,70 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import { marked } from 'marked';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
-import { Select } from '@/shared/ui/Select';
-import { Input, TextArea } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
-import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/download';
-import { loadAvailableThemes, getMaxUrlLength } from '@/shared/lib/theme';
+import { downloadFile, getFileExtension, getMimeType } from '@/shared/lib/download';
+import {
+    getMaxAudioUrlLength,
+    getMaxCsvUrlLength,
+    getMaxHtmlUrlLength,
+    getMaxImageUrlLength,
+    getMaxMarkdownUrlLength,
+    getMaxOfficeUrlLength,
+    getMaxPdfUrlLength,
+    getMaxUrlLength,
+    getMaxVideoUrlLength,
+    getMaxXlsxUrlLength,
+    loadAvailableThemes,
+} from '@/shared/lib/theme';
 import { withBasePath } from '@/shared/lib/basePath';
 import { generateQrCodeDataUrl, generateQrCodeSvg } from '@/shared/lib/qr';
-import { fileToDataUrl, encodeImageDataUrl } from '@/shared/lib/image';
+import { compressImageFile, encodeImageDataUrl, fileToDataUrl } from '@/shared/lib/image';
 import { encodePdfDataUrl } from '@/shared/lib/pdf';
+import { compressVideoFile, encodeVideoDataUrl } from '@/shared/lib/video';
+import { compressAudioFile, encodeAudioDataUrl } from '@/shared/lib/audio';
+import { getOfficeViewerUrl } from '@/shared/lib/office';
 import {
-    Container,
-    SplitView,
-    EditorColumn,
-    PreviewColumn,
-    FormSection,
-    FileInput,
-    FileInputLabel,
-    ResultSection,
-    LinkDisplay,
-    CheckboxContainer,
-    StyledCheckbox,
-    CheckboxLabel,
+    AudioToolCard,
+    ContentToolCard,
+    ImageToolCard,
+    OfficeToolCard,
+    PdfToolCard,
+    QrToolCard,
+    RecoveryToolCard,
+    ToolSelector,
+    VideoToolCard,
+} from '@/shared/ui/create-tools';
+import {
     ButtonGroup,
-    ErrorMessage,
-    SuccessMessage,
-    PreviewFrame,
-    PreviewContent,
-    MarkdownPreview,
-    TablePreview,
-    QrSection,
-    ImageSection,
-    ImagePreview,
-    ImagePreviewImage,
-    ImagePlaceholder,
-    PdfSection,
-    PdfPreview,
-    PdfFrame,
-    PdfPlaceholder,
-    QrOptionsGrid,
-    QrPreview,
-    QrImage,
-    QrPlaceholder,
-    ErrorPageContainer,
-    ErrorTitle,
+    Container,
+    EditorColumn,
     ErrorDescription,
     ErrorHint,
+    ErrorPageContainer,
+    ErrorTitle,
+    LinkDisplay,
+    MarkdownPreview,
+    PreviewColumn,
+    PreviewContent,
+    PreviewFrame,
+    ResultSection,
+    SplitView,
+    TablePreview,
 } from '@/shared/styles/pages/create.styles';
 
 type ContentType = 'html' | 'md' | 'csv' | 'xlsx';
+type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 
 export default function Create() {
     const { t } = useI18n();
     const [contentType, setContentType] = useState<ContentType>('html');
     const [content, setContent] = useState<string | Uint8Array>('');
+    const [selectedTool, setSelectedTool] = useState<ToolType>('create');
     const [generatedLink, setGeneratedLink] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
@@ -69,6 +74,13 @@ export default function Create() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const pdfInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
+    const audioInputRef = useRef<HTMLInputElement>(null);
+    const officeInputRef = useRef<HTMLInputElement>(null);
+
+    const [contentSourceUrl, setContentSourceUrl] = useState('');
+    const [contentSourceLink, setContentSourceLink] = useState('');
+    const [contentSourceError, setContentSourceError] = useState('');
 
     const [recoveryHash, setRecoveryHash] = useState('');
     const [qrInput, setQrInput] = useState('');
@@ -86,30 +98,128 @@ export default function Create() {
     const [imageLink, setImageLink] = useState('');
     const [imageRenderAllLink, setImageRenderAllLink] = useState('');
     const [imageError, setImageError] = useState('');
+    const [imageSourceUrl, setImageSourceUrl] = useState('');
+    const [imageSourceLink, setImageSourceLink] = useState('');
+    const [compressImage, setCompressImage] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isImageProcessing, setIsImageProcessing] = useState(false);
+    const [imageCompressProgress, setImageCompressProgress] = useState<number | null>(null);
 
     const [pdfDataUrl, setPdfDataUrl] = useState('');
     const [pdfLink, setPdfLink] = useState('');
     const [pdfRenderAllLink, setPdfRenderAllLink] = useState('');
     const [pdfError, setPdfError] = useState('');
 
+    const [videoDataUrl, setVideoDataUrl] = useState('');
+    const [videoLink, setVideoLink] = useState('');
+    const [videoRenderAllLink, setVideoRenderAllLink] = useState('');
+    const [videoError, setVideoError] = useState('');
+    const [videoSourceUrl, setVideoSourceUrl] = useState('');
+    const [videoSourceLink, setVideoSourceLink] = useState('');
+    const [compressVideo, setCompressVideo] = useState(false);
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [isVideoProcessing, setIsVideoProcessing] = useState(false);
+    const [videoCompressProgress, setVideoCompressProgress] = useState<number | null>(null);
+
+    const [audioDataUrl, setAudioDataUrl] = useState('');
+    const [audioLink, setAudioLink] = useState('');
+    const [audioRenderAllLink, setAudioRenderAllLink] = useState('');
+    const [audioError, setAudioError] = useState('');
+    const [audioSourceUrl, setAudioSourceUrl] = useState('');
+    const [audioSourceLink, setAudioSourceLink] = useState('');
+    const [compressAudio, setCompressAudio] = useState(false);
+    const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [isAudioProcessing, setIsAudioProcessing] = useState(false);
+    const [audioCompressProgress, setAudioCompressProgress] = useState<number | null>(null);
+
+    const [officeSourceUrl, setOfficeSourceUrl] = useState('');
+    const [officeLink, setOfficeLink] = useState('');
+    const [officeRenderAllLink, setOfficeRenderAllLink] = useState('');
+    const [officeError, setOfficeError] = useState('');
+    const [officeCode, setOfficeCode] = useState('');
+
     useEffect(() => {
         loadAvailableThemes();
     }, []);
 
-    const contentTypeOptions = [
+    const contentTypeOptions = useMemo(() => ([
         { value: 'html', label: 'HTML' },
         { value: 'md', label: 'Markdown' },
         { value: 'csv', label: 'CSV' },
         { value: 'xlsx', label: 'XLSX' },
-    ];
+    ]), []);
+
+    const toolOptions = useMemo(() => ([
+        { value: 'create', label: t('create.title') },
+        { value: 'recovery', label: t('create.recoveryTitle') },
+        { value: 'image', label: t('create.imageTitle') },
+        { value: 'pdf', label: t('create.pdfTitle') },
+        { value: 'qr', label: t('create.qrTitle') },
+        { value: 'video', label: t('create.videoTitle') },
+        { value: 'audio', label: t('create.audioTitle') },
+        { value: 'office', label: t('create.officeTitle') },
+    ]), [t]);
+
+    const contentValue = typeof content === 'string'
+        ? content
+        : '[Binary file loaded - cannot edit]';
+
+    const getMaxLengthForContentType = (type: ContentType) => {
+        switch (type) {
+            case 'html':
+                return getMaxHtmlUrlLength();
+            case 'md':
+                return getMaxMarkdownUrlLength();
+            case 'csv':
+                return getMaxCsvUrlLength();
+            case 'xlsx':
+                return getMaxXlsxUrlLength();
+            default:
+                return getMaxUrlLength();
+        }
+    };
+
+    const isValidUrl = (value: string) => {
+        if (!value) return false;
+        try {
+            const parsed = new URL(value);
+            return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        } catch {
+            return false;
+        }
+    };
+
+    const extractOfficeUrlFromCode = (value: string) => {
+        const match = value.match(/https?:\/\/[^\s"'<>]+/i);
+        return match?.[0] || '';
+    };
+
+    const resolveOfficeSource = () => {
+        const urlValue = officeSourceUrl.trim();
+        if (urlValue) return urlValue;
+
+        const codeValue = officeCode.trim();
+        if (!codeValue) return '';
+
+        const extracted = extractOfficeUrlFromCode(codeValue);
+        return extracted || codeValue;
+    };
+
+    const hasOfficeSource = () => Boolean(officeSourceUrl.trim() || officeCode.trim());
+
+    const resetContentMessages = () => {
+        setError('');
+        setSuccessMessage('');
+    };
 
     const handleContentTypeChange = (newType: ContentType) => {
         setContentType(newType);
         setContent('');
         setGeneratedLink('');
-        setError('');
-        setSuccessMessage('');
+        resetContentMessages();
         setIsProcessing(false);
+        setContentSourceLink('');
+        setContentSourceError('');
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -118,204 +228,35 @@ export default function Create() {
     const handleClearContent = () => {
         setContent('');
         setGeneratedLink('');
-        setError('');
-        setSuccessMessage('');
+        resetContentMessages();
         setIsProcessing(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            setImageError(t('create.imageInvalid'));
-            return;
-        }
-
-        try {
-            const dataUrl = await fileToDataUrl(file);
-            setImageDataUrl(dataUrl);
-            setImageLink('');
-            setImageRenderAllLink('');
-            setImageError('');
-        } catch {
-            setImageError(t('create.imageError'));
-        }
-    };
-
-    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        if (file.type !== 'application/pdf') {
-            setPdfError(t('create.pdfInvalid'));
-            return;
-        }
-
-        try {
-            const dataUrl = await fileToDataUrl(file);
-            setPdfDataUrl(dataUrl);
-            setPdfLink('');
-            setPdfRenderAllLink('');
-            setPdfError('');
-        } catch {
-            setPdfError(t('create.pdfError'));
-        }
-    };
-
-    const handleGenerateImageLink = () => {
-        if (!imageDataUrl || typeof window === 'undefined') return;
-        setImageError('');
-
-        const encoded = encodeImageDataUrl(imageDataUrl);
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath('render/image');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
-
-        const maxLimit = getMaxUrlLength();
-        if (link.length > maxLimit) {
-            setImageError(t('create.urlTooLong'));
-            return;
-        }
-
-        setImageLink(link);
-    };
-
-    const handleGenerateImageRenderAllLink = () => {
-        if (!imageDataUrl || typeof window === 'undefined') return;
-        setImageError('');
-
-        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Image</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${imageDataUrl}" alt="Image" /></body></html>`;
-        const compressed = compress(html);
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath('render-all');
-        const link = `${baseUrl}${fullPath}#data=html-${compressed}`;
-
-        const maxLimit = getMaxUrlLength();
-        if (link.length > maxLimit) {
-            setImageError(t('create.urlTooLong'));
-            return;
-        }
-
-        setImageRenderAllLink(link);
-    };
-
-    const handleClearImage = () => {
-        setImageDataUrl('');
-        setImageLink('');
-        setImageRenderAllLink('');
-        setImageError('');
-        if (imageInputRef.current) {
-            imageInputRef.current.value = '';
-        }
-    };
-
-    const handleGeneratePdfLink = () => {
-        if (!pdfDataUrl || typeof window === 'undefined') return;
-        setPdfError('');
-
-        const encoded = encodePdfDataUrl(pdfDataUrl);
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath('render/pdf');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
-
-        const maxLimit = getMaxUrlLength();
-        if (link.length > maxLimit) {
-            setPdfError(t('create.urlTooLong'));
-            return;
-        }
-
-        setPdfLink(link);
-    };
-
-    const handleGeneratePdfRenderAllLink = () => {
-        if (!pdfDataUrl || typeof window === 'undefined') return;
-        setPdfError('');
-
-        const baseUrl = window.location.origin;
-        const encoded = encodePdfDataUrl(pdfDataUrl);
-        const fullPath = withBasePath('render/pdf?fullscreen=1');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
-
-        const maxLimit = getMaxUrlLength();
-        if (link.length > maxLimit) {
-            setPdfError(t('create.urlTooLong'));
-            return;
-        }
-
-        setPdfRenderAllLink(link);
-    };
-
-    const handleClearPdf = () => {
-        setPdfDataUrl('');
-        setPdfLink('');
-        setPdfRenderAllLink('');
-        setPdfError('');
-        if (pdfInputRef.current) {
-            pdfInputRef.current.value = '';
-        }
-    };
-
-    const handleRecoverContent = () => {
-        if (!recoveryHash) return;
-
-        try {
-            const separatorIndex = recoveryHash.indexOf('-');
-            if (separatorIndex === -1) {
-                setError(t('create.invalidHash'));
-                return;
-            }
-
-            const type = recoveryHash.substring(0, separatorIndex) as ContentType;
-            const compressedContent = recoveryHash.substring(separatorIndex + 1);
-
-            if (!['html', 'md', 'csv', 'xlsx'].includes(type)) {
-                setError(t('create.invalidHash'));
-                return;
-            }
-
-            let decompressed: string | Uint8Array;
-            if (type === 'xlsx') {
-                decompressed = decompressBytes(compressedContent);
-            } else {
-                decompressed = decompress(compressedContent);
-            }
-
-            setContentType(type);
-            setContent(decompressed);
-            setSuccessMessage(t('create.recoverySuccess'));
-            setGeneratedLink('');
-            setRecoveryHash(''); // Clear hash input on success
-            setError('');
-        } catch {
-            setError(t('create.invalidHash'));
-        }
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
         if (!file) return;
 
         const reader = new FileReader();
 
         if (contentType === 'xlsx') {
-            reader.onload = (event) => {
-                const buffer = event.target?.result as ArrayBuffer;
+            reader.onload = (loadEvent) => {
+                const buffer = loadEvent.target?.result as ArrayBuffer;
                 setContent(new Uint8Array(buffer));
             };
             reader.readAsArrayBuffer(file);
         } else {
-            reader.onload = (event) => {
-                const text = event.target?.result as string;
+            reader.onload = (loadEvent) => {
+                const text = loadEvent.target?.result as string;
                 setContent(text);
             };
             reader.readAsText(file);
         }
     };
 
-    const generateHashLink = (targetContent: string | Uint8Array, type: ContentType, isFull: boolean = false) => {
-        // Compress content
+    const generateHashLink = (targetContent: string | Uint8Array, type: ContentType, fullScreen = false) => {
         const compressed = typeof targetContent === 'string'
             ? compress(targetContent)
             : compressBytes(targetContent);
@@ -323,8 +264,7 @@ export default function Create() {
         if (typeof window === 'undefined') return '';
 
         const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`${isFull ? 'render-all' : 'render'}?data=${type}-${compressed}`);
-
+        const fullPath = withBasePath(`${fullScreen ? 'render-all' : 'render'}?data=${type}-${compressed}`);
         return `${baseUrl}${fullPath}`;
     };
 
@@ -335,16 +275,12 @@ export default function Create() {
         }
 
         setIsProcessing(true);
-        setError('');
-        setSuccessMessage('');
+        resetContentMessages();
         setGeneratedLink('');
 
         try {
-            // Generate link based on isFullScreen state
             const link = generateHashLink(content, contentType, isFullScreen);
-
-            // Check URL length limit check (approx 2000-2048 chars)
-            const maxLimit = getMaxUrlLength();
+            const maxLimit = getMaxLengthForContentType(contentType);
 
             if (link.length > maxLimit) {
                 setError(t('create.urlTooLong'));
@@ -361,8 +297,33 @@ export default function Create() {
         }
     };
 
-    const handleCopyLink = (textToCopy: string) => {
-        navigator.clipboard.writeText(textToCopy);
+    const handleGenerateContentSourceLink = () => {
+        if (!contentSourceUrl) return;
+        if (!isValidUrl(contentSourceUrl)) {
+            setContentSourceError(t('create.sourceUrlInvalid'));
+            return;
+        }
+
+        if (typeof window === 'undefined') return;
+
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render?source=${encodeURIComponent(contentSourceUrl)}&type=${contentType}`);
+        const link = `${baseUrl}${fullPath}`;
+        const maxLimit = getMaxUrlLength();
+
+        if (link.length > maxLimit) {
+            setContentSourceError(t('create.urlTooLong'));
+            return;
+        }
+
+        setContentSourceError('');
+        setContentSourceLink(link);
+    };
+
+    const handleCopyLink = (value: string) => {
+        if (navigator?.clipboard?.writeText) {
+            navigator.clipboard.writeText(value);
+        }
         setSuccessMessage(t('create.linkCopied'));
     };
 
@@ -390,27 +351,23 @@ export default function Create() {
         if (contentType === 'md') {
             const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
             const htmlContent = marked(strContent);
-            return (
-                <MarkdownPreview dangerouslySetInnerHTML={{ __html: htmlContent }} />
-            );
+            return <MarkdownPreview dangerouslySetInnerHTML={{ __html: htmlContent }} />;
         }
 
         if (contentType === 'csv' || contentType === 'xlsx') {
             type TableCell = string | number | null;
             type TableData = TableCell[][];
             let parsedData: TableData = [];
+
             try {
                 if (contentType === 'csv') {
                     const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
                     const result = Papa.parse<TableCell[]>(strContent);
                     parsedData = result.data as TableData;
-                } else {
-                    // Check if content is Uint8Array
-                    if (content instanceof Uint8Array) {
-                        const workbook = XLSX.read(content, { type: 'array' });
-                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        parsedData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as TableData;
-                    }
+                } else if (content instanceof Uint8Array) {
+                    const workbook = XLSX.read(content, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    parsedData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as TableData;
                 }
 
                 if (parsedData.length === 0) return <p>No data</p>;
@@ -420,16 +377,16 @@ export default function Create() {
                         <TablePreview>
                             <thead>
                                 <tr>
-                                    {parsedData[0]?.map((header, i) => (
-                                        <th key={i}>{header}</th>
+                                    {parsedData[0]?.map((header, index) => (
+                                        <th key={index}>{header}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {parsedData.slice(1).map((row, i) => (
-                                    <tr key={i}>
-                                        {row.map((cell, j) => (
-                                            <td key={j}>{cell}</td>
+                                {parsedData.slice(1).map((row, rowIndex) => (
+                                    <tr key={rowIndex}>
+                                        {row.map((cell, cellIndex) => (
+                                            <td key={cellIndex}>{cell}</td>
                                         ))}
                                     </tr>
                                 ))}
@@ -443,6 +400,520 @@ export default function Create() {
         }
 
         return null;
+    };
+
+    const handleRecoverContent = () => {
+        if (!recoveryHash) return;
+
+        try {
+            const separatorIndex = recoveryHash.indexOf('-');
+            if (separatorIndex === -1) {
+                setError(t('create.invalidHash'));
+                return;
+            }
+
+            const type = recoveryHash.substring(0, separatorIndex) as ContentType;
+            const compressedContent = recoveryHash.substring(separatorIndex + 1);
+
+            if (!['html', 'md', 'csv', 'xlsx'].includes(type)) {
+                setError(t('create.invalidHash'));
+                return;
+            }
+
+            const decompressed = type === 'xlsx'
+                ? decompressBytes(compressedContent)
+                : decompress(compressedContent);
+
+            setContentType(type);
+            setContent(decompressed);
+            setSuccessMessage(t('create.recoverySuccess'));
+            setGeneratedLink('');
+            setRecoveryHash('');
+            setError('');
+        } catch {
+            setError(t('create.invalidHash'));
+        }
+    };
+
+    const processImageFile = async (file: File, shouldCompress: boolean) => {
+        setIsImageProcessing(true);
+        setImageCompressProgress(null);
+        try {
+            const dataUrl = shouldCompress
+                ? await compressImageFile(file, {
+                    targetUrlLength: getMaxImageUrlLength(),
+                    onProgress: setImageCompressProgress,
+                })
+                : await fileToDataUrl(file);
+            setImageDataUrl(dataUrl);
+            setImageError('');
+            setImageLink('');
+            setImageRenderAllLink('');
+            setImageSourceLink('');
+        } catch {
+            if (shouldCompress) {
+                try {
+                    const fallbackDataUrl = await fileToDataUrl(file);
+                    setImageDataUrl(fallbackDataUrl);
+                    setImageError(t('create.imageCompressionFallback'));
+                } catch {
+                    setImageError(t('create.imageError'));
+                }
+            } else {
+                setImageError(t('create.imageError'));
+            }
+        } finally {
+            setIsImageProcessing(false);
+            setImageCompressProgress(null);
+        }
+    };
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            setImageError(t('create.imageInvalid'));
+            return;
+        }
+
+        setImageFile(file);
+        await processImageFile(file, compressImage);
+    };
+
+    const handleToggleCompressImage = async () => {
+        const nextValue = !compressImage;
+        setCompressImage(nextValue);
+        if (imageFile) {
+            await processImageFile(imageFile, nextValue);
+        }
+    };
+
+    const handleGenerateImageLink = () => {
+        if (!imageDataUrl || typeof window === 'undefined') return;
+        setImageError('');
+
+        const encoded = encodeImageDataUrl(imageDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/image');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxImageUrlLength()) {
+            setImageError(t('create.urlTooLong'));
+            return;
+        }
+
+        setImageLink(link);
+    };
+
+    const handleGenerateImageRenderAllLink = () => {
+        if (!imageDataUrl || typeof window === 'undefined') return;
+        setImageError('');
+
+        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Image</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${imageDataUrl}" alt="Image" /></body></html>`;
+        const compressed = compress(html);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render-all');
+        const link = `${baseUrl}${fullPath}#data=html-${compressed}`;
+
+        if (link.length > getMaxUrlLength()) {
+            setImageError(t('create.urlTooLong'));
+            return;
+        }
+
+        setImageRenderAllLink(link);
+    };
+
+    const handleGenerateImageSourceLink = () => {
+        if (!imageSourceUrl) return;
+        if (!isValidUrl(imageSourceUrl)) {
+            setImageError(t('create.imageUrlInvalid'));
+            return;
+        }
+        if (typeof window === 'undefined') return;
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render/image?source=${encodeURIComponent(imageSourceUrl)}`);
+        setImageSourceLink(`${baseUrl}${fullPath}`);
+        setImageError('');
+    };
+
+    const handleClearImage = () => {
+        setImageDataUrl('');
+        setImageLink('');
+        setImageRenderAllLink('');
+        setImageError('');
+        setImageSourceLink('');
+        setImageSourceUrl('');
+        setImageFile(null);
+        if (imageInputRef.current) {
+            imageInputRef.current.value = '';
+        }
+    };
+
+    const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (file.type !== 'application/pdf') {
+            setPdfError(t('create.pdfInvalid'));
+            return;
+        }
+
+        try {
+            const dataUrl = await fileToDataUrl(file);
+            setPdfDataUrl(dataUrl);
+            setPdfLink('');
+            setPdfRenderAllLink('');
+            setPdfError('');
+        } catch {
+            setPdfError(t('create.pdfError'));
+        }
+    };
+
+    const handleGeneratePdfLink = () => {
+        if (!pdfDataUrl || typeof window === 'undefined') return;
+        setPdfError('');
+
+        const encoded = encodePdfDataUrl(pdfDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/pdf');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxPdfUrlLength()) {
+            setPdfError(t('create.urlTooLong'));
+            return;
+        }
+
+        setPdfLink(link);
+    };
+
+    const handleGeneratePdfRenderAllLink = () => {
+        if (!pdfDataUrl || typeof window === 'undefined') return;
+        setPdfError('');
+
+        const encoded = encodePdfDataUrl(pdfDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/pdf?fullscreen=1');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxPdfUrlLength()) {
+            setPdfError(t('create.urlTooLong'));
+            return;
+        }
+
+        setPdfRenderAllLink(link);
+    };
+
+    const handleClearPdf = () => {
+        setPdfDataUrl('');
+        setPdfLink('');
+        setPdfRenderAllLink('');
+        setPdfError('');
+        if (pdfInputRef.current) {
+            pdfInputRef.current.value = '';
+        }
+    };
+
+    const processVideoFile = async (file: File, shouldCompress: boolean) => {
+        setIsVideoProcessing(true);
+        setVideoCompressProgress(null);
+        try {
+            const dataUrl = shouldCompress
+                ? await compressVideoFile(file, {
+                    targetUrlLength: getMaxVideoUrlLength(),
+                    onProgress: setVideoCompressProgress,
+                })
+                : await fileToDataUrl(file);
+            setVideoDataUrl(dataUrl);
+            setVideoError('');
+            setVideoLink('');
+            setVideoRenderAllLink('');
+            setVideoSourceLink('');
+        } catch {
+            if (shouldCompress) {
+                try {
+                    const fallbackDataUrl = await fileToDataUrl(file);
+                    setVideoDataUrl(fallbackDataUrl);
+                    setVideoError(t('create.videoCompressionFallback'));
+                } catch {
+                    setVideoError(t('create.videoError'));
+                }
+            } else {
+                setVideoError(t('create.videoError'));
+            }
+        } finally {
+            setIsVideoProcessing(false);
+            setVideoCompressProgress(null);
+        }
+    };
+
+    const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('video/')) {
+            setVideoError(t('create.videoInvalid'));
+            return;
+        }
+
+        setVideoFile(file);
+        await processVideoFile(file, compressVideo);
+    };
+
+    const handleToggleCompressVideo = async () => {
+        const nextValue = !compressVideo;
+        setCompressVideo(nextValue);
+        if (videoFile) {
+            await processVideoFile(videoFile, nextValue);
+        }
+    };
+
+    const handleGenerateVideoLink = () => {
+        if (!videoDataUrl || typeof window === 'undefined') return;
+        setVideoError('');
+
+        const encoded = encodeVideoDataUrl(videoDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/video');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxVideoUrlLength()) {
+            setVideoError(t('create.urlTooLong'));
+            return;
+        }
+
+        setVideoLink(link);
+    };
+
+    const handleGenerateVideoRenderAllLink = () => {
+        if (!videoDataUrl || typeof window === 'undefined') return;
+        setVideoError('');
+
+        const encoded = encodeVideoDataUrl(videoDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/video?fullscreen=1');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxVideoUrlLength()) {
+            setVideoError(t('create.urlTooLong'));
+            return;
+        }
+
+        setVideoRenderAllLink(link);
+    };
+
+    const handleGenerateVideoSourceLink = () => {
+        if (!videoSourceUrl) return;
+        if (!isValidUrl(videoSourceUrl)) {
+            setVideoError(t('create.videoUrlInvalid'));
+            return;
+        }
+
+        if (typeof window === 'undefined') return;
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render/video?source=${encodeURIComponent(videoSourceUrl)}`);
+        setVideoSourceLink(`${baseUrl}${fullPath}`);
+        setVideoError('');
+    };
+
+    const handleClearVideo = () => {
+        setVideoDataUrl('');
+        setVideoLink('');
+        setVideoRenderAllLink('');
+        setVideoError('');
+        setVideoSourceLink('');
+        setVideoSourceUrl('');
+        setVideoFile(null);
+        if (videoInputRef.current) {
+            videoInputRef.current.value = '';
+        }
+    };
+
+    const processAudioFile = async (file: File, shouldCompress: boolean) => {
+        setIsAudioProcessing(true);
+        setAudioCompressProgress(null);
+        try {
+            const dataUrl = shouldCompress
+                ? await compressAudioFile(file, {
+                    targetUrlLength: getMaxAudioUrlLength(),
+                    onProgress: setAudioCompressProgress,
+                })
+                : await fileToDataUrl(file);
+            setAudioDataUrl(dataUrl);
+            setAudioError('');
+            setAudioLink('');
+            setAudioRenderAllLink('');
+            setAudioSourceLink('');
+        } catch {
+            if (shouldCompress) {
+                try {
+                    const fallbackDataUrl = await fileToDataUrl(file);
+                    setAudioDataUrl(fallbackDataUrl);
+                    setAudioError(t('create.audioCompressionFallback'));
+                } catch {
+                    setAudioError(t('create.audioError'));
+                }
+            } else {
+                setAudioError(t('create.audioError'));
+            }
+        } finally {
+            setIsAudioProcessing(false);
+            setAudioCompressProgress(null);
+        }
+    };
+
+    const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('audio/')) {
+            setAudioError(t('create.audioInvalid'));
+            return;
+        }
+
+        setAudioFile(file);
+        await processAudioFile(file, compressAudio);
+    };
+
+    const handleToggleCompressAudio = async () => {
+        const nextValue = !compressAudio;
+        setCompressAudio(nextValue);
+        if (audioFile) {
+            await processAudioFile(audioFile, nextValue);
+        }
+    };
+
+    const handleGenerateAudioLink = () => {
+        if (!audioDataUrl || typeof window === 'undefined') return;
+        setAudioError('');
+
+        const encoded = encodeAudioDataUrl(audioDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/audio');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxAudioUrlLength()) {
+            setAudioError(t('create.urlTooLong'));
+            return;
+        }
+
+        setAudioLink(link);
+    };
+
+    const handleGenerateAudioRenderAllLink = () => {
+        if (!audioDataUrl || typeof window === 'undefined') return;
+        setAudioError('');
+
+        const encoded = encodeAudioDataUrl(audioDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/audio?fullscreen=1');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        if (link.length > getMaxAudioUrlLength()) {
+            setAudioError(t('create.urlTooLong'));
+            return;
+        }
+
+        setAudioRenderAllLink(link);
+    };
+
+    const handleGenerateAudioSourceLink = () => {
+        if (!audioSourceUrl) return;
+        if (!isValidUrl(audioSourceUrl)) {
+            setAudioError(t('create.audioUrlInvalid'));
+            return;
+        }
+
+        if (typeof window === 'undefined') return;
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render/audio?source=${encodeURIComponent(audioSourceUrl)}`);
+        setAudioSourceLink(`${baseUrl}${fullPath}`);
+        setAudioError('');
+    };
+
+    const handleClearAudio = () => {
+        setAudioDataUrl('');
+        setAudioLink('');
+        setAudioRenderAllLink('');
+        setAudioError('');
+        setAudioSourceLink('');
+        setAudioSourceUrl('');
+        setAudioFile(null);
+        if (audioInputRef.current) {
+            audioInputRef.current.value = '';
+        }
+    };
+
+    const handleOfficeCodeChange = (value: string) => {
+        setOfficeCode(value);
+        const extracted = extractOfficeUrlFromCode(value);
+        if (extracted && !officeSourceUrl) {
+            setOfficeSourceUrl(extracted);
+        }
+    };
+
+    const handleOfficeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const dataUrl = await fileToDataUrl(file);
+            setOfficeCode(dataUrl);
+            setOfficeError('');
+        } catch {
+            setOfficeError(t('create.officeUploadError'));
+        }
+    };
+
+    const handleGenerateOfficeLink = () => {
+        const sourceValue = resolveOfficeSource();
+        if (!sourceValue) return;
+        if (!isValidUrl(sourceValue)) {
+            setOfficeError(t('create.officeUrlInvalid'));
+            return;
+        }
+
+        if (typeof window === 'undefined') return;
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render/office?source=${encodeURIComponent(sourceValue)}`);
+        const link = `${baseUrl}${fullPath}`;
+
+        if (link.length > getMaxOfficeUrlLength()) {
+            setOfficeError(t('create.urlTooLong'));
+            return;
+        }
+
+        setOfficeError('');
+        setOfficeLink(link);
+    };
+
+    const handleGenerateOfficeRenderAllLink = () => {
+        const sourceValue = resolveOfficeSource();
+        if (!sourceValue) return;
+        if (!isValidUrl(sourceValue)) {
+            setOfficeError(t('create.officeUrlInvalid'));
+            return;
+        }
+
+        if (typeof window === 'undefined') return;
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render/office?source=${encodeURIComponent(sourceValue)}&fullscreen=1`);
+        const link = `${baseUrl}${fullPath}`;
+
+        if (link.length > getMaxOfficeUrlLength()) {
+            setOfficeError(t('create.urlTooLong'));
+            return;
+        }
+
+        setOfficeError('');
+        setOfficeRenderAllLink(link);
+    };
+
+    const handleClearOffice = () => {
+        setOfficeSourceUrl('');
+        setOfficeLink('');
+        setOfficeRenderAllLink('');
+        setOfficeError('');
+        setOfficeCode('');
+        if (officeInputRef.current) {
+            officeInputRef.current.value = '';
+        }
     };
 
     const handleGenerateQr = async () => {
@@ -538,7 +1009,7 @@ export default function Create() {
     };
 
     const handleGenerateQrRenderLink = () => {
-        if (!qrDataUrl) return;
+        if (!qrDataUrl || typeof window === 'undefined') return;
         const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
         const compressed = compress(html);
         const fullPath = withBasePath(`render?data=html-${compressed}`);
@@ -547,12 +1018,308 @@ export default function Create() {
     };
 
     const handleGenerateQrRenderAllLink = () => {
-        if (!qrDataUrl) return;
+        if (!qrDataUrl || typeof window === 'undefined') return;
         const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
         const compressed = compress(html);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath(`render-all?data=html-${compressed}`);
         setQrRenderAllLink(`${baseUrl}${fullPath}`);
+    };
+
+    const renderSelectedTool = () => {
+        switch (selectedTool) {
+            case 'create':
+                return (
+                    <ContentToolCard
+                        title={t('create.title')}
+                        selectLabel={t('create.selectType')}
+                        pasteLabel={t('create.pasteContent')}
+                        uploadLabel={t('create.uploadFile')}
+                        fullScreenLabel={t('create.fullScreenOption')}
+                        sourceUrlLabel={t('create.sourceUrlLabel')}
+                        sourceUrlPlaceholder={t('create.sourceUrlPlaceholder')}
+                        sourceUrlGenerateLabel={t('create.sourceUrlGenerate')}
+                        sourceUrlLinkTitle={t('create.sourceUrlLinkTitle')}
+                        generateLabel={t('create.generateLink')}
+                        processingLabel={t('create.processing')}
+                        previewLabel={t('create.preview')}
+                        clearLabel={t('create.clearContent')}
+                        copyLabel={t('create.copyLink')}
+                        openLabel={t('create.openLink')}
+                        contentType={contentType}
+                        contentTypeOptions={contentTypeOptions}
+                        onContentTypeChange={(value) => handleContentTypeChange(value as ContentType)}
+                        contentValue={contentValue}
+                        isContentEditable={typeof content === 'string'}
+                        onContentChange={setContent}
+                        fileInputRef={fileInputRef}
+                        onFileUpload={handleFileUpload}
+                        isFullScreen={isFullScreen}
+                        onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                        contentSourceUrl={contentSourceUrl}
+                        onContentSourceUrlChange={setContentSourceUrl}
+                        onGenerateContentSourceLink={handleGenerateContentSourceLink}
+                        contentSourceError={contentSourceError}
+                        contentSourceLink={contentSourceLink}
+                        onCopyLink={handleCopyLink}
+                        onGenerateLink={handleGenerateLink}
+                        isProcessing={isProcessing}
+                        onTogglePreview={() => setShowPreview(!showPreview)}
+                        onClearContent={handleClearContent}
+                        errorMessage={error}
+                        successMessage={successMessage}
+                    />
+                );
+            case 'recovery':
+                return (
+                    <RecoveryToolCard
+                        title={t('create.recoveryTitle')}
+                        pasteLabel={t('create.pasteHash')}
+                        recoverLabel={t('create.recoverButton')}
+                        clearLabel={t('create.clearHash')}
+                        hashValue={recoveryHash}
+                        onHashChange={setRecoveryHash}
+                        onRecover={handleRecoverContent}
+                        onClear={() => setRecoveryHash('')}
+                    />
+                );
+            case 'image':
+                return (
+                    <ImageToolCard
+                        title={t('create.imageTitle')}
+                        description={t('create.imageDescription')}
+                        uploadLabel={t('create.imageUpload')}
+                        previewHint={t('create.imagePreviewHint')}
+                        previewAlt={t('create.imagePreviewAlt')}
+                        compressLabel={t('create.imageCompressLabel')}
+                        urlLabel={t('create.imageUrlLabel')}
+                        urlPlaceholder={t('create.imageUrlPlaceholder')}
+                        generateLabel={t('create.imageGenerate')}
+                        generateUrlLabel={t('create.imageUrlGenerate')}
+                        renderAllLabel={t('create.imageRenderAll')}
+                        clearLabel={t('create.imageClear')}
+                        linkTitle={t('create.imageLinkTitle')}
+                        renderAllTitle={t('create.imageRenderAllTitle')}
+                        urlLinkTitle={t('create.imageUrlLinkTitle')}
+                        copyLabel={t('create.copyLink')}
+                        openLabel={t('create.openLink')}
+                        compressingLabel={t('create.compressing')}
+                        imageDataUrl={imageDataUrl}
+                        imageSourceUrl={imageSourceUrl}
+                        imageLink={imageLink}
+                        imageRenderAllLink={imageRenderAllLink}
+                        imageSourceLink={imageSourceLink}
+                        imageError={imageError}
+                        isProcessing={isImageProcessing}
+                        compressImage={compressImage}
+                        compressProgress={imageCompressProgress}
+                        imageInputRef={imageInputRef}
+                        onUpload={handleImageUpload}
+                        onToggleCompress={handleToggleCompressImage}
+                        onSourceUrlChange={setImageSourceUrl}
+                        onGenerateLink={handleGenerateImageLink}
+                        onGenerateSourceLink={handleGenerateImageSourceLink}
+                        onGenerateRenderAll={handleGenerateImageRenderAllLink}
+                        onClear={handleClearImage}
+                        onCopyLink={handleCopyLink}
+                    />
+                );
+            case 'pdf':
+                return (
+                    <PdfToolCard
+                        title={t('create.pdfTitle')}
+                        description={t('create.pdfDescription')}
+                        uploadLabel={t('create.pdfUpload')}
+                        previewHint={t('create.pdfPreviewHint')}
+                        generateLabel={t('create.pdfGenerate')}
+                        renderAllLabel={t('create.pdfRenderAll')}
+                        clearLabel={t('create.pdfClear')}
+                        linkTitle={t('create.pdfLinkTitle')}
+                        renderAllTitle={t('create.pdfRenderAllTitle')}
+                        copyLabel={t('create.copyLink')}
+                        openLabel={t('create.openLink')}
+                        pdfDataUrl={pdfDataUrl}
+                        pdfLink={pdfLink}
+                        pdfRenderAllLink={pdfRenderAllLink}
+                        pdfError={pdfError}
+                        pdfInputRef={pdfInputRef}
+                        onUpload={handlePdfUpload}
+                        onGenerateLink={handleGeneratePdfLink}
+                        onGenerateRenderAll={handleGeneratePdfRenderAllLink}
+                        onClear={handleClearPdf}
+                        onCopyLink={handleCopyLink}
+                    />
+                );
+            case 'video':
+                return (
+                    <VideoToolCard
+                        title={t('create.videoTitle')}
+                        description={t('create.videoDescription')}
+                        uploadLabel={t('create.videoUpload')}
+                        previewHint={t('create.videoPreviewHint')}
+                        compressLabel={t('create.videoCompressLabel')}
+                        urlLabel={t('create.videoUrlLabel')}
+                        urlPlaceholder={t('create.videoUrlPlaceholder')}
+                        generateLabel={t('create.videoGenerate')}
+                        generateUrlLabel={t('create.videoUrlGenerate')}
+                        renderAllLabel={t('create.videoRenderAll')}
+                        clearLabel={t('create.videoClear')}
+                        linkTitle={t('create.videoLinkTitle')}
+                        renderAllTitle={t('create.videoRenderAllTitle')}
+                        urlLinkTitle={t('create.videoUrlLinkTitle')}
+                        copyLabel={t('create.copyLink')}
+                        openLabel={t('create.openLink')}
+                        compressingLabel={t('create.compressing')}
+                        videoDataUrl={videoDataUrl}
+                        videoSourceUrl={videoSourceUrl}
+                        videoLink={videoLink}
+                        videoRenderAllLink={videoRenderAllLink}
+                        videoSourceLink={videoSourceLink}
+                        videoError={videoError}
+                        isProcessing={isVideoProcessing}
+                        compressVideo={compressVideo}
+                        compressProgress={videoCompressProgress}
+                        videoInputRef={videoInputRef}
+                        onUpload={handleVideoUpload}
+                        onToggleCompress={handleToggleCompressVideo}
+                        onSourceUrlChange={setVideoSourceUrl}
+                        onGenerateLink={handleGenerateVideoLink}
+                        onGenerateSourceLink={handleGenerateVideoSourceLink}
+                        onGenerateRenderAll={handleGenerateVideoRenderAllLink}
+                        onClear={handleClearVideo}
+                        onCopyLink={handleCopyLink}
+                    />
+                );
+            case 'audio':
+                return (
+                    <AudioToolCard
+                        title={t('create.audioTitle')}
+                        description={t('create.audioDescription')}
+                        uploadLabel={t('create.audioUpload')}
+                        previewHint={t('create.audioPreviewHint')}
+                        compressLabel={t('create.audioCompressLabel')}
+                        urlLabel={t('create.audioUrlLabel')}
+                        urlPlaceholder={t('create.audioUrlPlaceholder')}
+                        generateLabel={t('create.audioGenerate')}
+                        generateUrlLabel={t('create.audioUrlGenerate')}
+                        renderAllLabel={t('create.audioRenderAll')}
+                        clearLabel={t('create.audioClear')}
+                        linkTitle={t('create.audioLinkTitle')}
+                        renderAllTitle={t('create.audioRenderAllTitle')}
+                        urlLinkTitle={t('create.audioUrlLinkTitle')}
+                        copyLabel={t('create.copyLink')}
+                        openLabel={t('create.openLink')}
+                        compressingLabel={t('create.compressing')}
+                        audioDataUrl={audioDataUrl}
+                        audioSourceUrl={audioSourceUrl}
+                        audioLink={audioLink}
+                        audioRenderAllLink={audioRenderAllLink}
+                        audioSourceLink={audioSourceLink}
+                        audioError={audioError}
+                        isProcessing={isAudioProcessing}
+                        compressAudio={compressAudio}
+                        compressProgress={audioCompressProgress}
+                        audioInputRef={audioInputRef}
+                        onUpload={handleAudioUpload}
+                        onToggleCompress={handleToggleCompressAudio}
+                        onSourceUrlChange={setAudioSourceUrl}
+                        onGenerateLink={handleGenerateAudioLink}
+                        onGenerateSourceLink={handleGenerateAudioSourceLink}
+                        onGenerateRenderAll={handleGenerateAudioRenderAllLink}
+                        onClear={handleClearAudio}
+                        onCopyLink={handleCopyLink}
+                    />
+                );
+            case 'office':
+                return (
+                    <OfficeToolCard
+                        title={t('create.officeTitle')}
+                        description={t('create.officeDescription')}
+                        previewHint={t('create.officePreviewHint')}
+                        pasteLabel={t('create.officePasteLabel')}
+                        pastePlaceholder={t('create.officePastePlaceholder')}
+                        uploadLabel={t('create.officeUploadLabel')}
+                        urlLabel={t('create.officeUrlLabel')}
+                        urlPlaceholder={t('create.officeUrlPlaceholder')}
+                        generateLabel={t('create.officeUrlGenerate')}
+                        renderAllLabel={t('create.officeRenderAll')}
+                        clearLabel={t('create.officeClear')}
+                        linkTitle={t('create.officeLinkTitle')}
+                        renderAllTitle={t('create.officeRenderAllTitle')}
+                        copyLabel={t('create.copyLink')}
+                        openLabel={t('create.openLink')}
+                        fileInputRef={officeInputRef}
+                        officeCode={officeCode}
+                        officeSourceUrl={officeSourceUrl}
+                        officeLink={officeLink}
+                        officeRenderAllLink={officeRenderAllLink}
+                        officeError={officeError}
+                        hasSource={hasOfficeSource()}
+                        onSourceUrlChange={setOfficeSourceUrl}
+                        onCodeChange={handleOfficeCodeChange}
+                        onFileUpload={handleOfficeUpload}
+                        onGenerateLink={handleGenerateOfficeLink}
+                        onGenerateRenderAll={handleGenerateOfficeRenderAllLink}
+                        onClear={handleClearOffice}
+                        onCopyLink={handleCopyLink}
+                        getViewerUrl={getOfficeViewerUrl}
+                        isValidUrl={isValidUrl}
+                    />
+                );
+            case 'qr':
+                return (
+                    <QrToolCard
+                        title={t('create.qrTitle')}
+                        inputLabel={t('create.qrInputLabel')}
+                        inputPlaceholder={t('create.qrInputPlaceholder')}
+                        sizeLabel={t('create.qrSize')}
+                        marginLabel={t('create.qrMargin')}
+                        correctionLabel={t('create.qrErrorCorrection')}
+                        levelLLabel={t('create.qrLevelL')}
+                        levelMLabel={t('create.qrLevelM')}
+                        levelQLabel={t('create.qrLevelQ')}
+                        levelHLabel={t('create.qrLevelH')}
+                        generateLabel={t('create.qrGenerate')}
+                        downloadLabel={t('create.qrDownload')}
+                        downloadSvgLabel={t('create.qrDownloadSvg')}
+                        openLabel={t('create.qrOpen')}
+                        popupLabel={t('create.qrPopup')}
+                        copyLabel={t('create.qrCopy')}
+                        renderLinkLabel={t('create.qrRenderLink')}
+                        renderAllLinkLabel={t('create.qrRenderAllLink')}
+                        clearLabel={t('create.qrClear')}
+                        renderLinkTitle={t('create.qrRenderLinkTitle')}
+                        renderAllLinkTitle={t('create.qrRenderAllLinkTitle')}
+                        hintLabel={t('create.qrHint')}
+                        processingLabel={t('create.processing')}
+                        qrInput={qrInput}
+                        qrDataUrl={qrDataUrl}
+                        qrSvg={qrSvg}
+                        qrRenderLink={qrRenderLink}
+                        qrRenderAllLink={qrRenderAllLink}
+                        qrIsProcessing={qrIsProcessing}
+                        qrSize={qrSize}
+                        qrMargin={qrMargin}
+                        qrCorrection={qrCorrection}
+                        onInputChange={setQrInput}
+                        onSizeChange={setQrSize}
+                        onMarginChange={setQrMargin}
+                        onCorrectionChange={setQrCorrection}
+                        onGenerate={handleGenerateQr}
+                        onDownload={handleDownloadQr}
+                        onDownloadSvg={handleDownloadQrSvg}
+                        onOpen={handleOpenQr}
+                        onOpenPopup={handleOpenQrPopup}
+                        onCopy={handleCopyQrImage}
+                        onGenerateRenderLink={handleGenerateQrRenderLink}
+                        onGenerateRenderAllLink={handleGenerateQrRenderAllLink}
+                        onClear={handleClearQr}
+                        onCopyLink={handleCopyLink}
+                    />
+                );
+            default:
+                return null;
+        }
     };
 
     if (qrHasError) {
@@ -590,427 +1357,18 @@ export default function Create() {
 
             <Container>
                 <SplitView>
-                    <EditorColumn $showPreview={showPreview}>
-                        <Card title={t('create.title')}>
-                            <FormSection>
-                                <Select
-                                    label={t('create.selectType')}
-                                    value={contentType}
-                                    onChange={(e) => handleContentTypeChange(e.target.value as ContentType)}
-                                    options={contentTypeOptions}
-                                />
-                            </FormSection>
+                    <EditorColumn $showPreview={showPreview && selectedTool === 'create'}>
+                        <ToolSelector
+                            title={t('create.toolSelectorTitle')}
+                            label={t('create.toolSelectorLabel')}
+                            value={selectedTool}
+                            options={toolOptions}
+                            onChange={(value) => setSelectedTool(value as ToolType)}
+                        />
 
-                            <FormSection>
-                                <TextArea
-                                    label={t('create.pasteContent')}
-                                    value={typeof content === 'string' ? content : '[Binary file loaded - cannot edit]'}
-                                    onChange={(e) => typeof content === 'string' && setContent(e.target.value)}
-                                    placeholder={`Paste your ${contentType.toUpperCase()} content here...`}
-                                    rows={15}
-                                    readOnly={typeof content !== 'string'}
-                                />
-                            </FormSection>
+                        {renderSelectedTool()}
 
-                            <FormSection>
-                                <FileInput
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept={`.${contentType}`}
-                                    onChange={handleFileUpload}
-                                    id="file-upload"
-                                />
-                                <FileInputLabel htmlFor="file-upload">
-                                    {t('create.uploadFile')}
-                                </FileInputLabel>
-
-                                <CheckboxContainer onClick={() => setIsFullScreen(!isFullScreen)}>
-                                    <StyledCheckbox
-                                        type="checkbox"
-                                        checked={isFullScreen}
-                                        readOnly
-                                    />
-                                    <CheckboxLabel>{t('create.fullScreenOption')}</CheckboxLabel>
-                                </CheckboxContainer>
-                            </FormSection>
-
-                            <ButtonGroup>
-                                <Button
-                                    onClick={handleGenerateLink}
-                                    disabled={isProcessing || content.length === 0}
-                                >
-                                    {isProcessing ? t('create.processing') : t('create.generateLink')}
-                                </Button>
-
-                                <Button
-                                    onClick={() => setShowPreview(!showPreview)}
-                                    variant="secondary"
-                                    disabled={content.length === 0}
-                                >
-                                    {t('create.preview')}
-                                </Button>
-
-                                <Button
-                                    onClick={handleClearContent}
-                                    variant="secondary"
-                                    disabled={content.length === 0}
-                                    style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
-                                >
-                                    {t('create.clearContent')}
-                                </Button>
-                            </ButtonGroup>
-
-                            {error && <ErrorMessage>{error}</ErrorMessage>}
-                            {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
-                        </Card>
-
-                        {/* Recovery Section */}
-                        <div style={{ marginTop: '24px' }}>
-                            <Card title={t('create.recoveryTitle')}>
-                                <FormSection>
-                                    <TextArea
-                                        label={t('create.pasteHash')}
-                                        value={recoveryHash}
-                                        onChange={(e) => setRecoveryHash(e.target.value)}
-                                        placeholder="html-H4sI..."
-                                        rows={3}
-                                    />
-                                    <ButtonGroup style={{ marginTop: '16px' }}>
-                                        <Button
-                                            onClick={handleRecoverContent}
-                                            disabled={!recoveryHash}
-                                        >
-                                            {t('create.recoverButton')}
-                                        </Button>
-                                        <Button
-                                            onClick={() => setRecoveryHash('')}
-                                            variant="secondary"
-                                            disabled={!recoveryHash}
-                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
-                                        >
-                                            {t('create.clearHash')}
-                                        </Button>
-                                    </ButtonGroup>
-                                </FormSection>
-                            </Card>
-                        </div>
-
-                        <div style={{ marginTop: '24px' }}>
-                            <Card title={t('create.imageTitle')}>
-                                <ImageSection>
-                                    <p style={{ margin: 0 }}>{t('create.imageDescription')}</p>
-                                    <FileInput
-                                        ref={imageInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        id="image-upload"
-                                    />
-                                    <FileInputLabel htmlFor="image-upload">
-                                        {t('create.imageUpload')}
-                                    </FileInputLabel>
-                                    <ImagePreview>
-                                        {imageDataUrl ? (
-                                            <ImagePreviewImage src={imageDataUrl} alt={t('create.imagePreviewAlt')} />
-                                        ) : (
-                                            <ImagePlaceholder>{t('create.imagePreviewHint')}</ImagePlaceholder>
-                                        )}
-                                    </ImagePreview>
-                                    <ButtonGroup>
-                                        <Button
-                                            onClick={handleGenerateImageLink}
-                                            disabled={!imageDataUrl}
-                                        >
-                                            {t('create.imageGenerate')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleGenerateImageRenderAllLink}
-                                            variant="secondary"
-                                            disabled={!imageDataUrl}
-                                        >
-                                            {t('create.imageRenderAll')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleClearImage}
-                                            variant="secondary"
-                                            disabled={!imageDataUrl}
-                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
-                                        >
-                                            {t('create.imageClear')}
-                                        </Button>
-                                    </ButtonGroup>
-                                    {imageError && <ErrorMessage>{imageError}</ErrorMessage>}
-                                    {imageLink && (
-                                        <ResultSection>
-                                            <p><strong>{t('create.imageLinkTitle')}:</strong></p>
-                                            <LinkDisplay>{imageLink}</LinkDisplay>
-                                            <ButtonGroup>
-                                                <Button onClick={() => handleCopyLink(imageLink)}>
-                                                    {t('create.copyLink')}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => window.open(imageLink, '_blank')}
-                                                    variant="secondary"
-                                                >
-                                                    {t('create.openLink')}
-                                                </Button>
-                                            </ButtonGroup>
-                                        </ResultSection>
-                                    )}
-                                    {imageRenderAllLink && (
-                                        <ResultSection>
-                                            <p><strong>{t('create.imageRenderAllTitle')}:</strong></p>
-                                            <LinkDisplay>{imageRenderAllLink}</LinkDisplay>
-                                            <ButtonGroup>
-                                                <Button onClick={() => handleCopyLink(imageRenderAllLink)}>
-                                                    {t('create.copyLink')}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => window.open(imageRenderAllLink, '_blank')}
-                                                    variant="secondary"
-                                                >
-                                                    {t('create.openLink')}
-                                                </Button>
-                                            </ButtonGroup>
-                                        </ResultSection>
-                                    )}
-                                </ImageSection>
-                            </Card>
-                        </div>
-
-                        <div style={{ marginTop: '24px' }}>
-                            <Card title={t('create.pdfTitle')}>
-                                <PdfSection>
-                                    <p style={{ margin: 0 }}>{t('create.pdfDescription')}</p>
-                                    <FileInput
-                                        ref={pdfInputRef}
-                                        type="file"
-                                        accept="application/pdf"
-                                        onChange={handlePdfUpload}
-                                        id="pdf-upload"
-                                    />
-                                    <FileInputLabel htmlFor="pdf-upload">
-                                        {t('create.pdfUpload')}
-                                    </FileInputLabel>
-                                    <PdfPreview>
-                                        {pdfDataUrl ? (
-                                            <PdfFrame src={pdfDataUrl} title={t('create.pdfPreviewAlt')} />
-                                        ) : (
-                                            <PdfPlaceholder>{t('create.pdfPreviewHint')}</PdfPlaceholder>
-                                        )}
-                                    </PdfPreview>
-                                    <ButtonGroup>
-                                        <Button
-                                            onClick={handleGeneratePdfLink}
-                                            disabled={!pdfDataUrl}
-                                        >
-                                            {t('create.pdfGenerate')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleGeneratePdfRenderAllLink}
-                                            variant="secondary"
-                                            disabled={!pdfDataUrl}
-                                        >
-                                            {t('create.pdfRenderAll')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleClearPdf}
-                                            variant="secondary"
-                                            disabled={!pdfDataUrl}
-                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
-                                        >
-                                            {t('create.pdfClear')}
-                                        </Button>
-                                    </ButtonGroup>
-                                    {pdfError && <ErrorMessage>{pdfError}</ErrorMessage>}
-                                    {pdfLink && (
-                                        <ResultSection>
-                                            <p><strong>{t('create.pdfLinkTitle')}:</strong></p>
-                                            <LinkDisplay>{pdfLink}</LinkDisplay>
-                                            <ButtonGroup>
-                                                <Button onClick={() => handleCopyLink(pdfLink)}>
-                                                    {t('create.copyLink')}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => window.open(pdfLink, '_blank')}
-                                                    variant="secondary"
-                                                >
-                                                    {t('create.openLink')}
-                                                </Button>
-                                            </ButtonGroup>
-                                        </ResultSection>
-                                    )}
-                                    {pdfRenderAllLink && (
-                                        <ResultSection>
-                                            <p><strong>{t('create.pdfRenderAllTitle')}:</strong></p>
-                                            <LinkDisplay>{pdfRenderAllLink}</LinkDisplay>
-                                            <ButtonGroup>
-                                                <Button onClick={() => handleCopyLink(pdfRenderAllLink)}>
-                                                    {t('create.copyLink')}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => window.open(pdfRenderAllLink, '_blank')}
-                                                    variant="secondary"
-                                                >
-                                                    {t('create.openLink')}
-                                                </Button>
-                                            </ButtonGroup>
-                                        </ResultSection>
-                                    )}
-                                </PdfSection>
-                            </Card>
-                        </div>
-
-                        <div style={{ marginTop: '24px' }}>
-                            <Card title={t('create.qrTitle')}>
-                                <QrSection>
-                                    <TextArea
-                                        label={t('create.qrInputLabel')}
-                                        value={qrInput}
-                                        onChange={(e) => setQrInput(e.target.value)}
-                                        placeholder={t('create.qrInputPlaceholder')}
-                                        rows={3}
-                                    />
-                                    <QrOptionsGrid>
-                                        <Input
-                                            label={t('create.qrSize')}
-                                            type="number"
-                                            min={120}
-                                            max={800}
-                                            value={qrSize}
-                                            onChange={(e) => setQrSize(Number(e.target.value))}
-                                        />
-                                        <Input
-                                            label={t('create.qrMargin')}
-                                            type="number"
-                                            min={0}
-                                            max={8}
-                                            value={qrMargin}
-                                            onChange={(e) => setQrMargin(Number(e.target.value))}
-                                        />
-                                        <Select
-                                            label={t('create.qrErrorCorrection')}
-                                            value={qrCorrection}
-                                            onChange={(e) => setQrCorrection(e.target.value as 'L' | 'M' | 'Q' | 'H')}
-                                            options={[
-                                                { value: 'L', label: t('create.qrLevelL') },
-                                                { value: 'M', label: t('create.qrLevelM') },
-                                                { value: 'Q', label: t('create.qrLevelQ') },
-                                                { value: 'H', label: t('create.qrLevelH') },
-                                            ]}
-                                        />
-                                    </QrOptionsGrid>
-                                    <QrPreview>
-                                        {qrDataUrl ? (
-                                            <QrImage src={qrDataUrl} alt="QR code" />
-                                        ) : (
-                                            <QrPlaceholder>{t('create.qrHint')}</QrPlaceholder>
-                                        )}
-                                    </QrPreview>
-                                    <ButtonGroup>
-                                        <Button
-                                            onClick={handleGenerateQr}
-                                            disabled={!qrInput.trim() || qrIsProcessing}
-                                        >
-                                            {qrIsProcessing ? t('create.processing') : t('create.qrGenerate')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleDownloadQr}
-                                            variant="secondary"
-                                            disabled={!qrDataUrl}
-                                        >
-                                            {t('create.qrDownload')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleDownloadQrSvg}
-                                            variant="secondary"
-                                            disabled={!qrSvg}
-                                        >
-                                            {t('create.qrDownloadSvg')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleOpenQr}
-                                            variant="secondary"
-                                            disabled={!qrDataUrl}
-                                        >
-                                            {t('create.qrOpen')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleOpenQrPopup}
-                                            variant="secondary"
-                                            disabled={!qrDataUrl}
-                                        >
-                                            {t('create.qrPopup')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleCopyQrImage}
-                                            variant="secondary"
-                                            disabled={!qrDataUrl}
-                                        >
-                                            {t('create.qrCopy')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleGenerateQrRenderLink}
-                                            variant="secondary"
-                                            disabled={!qrDataUrl}
-                                        >
-                                            {t('create.qrRenderLink')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleGenerateQrRenderAllLink}
-                                            variant="secondary"
-                                            disabled={!qrDataUrl}
-                                        >
-                                            {t('create.qrRenderAllLink')}
-                                        </Button>
-                                        <Button
-                                            onClick={handleClearQr}
-                                            variant="secondary"
-                                            disabled={!qrInput && !qrDataUrl}
-                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
-                                        >
-                                            {t('create.qrClear')}
-                                        </Button>
-                                    </ButtonGroup>
-                                    {qrRenderLink && (
-                                        <ResultSection>
-                                            <p><strong>{t('create.qrRenderLinkTitle')}:</strong></p>
-                                            <LinkDisplay>{qrRenderLink}</LinkDisplay>
-                                            <ButtonGroup>
-                                                <Button onClick={() => handleCopyLink(qrRenderLink)}>
-                                                    {t('create.copyLink')}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => window.open(qrRenderLink, '_blank')}
-                                                    variant="secondary"
-                                                >
-                                                    {t('create.openLink')}
-                                                </Button>
-                                            </ButtonGroup>
-                                        </ResultSection>
-                                    )}
-                                    {qrRenderAllLink && (
-                                        <ResultSection>
-                                            <p><strong>{t('create.qrRenderAllLinkTitle')}:</strong></p>
-                                            <LinkDisplay>{qrRenderAllLink}</LinkDisplay>
-                                            <ButtonGroup>
-                                                <Button onClick={() => handleCopyLink(qrRenderAllLink)}>
-                                                    {t('create.copyLink')}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => window.open(qrRenderAllLink, '_blank')}
-                                                    variant="secondary"
-                                                >
-                                                    {t('create.openLink')}
-                                                </Button>
-                                            </ButtonGroup>
-                                        </ResultSection>
-                                    )}
-                                </QrSection>
-                            </Card>
-                        </div>
-
-                        {generatedLink && (
+                        {selectedTool === 'create' && generatedLink && (
                             <ResultSection>
                                 <Card title={t('create.generatedLink')}>
                                     <p><strong>{isFullScreen ? t('create.fullScreenOption') : t('create.generatedLink')}:</strong></p>
@@ -1037,7 +1395,7 @@ export default function Create() {
                         )}
                     </EditorColumn>
 
-                    {showPreview && (
+                    {showPreview && selectedTool === 'create' && (
                         <PreviewColumn>
                             <Card title={t('create.preview')}>
                                 {renderPreview()}

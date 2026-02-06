@@ -243,6 +243,24 @@ export default function Home() {
             <FeatureTitle>{t('home.pdf')}</FeatureTitle>
             <FeatureDescription>{t('home.pdfDesc')}</FeatureDescription>
           </FeatureCard>
+
+          <FeatureCard>
+            <FeatureIcon>🎬</FeatureIcon>
+            <FeatureTitle>{t('home.video')}</FeatureTitle>
+            <FeatureDescription>{t('home.videoDesc')}</FeatureDescription>
+          </FeatureCard>
+
+          <FeatureCard>
+            <FeatureIcon>🎧</FeatureIcon>
+            <FeatureTitle>{t('home.audio')}</FeatureTitle>
+            <FeatureDescription>{t('home.audioDesc')}</FeatureDescription>
+          </FeatureCard>
+
+          <FeatureCard>
+            <FeatureIcon>📑</FeatureIcon>
+            <FeatureTitle>{t('home.office')}</FeatureTitle>
+            <FeatureDescription>{t('home.officeDesc')}</FeatureDescription>
+          </FeatureCard>
         </Grid>
 
         <Section>
@@ -282,6 +300,20 @@ export default function Home() {
               <ListItem>{t('home.csvLimit')}</ListItem>
             </List>
             <p style={{ marginTop: '16px', fontStyle: 'italic' }}>{t('home.limitsNote')}</p>
+            <p style={{ marginTop: '12px', fontStyle: 'italic' }}>{t('home.urlLimitNote')}</p>
+            <SectionTitle style={{ marginTop: '24px' }}>{t('home.mediaLimitsTitle')}</SectionTitle>
+            <p>{t('home.mediaLimitsDescription')}</p>
+            <List>
+              <ListItem>{t('home.mediaImageFormats')}</ListItem>
+              <ListItem>{t('home.mediaPdfFormats')}</ListItem>
+              <ListItem>{t('home.mediaVideoFormats')}</ListItem>
+              <ListItem>{t('home.mediaAudioFormats')}</ListItem>
+              <ListItem>{t('home.mediaOfficeFormats')}</ListItem>
+              <ListItem>{t('home.mediaVideoLimit')}</ListItem>
+              <ListItem>{t('home.mediaPdfLimit')}</ListItem>
+              <ListItem>{t('home.mediaAudioLimit')}</ListItem>
+              <ListItem>{t('home.mediaOfficeLimit')}</ListItem>
+            </List>
           </Card>
         </Section>
 
