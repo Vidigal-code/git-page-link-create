@@ -8,6 +8,7 @@ import { useI18n } from '@/shared/lib/i18n';
 import { getOfficeViewerUrl } from '@/shared/lib/office';
 import { decompressBytes } from '@/shared/lib/compression';
 import { downloadFile } from '@/shared/lib/download';
+import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import * as XLSX from 'xlsx';
 import {
     RenderContainer,
@@ -16,7 +17,7 @@ import {
     ErrorDescription,
     ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
-import { OfficeWrapper, OfficeFrame, FullScreenOfficeFrame } from '@/shared/styles/pages/render-office.styles';
+import { OfficeWrapper, OfficeFrame, FullScreenOfficeFrame, DocxContent } from '@/shared/styles/pages/render-office.styles';
 
 export default function RenderOffice() {
     const router = useRouter();
@@ -29,6 +30,8 @@ export default function RenderOffice() {
 
     const [decodedData, setDecodedData] = useState<{ type: string; bytes: Uint8Array } | null>(null);
     const [tableData, setTableData] = useState<any[][] | null>(null);
+    const [docxHtml, setDocxHtml] = useState<string | null>(null);
+    const [isConverting, setIsConverting] = useState(false);
 
     useEffect(() => {
         // First try to get data from hash (fragment) - preferred for large payloads
@@ -60,6 +63,18 @@ export default function RenderOffice() {
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][];
                 setTableData(data);
+            } else if (type === 'docx') {
+                setIsConverting(true);
+                convertDocxToHtml(bytes.buffer as ArrayBuffer)
+                    .then(html => {
+                        setDocxHtml(html);
+                    })
+                    .catch(err => {
+                        console.error('Word conversion error:', err);
+                    })
+                    .finally(() => {
+                        setIsConverting(false);
+                    });
             }
         } catch (err) {
             //console.error('Error decoding office data:', err);
@@ -162,6 +177,18 @@ export default function RenderOffice() {
                                     {new TextDecoder().decode(decodedData.bytes)}
                                 </pre>
                             </div>
+                        ) : decodedData.type === 'docx' ? (
+                            isConverting ? (
+                                <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center' }}>
+                                    <p>Conversando documento...</p>
+                                </div>
+                            ) : docxHtml ? (
+                                <DocxContent dangerouslySetInnerHTML={{ __html: docxHtml }} />
+                            ) : (
+                                <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                                    <p>Falha ao renderizar documento Word.</p>
+                                </div>
+                            )
                         ) : (
                             <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                                 <p>Este arquivo ({decodedData.type.toUpperCase()}) não pode ser visualizado diretamente no navegador, mas você pode baixá-lo acima.</p>
