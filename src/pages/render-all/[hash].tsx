@@ -24,24 +24,48 @@ import {
 
 export default function RenderAll() {
     const router = useRouter();
-  const { hash, data } = router.query;
+        const { hash, data } = router.query;
     const { t } = useI18n();
 
     const [content, setContent] = useState<string | Uint8Array>('');
     const [contentType, setContentType] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [htmlBlobUrl, setHtmlBlobUrl] = useState('');
 
-  const resolvedHash = typeof hash === 'string'
-    ? hash
-    : typeof data === 'string'
-      ? data
-      : '';
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (contentType !== 'html') {
+            setHtmlBlobUrl('');
+            return;
+        }
 
-  useEffect(() => {
-    if (!resolvedHash) return;
+        const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
+        const blob = new Blob([strContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        setHtmlBlobUrl(url);
 
-  const separatorIndex = resolvedHash.indexOf('-');
+        return () => URL.revokeObjectURL(url);
+    }, [content, contentType]);
+
+        useEffect(() => {
+                if (typeof window === 'undefined') return;
+
+                const hashValue = window.location.hash || '';
+                const hashData = hashValue.startsWith('#data=') ? hashValue.slice('#data='.length) : '';
+                const resolvedHash = typeof hash === 'string'
+                        ? hash
+                        : typeof data === 'string'
+                                ? data
+                                : hashData;
+
+                if (!resolvedHash) {
+                        setError(true);
+                        setIsLoading(false);
+                        return;
+                }
+
+                const separatorIndex = resolvedHash.indexOf('-');
 
         if (separatorIndex === -1) {
             setError(true);
@@ -49,8 +73,8 @@ export default function RenderAll() {
             return;
         }
 
-  const type = resolvedHash.substring(0, separatorIndex);
-  const compressedContent = resolvedHash.substring(separatorIndex + 1);
+      const type = resolvedHash.substring(0, separatorIndex);
+      const compressedContent = resolvedHash.substring(separatorIndex + 1);
 
         try {
             if (type === 'xlsx') {
@@ -66,7 +90,7 @@ export default function RenderAll() {
             setError(true);
             setIsLoading(false);
         }
-  }, [resolvedHash]);
+        }, [hash, data]);
 
     if (isLoading) return <LoadingContainer>{t('create.processing')}</LoadingContainer>; // reusing processing string or similar
 
@@ -92,16 +116,13 @@ export default function RenderAll() {
     }
 
     if (contentType === 'html') {
-        // ... rest of code
-        const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
-        const base64Content = btoa(unescape(encodeURIComponent(strContent)));
         return (
             <>
                 <Head>
                     <title>Rendered HTML</title>
                 </Head>
                 <FullScreenIframe
-                    src={`data:text/html;base64,${base64Content}`}
+                    src={htmlBlobUrl || undefined}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
                     title="Rendered Content"
                 />

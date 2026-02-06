@@ -51,13 +51,14 @@ const Subtitle = styled.p`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 340px));
   gap: 30px;
   margin-bottom: 30px;
   justify-items: center;
+  justify-content: center;
 
   @media (max-width: 1024px) {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 320px));
     gap: 20px;
   }
 
@@ -65,6 +66,7 @@ const Grid = styled.div`
     grid-template-columns: 1fr;
     gap: 20px;
     margin-bottom: 20px;
+    justify-content: center;
   }
 `;
 
@@ -208,6 +210,18 @@ export default function Home() {
             <FeatureIcon>🔳</FeatureIcon>
             <FeatureTitle>{t('home.qrTitle')}</FeatureTitle>
             <FeatureDescription>{t('home.qrDescription')}</FeatureDescription>
+          </FeatureCard>
+
+          <FeatureCard>
+            <FeatureIcon>🖼️</FeatureIcon>
+            <FeatureTitle>{t('home.image')}</FeatureTitle>
+            <FeatureDescription>{t('home.imageDesc')}</FeatureDescription>
+          </FeatureCard>
+
+          <FeatureCard>
+            <FeatureIcon>📎</FeatureIcon>
+            <FeatureTitle>{t('home.pdf')}</FeatureTitle>
+            <FeatureDescription>{t('home.pdfDesc')}</FeatureDescription>
           </FeatureCard>
         </Grid>
 

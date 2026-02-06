@@ -1,5 +1,16 @@
 import pako from 'pako';
 
+const BASE64_CHUNK_SIZE = 0x8000;
+
+function bytesToBase64(bytes: Uint8Array): string {
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
+        const chunk = bytes.subarray(i, i + BASE64_CHUNK_SIZE);
+        binary += String.fromCharCode(...chunk);
+    }
+    return btoa(binary);
+}
+
 /**
  * Compress a string using gzip compression (browser-safe) and URL-safe base64
  * @param content - The string content to compress
@@ -21,7 +32,7 @@ export function compressBytes(bytes: Uint8Array): string {
         const compressed = pako.gzip(bytes);
 
         // Convert to base64
-        const base64 = btoa(String.fromCharCode(...compressed));
+    const base64 = bytesToBase64(compressed);
 
         // Make URL safe: + -> -, / -> _, remove =
         return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

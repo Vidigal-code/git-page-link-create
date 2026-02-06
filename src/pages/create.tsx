@@ -13,35 +13,45 @@ import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/downlo
 import { loadAvailableThemes, getMaxUrlLength } from '@/shared/lib/theme';
 import { withBasePath } from '@/shared/lib/basePath';
 import { generateQrCodeDataUrl, generateQrCodeSvg } from '@/shared/lib/qr';
+import { fileToDataUrl, encodeImageDataUrl } from '@/shared/lib/image';
+import { encodePdfDataUrl } from '@/shared/lib/pdf';
 import {
-        Container,
-        SplitView,
-        EditorColumn,
-        PreviewColumn,
-        FormSection,
-        FileInput,
-        FileInputLabel,
-        ResultSection,
-        LinkDisplay,
-        CheckboxContainer,
-        StyledCheckbox,
-        CheckboxLabel,
-        ButtonGroup,
-        ErrorMessage,
-        SuccessMessage,
-        PreviewFrame,
-        PreviewContent,
-        MarkdownPreview,
-        TablePreview,
-        QrSection,
-        QrOptionsGrid,
-        QrPreview,
-        QrImage,
-        QrPlaceholder,
-        ErrorPageContainer,
-        ErrorTitle,
-        ErrorDescription,
-        ErrorHint,
+    Container,
+    SplitView,
+    EditorColumn,
+    PreviewColumn,
+    FormSection,
+    FileInput,
+    FileInputLabel,
+    ResultSection,
+    LinkDisplay,
+    CheckboxContainer,
+    StyledCheckbox,
+    CheckboxLabel,
+    ButtonGroup,
+    ErrorMessage,
+    SuccessMessage,
+    PreviewFrame,
+    PreviewContent,
+    MarkdownPreview,
+    TablePreview,
+    QrSection,
+    ImageSection,
+    ImagePreview,
+    ImagePreviewImage,
+    ImagePlaceholder,
+    PdfSection,
+    PdfPreview,
+    PdfFrame,
+    PdfPlaceholder,
+    QrOptionsGrid,
+    QrPreview,
+    QrImage,
+    QrPlaceholder,
+    ErrorPageContainer,
+    ErrorTitle,
+    ErrorDescription,
+    ErrorHint,
 } from '@/shared/styles/pages/create.styles';
 
 type ContentType = 'html' | 'md' | 'csv' | 'xlsx';
@@ -57,6 +67,8 @@ export default function Create() {
     const [showPreview, setShowPreview] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const pdfInputRef = useRef<HTMLInputElement>(null);
 
     const [recoveryHash, setRecoveryHash] = useState('');
     const [qrInput, setQrInput] = useState('');
@@ -65,9 +77,20 @@ export default function Create() {
     const [qrHasError, setQrHasError] = useState(false);
     const [qrSvg, setQrSvg] = useState('');
     const [qrRenderLink, setQrRenderLink] = useState('');
+    const [qrRenderAllLink, setQrRenderAllLink] = useState('');
     const [qrSize, setQrSize] = useState(320);
     const [qrMargin, setQrMargin] = useState(1);
     const [qrCorrection, setQrCorrection] = useState<'L' | 'M' | 'Q' | 'H'>('M');
+
+    const [imageDataUrl, setImageDataUrl] = useState('');
+    const [imageLink, setImageLink] = useState('');
+    const [imageRenderAllLink, setImageRenderAllLink] = useState('');
+    const [imageError, setImageError] = useState('');
+
+    const [pdfDataUrl, setPdfDataUrl] = useState('');
+    const [pdfLink, setPdfLink] = useState('');
+    const [pdfRenderAllLink, setPdfRenderAllLink] = useState('');
+    const [pdfError, setPdfError] = useState('');
 
     useEffect(() => {
         loadAvailableThemes();
@@ -100,6 +123,137 @@ export default function Create() {
         setIsProcessing(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            setImageError(t('create.imageInvalid'));
+            return;
+        }
+
+        try {
+            const dataUrl = await fileToDataUrl(file);
+            setImageDataUrl(dataUrl);
+            setImageLink('');
+            setImageRenderAllLink('');
+            setImageError('');
+        } catch {
+            setImageError(t('create.imageError'));
+        }
+    };
+
+    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.type !== 'application/pdf') {
+            setPdfError(t('create.pdfInvalid'));
+            return;
+        }
+
+        try {
+            const dataUrl = await fileToDataUrl(file);
+            setPdfDataUrl(dataUrl);
+            setPdfLink('');
+            setPdfRenderAllLink('');
+            setPdfError('');
+        } catch {
+            setPdfError(t('create.pdfError'));
+        }
+    };
+
+    const handleGenerateImageLink = () => {
+        if (!imageDataUrl || typeof window === 'undefined') return;
+        setImageError('');
+
+        const encoded = encodeImageDataUrl(imageDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/image');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        const maxLimit = getMaxUrlLength();
+        if (link.length > maxLimit) {
+            setImageError(t('create.urlTooLong'));
+            return;
+        }
+
+        setImageLink(link);
+    };
+
+    const handleGenerateImageRenderAllLink = () => {
+        if (!imageDataUrl || typeof window === 'undefined') return;
+        setImageError('');
+
+        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Image</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${imageDataUrl}" alt="Image" /></body></html>`;
+        const compressed = compress(html);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render-all');
+        const link = `${baseUrl}${fullPath}#data=html-${compressed}`;
+
+        const maxLimit = getMaxUrlLength();
+        if (link.length > maxLimit) {
+            setImageError(t('create.urlTooLong'));
+            return;
+        }
+
+        setImageRenderAllLink(link);
+    };
+
+    const handleClearImage = () => {
+        setImageDataUrl('');
+        setImageLink('');
+        setImageRenderAllLink('');
+        setImageError('');
+        if (imageInputRef.current) {
+            imageInputRef.current.value = '';
+        }
+    };
+
+    const handleGeneratePdfLink = () => {
+        if (!pdfDataUrl || typeof window === 'undefined') return;
+        setPdfError('');
+
+        const encoded = encodePdfDataUrl(pdfDataUrl);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath('render/pdf');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        const maxLimit = getMaxUrlLength();
+        if (link.length > maxLimit) {
+            setPdfError(t('create.urlTooLong'));
+            return;
+        }
+
+        setPdfLink(link);
+    };
+
+    const handleGeneratePdfRenderAllLink = () => {
+        if (!pdfDataUrl || typeof window === 'undefined') return;
+        setPdfError('');
+
+        const baseUrl = window.location.origin;
+        const encoded = encodePdfDataUrl(pdfDataUrl);
+        const fullPath = withBasePath('render/pdf?fullscreen=1');
+        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+
+        const maxLimit = getMaxUrlLength();
+        if (link.length > maxLimit) {
+            setPdfError(t('create.urlTooLong'));
+            return;
+        }
+
+        setPdfRenderAllLink(link);
+    };
+
+    const handleClearPdf = () => {
+        setPdfDataUrl('');
+        setPdfLink('');
+        setPdfRenderAllLink('');
+        setPdfError('');
+        if (pdfInputRef.current) {
+            pdfInputRef.current.value = '';
         }
     };
 
@@ -168,8 +322,8 @@ export default function Create() {
 
         if (typeof window === 'undefined') return '';
 
-    const baseUrl = window.location.origin;
-    const fullPath = withBasePath(`${isFull ? 'render-all' : 'render'}?data=${type}-${compressed}`);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`${isFull ? 'render-all' : 'render'}?data=${type}-${compressed}`);
 
         return `${baseUrl}${fullPath}`;
     };
@@ -318,6 +472,7 @@ export default function Create() {
         setQrDataUrl('');
         setQrSvg('');
         setQrRenderLink('');
+        setQrRenderAllLink('');
     };
 
     const handleDownloadQr = () => {
@@ -361,9 +516,9 @@ export default function Create() {
         const top = window.screenY + (window.outerHeight - size) / 2;
         const popup = window.open(
             blobUrl,
-                                '_blank',
-                                `noopener,noreferrer,width=${size},height=${size},left=${left},top=${top}`
-                        );
+            '_blank',
+            `noopener,noreferrer,width=${size},height=${size},left=${left},top=${top}`
+        );
         if (!popup) {
             URL.revokeObjectURL(blobUrl);
             return;
@@ -384,11 +539,20 @@ export default function Create() {
 
     const handleGenerateQrRenderLink = () => {
         if (!qrDataUrl) return;
-        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;}img{max-width:90vw;max-height:90vh;}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
+        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
         const compressed = compress(html);
         const fullPath = withBasePath(`render?data=html-${compressed}`);
         const baseUrl = window.location.origin;
         setQrRenderLink(`${baseUrl}${fullPath}`);
+    };
+
+    const handleGenerateQrRenderAllLink = () => {
+        if (!qrDataUrl) return;
+        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
+        const compressed = compress(html);
+        const baseUrl = window.location.origin;
+        const fullPath = withBasePath(`render-all?data=html-${compressed}`);
+        setQrRenderAllLink(`${baseUrl}${fullPath}`);
     };
 
     if (qrHasError) {
@@ -532,6 +696,172 @@ export default function Create() {
                         </div>
 
                         <div style={{ marginTop: '24px' }}>
+                            <Card title={t('create.imageTitle')}>
+                                <ImageSection>
+                                    <p style={{ margin: 0 }}>{t('create.imageDescription')}</p>
+                                    <FileInput
+                                        ref={imageInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        id="image-upload"
+                                    />
+                                    <FileInputLabel htmlFor="image-upload">
+                                        {t('create.imageUpload')}
+                                    </FileInputLabel>
+                                    <ImagePreview>
+                                        {imageDataUrl ? (
+                                            <ImagePreviewImage src={imageDataUrl} alt={t('create.imagePreviewAlt')} />
+                                        ) : (
+                                            <ImagePlaceholder>{t('create.imagePreviewHint')}</ImagePlaceholder>
+                                        )}
+                                    </ImagePreview>
+                                    <ButtonGroup>
+                                        <Button
+                                            onClick={handleGenerateImageLink}
+                                            disabled={!imageDataUrl}
+                                        >
+                                            {t('create.imageGenerate')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleGenerateImageRenderAllLink}
+                                            variant="secondary"
+                                            disabled={!imageDataUrl}
+                                        >
+                                            {t('create.imageRenderAll')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleClearImage}
+                                            variant="secondary"
+                                            disabled={!imageDataUrl}
+                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
+                                        >
+                                            {t('create.imageClear')}
+                                        </Button>
+                                    </ButtonGroup>
+                                    {imageError && <ErrorMessage>{imageError}</ErrorMessage>}
+                                    {imageLink && (
+                                        <ResultSection>
+                                            <p><strong>{t('create.imageLinkTitle')}:</strong></p>
+                                            <LinkDisplay>{imageLink}</LinkDisplay>
+                                            <ButtonGroup>
+                                                <Button onClick={() => handleCopyLink(imageLink)}>
+                                                    {t('create.copyLink')}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => window.open(imageLink, '_blank')}
+                                                    variant="secondary"
+                                                >
+                                                    {t('create.openLink')}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </ResultSection>
+                                    )}
+                                    {imageRenderAllLink && (
+                                        <ResultSection>
+                                            <p><strong>{t('create.imageRenderAllTitle')}:</strong></p>
+                                            <LinkDisplay>{imageRenderAllLink}</LinkDisplay>
+                                            <ButtonGroup>
+                                                <Button onClick={() => handleCopyLink(imageRenderAllLink)}>
+                                                    {t('create.copyLink')}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => window.open(imageRenderAllLink, '_blank')}
+                                                    variant="secondary"
+                                                >
+                                                    {t('create.openLink')}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </ResultSection>
+                                    )}
+                                </ImageSection>
+                            </Card>
+                        </div>
+
+                        <div style={{ marginTop: '24px' }}>
+                            <Card title={t('create.pdfTitle')}>
+                                <PdfSection>
+                                    <p style={{ margin: 0 }}>{t('create.pdfDescription')}</p>
+                                    <FileInput
+                                        ref={pdfInputRef}
+                                        type="file"
+                                        accept="application/pdf"
+                                        onChange={handlePdfUpload}
+                                        id="pdf-upload"
+                                    />
+                                    <FileInputLabel htmlFor="pdf-upload">
+                                        {t('create.pdfUpload')}
+                                    </FileInputLabel>
+                                    <PdfPreview>
+                                        {pdfDataUrl ? (
+                                            <PdfFrame src={pdfDataUrl} title={t('create.pdfPreviewAlt')} />
+                                        ) : (
+                                            <PdfPlaceholder>{t('create.pdfPreviewHint')}</PdfPlaceholder>
+                                        )}
+                                    </PdfPreview>
+                                    <ButtonGroup>
+                                        <Button
+                                            onClick={handleGeneratePdfLink}
+                                            disabled={!pdfDataUrl}
+                                        >
+                                            {t('create.pdfGenerate')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleGeneratePdfRenderAllLink}
+                                            variant="secondary"
+                                            disabled={!pdfDataUrl}
+                                        >
+                                            {t('create.pdfRenderAll')}
+                                        </Button>
+                                        <Button
+                                            onClick={handleClearPdf}
+                                            variant="secondary"
+                                            disabled={!pdfDataUrl}
+                                            style={{ borderColor: '#d32f2f', color: '#d32f2f' }}
+                                        >
+                                            {t('create.pdfClear')}
+                                        </Button>
+                                    </ButtonGroup>
+                                    {pdfError && <ErrorMessage>{pdfError}</ErrorMessage>}
+                                    {pdfLink && (
+                                        <ResultSection>
+                                            <p><strong>{t('create.pdfLinkTitle')}:</strong></p>
+                                            <LinkDisplay>{pdfLink}</LinkDisplay>
+                                            <ButtonGroup>
+                                                <Button onClick={() => handleCopyLink(pdfLink)}>
+                                                    {t('create.copyLink')}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => window.open(pdfLink, '_blank')}
+                                                    variant="secondary"
+                                                >
+                                                    {t('create.openLink')}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </ResultSection>
+                                    )}
+                                    {pdfRenderAllLink && (
+                                        <ResultSection>
+                                            <p><strong>{t('create.pdfRenderAllTitle')}:</strong></p>
+                                            <LinkDisplay>{pdfRenderAllLink}</LinkDisplay>
+                                            <ButtonGroup>
+                                                <Button onClick={() => handleCopyLink(pdfRenderAllLink)}>
+                                                    {t('create.copyLink')}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => window.open(pdfRenderAllLink, '_blank')}
+                                                    variant="secondary"
+                                                >
+                                                    {t('create.openLink')}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </ResultSection>
+                                    )}
+                                </PdfSection>
+                            </Card>
+                        </div>
+
+                        <div style={{ marginTop: '24px' }}>
                             <Card title={t('create.qrTitle')}>
                                 <QrSection>
                                     <TextArea
@@ -627,6 +957,13 @@ export default function Create() {
                                             {t('create.qrRenderLink')}
                                         </Button>
                                         <Button
+                                            onClick={handleGenerateQrRenderAllLink}
+                                            variant="secondary"
+                                            disabled={!qrDataUrl}
+                                        >
+                                            {t('create.qrRenderAllLink')}
+                                        </Button>
+                                        <Button
                                             onClick={handleClearQr}
                                             variant="secondary"
                                             disabled={!qrInput && !qrDataUrl}
@@ -645,6 +982,23 @@ export default function Create() {
                                                 </Button>
                                                 <Button
                                                     onClick={() => window.open(qrRenderLink, '_blank')}
+                                                    variant="secondary"
+                                                >
+                                                    {t('create.openLink')}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </ResultSection>
+                                    )}
+                                    {qrRenderAllLink && (
+                                        <ResultSection>
+                                            <p><strong>{t('create.qrRenderAllLinkTitle')}:</strong></p>
+                                            <LinkDisplay>{qrRenderAllLink}</LinkDisplay>
+                                            <ButtonGroup>
+                                                <Button onClick={() => handleCopyLink(qrRenderAllLink)}>
+                                                    {t('create.copyLink')}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => window.open(qrRenderAllLink, '_blank')}
                                                     variant="secondary"
                                                 >
                                                     {t('create.openLink')}

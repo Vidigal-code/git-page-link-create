@@ -49,12 +49,13 @@ export default function App({ Component, pageProps }: AppProps) {
         return null; // Or a loading spinner
     }
     const isRenderAll = router.pathname.startsWith('/render-all');
+    const isPdfFullscreen = router.pathname === '/render/pdf' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
 
     return (
         <I18nProvider>
             <ThemeProvider theme={theme}>
                 <GlobalStyle />
-                {isRenderAll ? (
+                {isRenderAll || isPdfFullscreen ? (
                     <Component {...pageProps} />
                 ) : (
                     <Layout

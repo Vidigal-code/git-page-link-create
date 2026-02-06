@@ -233,6 +233,65 @@ export const QrSection = styled.div`
   gap: 16px;
 `;
 
+export const ImageSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const ImagePreview = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border: 2px dashed ${({ theme }) => theme.colors.cardBorder || theme.colors.primary};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  min-height: 220px;
+`;
+
+export const ImagePreviewImage = styled.img`
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 8px;
+`;
+
+export const ImagePlaceholder = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
+export const PdfSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const PdfPreview = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border: 2px dashed ${({ theme }) => theme.colors.cardBorder || theme.colors.primary};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  min-height: 220px;
+`;
+
+export const PdfFrame = styled.iframe`
+  width: 100%;
+  height: 320px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+`;
+
+export const PdfPlaceholder = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
 export const QrOptionsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
