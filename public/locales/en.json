@@ -24,6 +24,8 @@
         "markdownDesc": "Convert Markdown to styled HTML with theme-aware colors and readable typography",
         "csv": "CSV / Excel",
         "csvDesc": "Turn CSV/XLSX files into responsive tables with headers and scrollable layouts",
+        "xlsx": "Excel",
+        "xlsxDesc": "Transform Excel spreadsheets (.xlsx, .xls) into interactive, responsive tables with headers and sorting",
         "image": "Images",
         "imageDesc": "Upload images (PNG, JPG, SVG, GIF), generate a hash-based link, and render them with instant preview",
         "pdf": "PDF",

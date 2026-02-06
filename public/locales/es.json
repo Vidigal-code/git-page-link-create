@@ -24,6 +24,8 @@
         "markdownDesc": "Convierte Markdown a HTML con estilos y colores adaptados al tema",
         "csv": "CSV / Excel",
         "csvDesc": "Convierte CSV/XLSX en tablas responsivas con encabezados y desplazamiento",
+        "xlsx": "Excel",
+        "xlsxDesc": "Transforma hojas de cálculo Excel (.xlsx, .xls) en tablas interactivas y responsivas con encabezados y ordenación",
         "image": "Imágenes",
         "imageDesc": "Sube imágenes (PNG, JPG, SVG, GIF), genera un enlace con hash y renderízalas con vista previa inmediata",
         "pdf": "PDF",
