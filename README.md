@@ -13,7 +13,7 @@
 ## Key features
 
 - Permanent links: `/render?data={hash}` and `/render-all#data={hash}`
-- Image sharing: `/render/image#data={base64}` (hash-based)
+- Image sharing: `/render/image#data={base64}` (hash-based, PNG/JPG/SVG/GIF)
 - PDF sharing: `/render/pdf#data={base64}` (hash-based, multi-page)
 - Supports **HTML**, **Markdown**, **CSV/XLS**, **images**, and **PDFs**
 - Secure HTML rendering via sandboxed iframe
