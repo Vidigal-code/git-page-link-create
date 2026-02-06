@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
+import { withBasePath } from '@/shared/lib/basePath';
 
 const HomeContainer = styled.div`
   display: flex;
@@ -167,18 +168,37 @@ const CTASection = styled.div`
 
 export default function Home() {
   const { t } = useI18n();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+  const canonicalUrl = siteUrl ? `${siteUrl}${withBasePath('/')}` : '';
+  const ogImage = 'https://raw.githubusercontent.com/Vidigal-code/git-page-link-create/b09cfd263b712ab97ab4dc8e5a779ecb8cbdbe25/public/icon-site/icon.svg';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: t('common.appName'),
+    url: canonicalUrl || undefined,
+    description: t('home.whatIsDescription'),
+  };
 
   return (
     <>
       <Head>
         <title>{t('common.appName')} - {t('home.title')}</title>
         <meta name="description" content={t('home.whatIsDescription')} />
+        {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
         <meta property="og:title" content={`${t('common.appName')} - ${t('home.title')}`} />
         <meta property="og:description" content={t('home.whatIsDescription')} />
         <meta property="og:type" content="website" />
+        {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+        {ogImage && <meta property="og:image" content={ogImage} />}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${t('common.appName')} - ${t('home.title')}`} />
         <meta name="twitter:description" content={t('home.whatIsDescription')} />
+        {ogImage && <meta name="twitter:image" content={ogImage} />}
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </Head>
 
       <HomeContainer>

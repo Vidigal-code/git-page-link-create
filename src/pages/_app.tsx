@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { AppProps } from 'next/app';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { ThemeProvider } from 'styled-components';
 import { GlobalStyle } from '@/shared/styles/GlobalStyle';
@@ -14,6 +15,10 @@ export default function App({ Component, pageProps }: AppProps) {
     const [availableThemes, setAvailableThemes] = useState<{ id: string; name: string }[]>([]);
     const [hideThemeSelector, setHideThemeSelector] = useState(false);
     const router = useRouter();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImageUrl = 'https://raw.githubusercontent.com/Vidigal-code/git-page-link-create/b09cfd263b712ab97ab4dc8e5a779ecb8cbdbe25/public/icon-site/icon.svg';
+    const defaultDescription = 'Create permanent links for HTML, Markdown, CSV/XLS, images, PDFs, and QR codes with a static Next.js app.';
+    const canonicalUrl = siteUrl ? `${siteUrl}${router.asPath.split('#')[0]}` : '';
 
     useEffect(() => {
         // Load saved theme ID
@@ -54,6 +59,20 @@ export default function App({ Component, pageProps }: AppProps) {
     return (
         <I18nProvider>
             <ThemeProvider theme={theme}>
+                <Head>
+                    <meta name="description" content={defaultDescription} />
+                    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+                    <meta property="og:type" content="website" />
+                    <meta property="og:site_name" content="git-page-link-create" />
+                    <meta property="og:title" content="git-page-link-create" />
+                    <meta property="og:description" content={defaultDescription} />
+                    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+                    <meta property="og:image" content={ogImageUrl} />
+                    <meta name="twitter:card" content="summary_large_image" />
+                    <meta name="twitter:title" content="git-page-link-create" />
+                    <meta name="twitter:description" content={defaultDescription} />
+                    <meta name="twitter:image" content={ogImageUrl} />
+                </Head>
                 <GlobalStyle />
                 {isRenderAll || isPdfFullscreen ? (
                     <Component {...pageProps} />

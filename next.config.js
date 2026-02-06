@@ -20,6 +20,7 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_BASE_PATH: '/git-page-link-create',
+    NEXT_PUBLIC_SITE_URL: 'https://vidigal-code.github.io/git-page-link-create',
   },
 }
 
