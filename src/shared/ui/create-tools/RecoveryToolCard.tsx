@@ -26,6 +26,7 @@ interface RecoveryToolCardProps {
     viewLabel: string;
     createNewLabel: string;
     selectTypeLabel: string;
+    recoveryHelp?: string;
 }
 
 export function RecoveryToolCard({
@@ -48,6 +49,7 @@ export function RecoveryToolCard({
     viewLabel,
     createNewLabel,
     selectTypeLabel,
+    recoveryHelp,
 }: RecoveryToolCardProps) {
     const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         onContentTypeChange(event.target.value);
@@ -63,6 +65,11 @@ export function RecoveryToolCard({
                     placeholder="html-H4sI..."
                     rows={3}
                 />
+                {recoveryHelp && (
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginTop: '8px', lineHeight: '1.4' }}>
+                        {recoveryHelp}
+                    </p>
+                )}
                 <ButtonGroup style={{ marginTop: '16px' }}>
                     <Button
                         onClick={onRecover}

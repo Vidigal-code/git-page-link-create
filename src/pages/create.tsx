@@ -8,6 +8,8 @@ import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } from '@/shared/lib/download';
+import { convertDocxToHtml } from '@/shared/lib/office-docx';
+import { parseRecoveryHash } from '@/shared/lib/recovery';
 import {
     getMaxAudioUrlLength,
     getMaxCsvUrlLength,
@@ -91,6 +93,8 @@ export default function Create() {
     const [qrSvg, setQrSvg] = useState('');
     const [qrRenderLink, setQrRenderLink] = useState('');
     const [qrRenderAllLink, setQrRenderAllLink] = useState('');
+    const [convertedRecoveredHtml, setConvertedRecoveredHtml] = useState<string | null>(null);
+    const [isConvertingRecovered, setIsConvertingRecovered] = useState(false);
     const [qrSize, setQrSize] = useState(320);
     const [qrMargin, setQrMargin] = useState(1);
     const [qrCorrection, setQrCorrection] = useState<'L' | 'M' | 'Q' | 'H'>('M');
@@ -172,7 +176,7 @@ export default function Create() {
 
     const contentValue = typeof content === 'string'
         ? content
-        : '[Binary file loaded - cannot edit]';
+        : t('create.binaryContentPlaceholder');
 
     const getMaxLengthForContentType = (type: ContentType) => {
         switch (type) {
@@ -244,6 +248,18 @@ export default function Create() {
             fileInputRef.current.value = '';
         }
     };
+
+    useEffect(() => {
+        if (contentType === 'docx' && content instanceof Uint8Array && content.length > 0) {
+            setIsConvertingRecovered(true);
+            convertDocxToHtml(content.buffer as ArrayBuffer)
+                .then(html => setConvertedRecoveredHtml(html))
+                .catch(err => console.error('Preview conversion error:', err))
+                .finally(() => setIsConvertingRecovered(false));
+        } else {
+            setConvertedRecoveredHtml(null);
+        }
+    }, [content, contentType]);
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -364,7 +380,7 @@ export default function Create() {
             return <MarkdownPreview dangerouslySetInnerHTML={{ __html: htmlContent }} />;
         }
 
-        if (contentType === 'csv' || contentType === 'xlsx') {
+        if (contentType === 'csv' || contentType === 'xlsx' || contentType === 'xls') {
             type TableCell = string | number | null;
             type TableData = TableCell[][];
             let parsedData: TableData = [];
@@ -409,6 +425,41 @@ export default function Create() {
             }
         }
 
+        if (contentType === 'docx') {
+            if (isConvertingRecovered) return <p>Converting document...</p>;
+            if (convertedRecoveredHtml) {
+                return (
+                    <div
+                        style={{ background: '#fff', color: '#333', padding: '20px', borderRadius: '8px', maxHeight: '600px', overflowY: 'auto' }}
+                        dangerouslySetInnerHTML={{ __html: convertedRecoveredHtml }}
+                    />
+                );
+            }
+            return <p>Binary file loaded (DOCX) - Support for direct preview coming from hash recovery.</p>;
+        }
+
+        if (['pdf', 'image', 'video', 'audio'].includes(contentType) && content instanceof Uint8Array) {
+            const mimeType = getMimeType(contentType);
+            const blob = new Blob([content as any], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+
+            if (contentType === 'image') return <img src={url} alt="Preview" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
+            if (contentType === 'pdf') return <PreviewFrame src={url} title="PDF Preview" style={{ height: '600px' }} />;
+            if (contentType === 'video') return <video src={url} controls style={{ maxWidth: '100%' }} />;
+            if (contentType === 'audio') return <audio src={url} controls style={{ width: '100%' }} />;
+        }
+
+        if (contentType === 'txt') {
+            const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
+            return (
+                <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                    {strContent}
+                </pre>
+            );
+        }
+
+        return <p>Binary file loaded ({contentType.toUpperCase()}) - Use "Download Original" or view in the dedicated renderer after generating the link.</p>;
+
         return null;
     };
 
@@ -417,17 +468,18 @@ export default function Create() {
 
         try {
             setIsRecovered(false);
-            const separatorIndex = recoveryHash.indexOf('-');
-            if (separatorIndex === -1) {
+            const parsed = parseRecoveryHash(recoveryHash);
+
+            if (!parsed) {
                 setError(t('create.invalidHash'));
                 return;
             }
 
-            const type = recoveryHash.substring(0, separatorIndex) as ContentType;
-            const compressedContent = recoveryHash.substring(separatorIndex + 1);
+            const type = parsed.type as ContentType;
+            const compressedContent = parsed.compressedContent;
 
             // Allow all supported types for recovery
-            const supportedTypes: ContentType[] = ['html', 'md', 'csv', 'xlsx', 'xls', 'docx', 'pptx', 'txt'];
+            const supportedTypes: ContentType[] = ['html', 'md', 'csv', 'xlsx', 'xls', 'docx', 'pptx', 'txt', 'pdf', 'image', 'video', 'audio'];
             if (!supportedTypes.includes(type)) {
                 setError(t('create.invalidHash'));
                 return;
@@ -444,7 +496,8 @@ export default function Create() {
             setSuccessMessage(t('create.recoverySuccess'));
             setGeneratedLink('');
             setError('');
-        } catch {
+        } catch (error) {
+            console.error('Recovery error:', error);
             setIsRecovered(false);
             setError(t('create.invalidHash'));
         }
@@ -1206,6 +1259,7 @@ export default function Create() {
                         viewLabel={t('create.viewFile')}
                         createNewLabel={t('create.createNew')}
                         selectTypeLabel={t('create.selectType')}
+                        recoveryHelp={t('create.recoveryHelp')}
                     />
                 );
             case 'image':
