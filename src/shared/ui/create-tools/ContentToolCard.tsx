@@ -39,8 +39,6 @@ interface ContentToolCardProps {
     copyLabel: string;
     openLabel: string;
     contentType: string;
-    contentTypeOptions: ContentTypeOption[];
-    onContentTypeChange: (value: string) => void;
     contentValue: string;
     isContentEditable: boolean;
     onContentChange: (value: string) => void;
@@ -79,8 +77,6 @@ export function ContentToolCard({
     copyLabel,
     openLabel,
     contentType,
-    contentTypeOptions,
-    onContentTypeChange,
     contentValue,
     isContentEditable,
     onContentChange,
@@ -103,14 +99,6 @@ export function ContentToolCard({
 }: ContentToolCardProps) {
     return (
         <Card title={title}>
-            <FormSection>
-                <Select
-                    label={selectLabel}
-                    value={contentType}
-                    onChange={(event) => onContentTypeChange(event.target.value)}
-                    options={contentTypeOptions}
-                />
-            </FormSection>
 
             <FormSection>
                 <TextArea

@@ -19,9 +19,6 @@ interface RecoveryToolCardProps {
     onDownload: () => void;
     onView: () => void;
     onCreateNew: () => void;
-    contentType: string;
-    onContentTypeChange: (value: string) => void;
-    contentTypeOptions: { value: string; label: string }[];
     downloadLabel: string;
     viewLabel: string;
     createNewLabel: string;
@@ -42,18 +39,12 @@ export function RecoveryToolCard({
     onDownload,
     onView,
     onCreateNew,
-    contentType,
-    onContentTypeChange,
-    contentTypeOptions,
     downloadLabel,
     viewLabel,
     createNewLabel,
     selectTypeLabel,
     recoveryHelp,
 }: RecoveryToolCardProps) {
-    const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        onContentTypeChange(event.target.value);
-    };
 
     return (
         <Card title={title}>
@@ -90,14 +81,6 @@ export function RecoveryToolCard({
 
             {isRecovered && (
                 <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <FormSection>
-                        <Select
-                            label={selectTypeLabel}
-                            value={contentType}
-                            onChange={handleTypeChange}
-                            options={contentTypeOptions}
-                        />
-                    </FormSection>
 
                     <ButtonGroup style={{ marginTop: '20px' }}>
                         <Button onClick={onView} variant="secondary">

@@ -5,6 +5,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
+import { Select } from '@/shared/ui/Select';
 import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } from '@/shared/lib/download';
@@ -38,7 +39,6 @@ import {
     PdfToolCard,
     QrToolCard,
     RecoveryToolCard,
-    ToolSelector,
     VideoToolCard,
 } from '@/shared/ui/create-tools';
 import {
@@ -59,7 +59,7 @@ import {
     TablePreview,
 } from '@/shared/styles/pages/create.styles';
 
-type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'doc' | 'ppt' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
+type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'doc' | 'ppt' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'recovery' | 'qr';
 type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
 
 export default function Create() {
@@ -152,27 +152,18 @@ export default function Create() {
         { value: 'html', label: t('home.html') },
         { value: 'md', label: t('home.markdown') },
         { value: 'csv', label: t('home.csv') },
-        { value: 'txt', label: 'Plain Text (TXT)' },
+        { value: 'txt', label: t('home.txt') },
         { value: 'xlsx', label: t('home.xlsx') },
-        { value: 'xls', label: 'Excel (XLS)' },
-        { value: 'docx', label: 'Word (DOCX)' },
-        { value: 'pptx', label: 'PowerPoint (PPTX)' },
+        { value: 'xls', label: t('home.xls') },
+        { value: 'docx', label: t('home.docx') },
+        { value: 'pptx', label: t('home.pptx') },
         { value: 'image', label: t('home.image') },
         { value: 'pdf', label: t('home.pdf') },
         { value: 'video', label: t('home.video') },
         { value: 'audio', label: t('home.audio') },
-    ], [t]);
-
-    const toolOptions = useMemo(() => ([
-        { value: 'create', label: t('create.title') },
-        { value: 'recovery', label: t('create.recoveryTitle') },
-        { value: 'image', label: t('create.imageTitle') },
-        { value: 'pdf', label: t('create.pdfTitle') },
         { value: 'qr', label: t('create.qrTitle') },
-        { value: 'video', label: t('create.videoTitle') },
-        { value: 'audio', label: t('create.audioTitle') },
-        { value: 'office', label: t('create.officeTitle') },
-    ]), [t]);
+        { value: 'recovery', label: t('create.recoveryOption') },
+    ], [t]);
 
     const contentValue = typeof content === 'string'
         ? content
@@ -238,8 +229,8 @@ export default function Create() {
             fileInputRef.current.value = '';
         }
 
-        // Auto-switch tool based on content type
-        const specializedTools: Partial<Record<ContentType, ToolType>> = {
+        // Mapping ContentType to ToolType
+        const contentTypeToTool: Record<ContentType, ToolType> = {
             'pdf': 'pdf',
             'image': 'image',
             'video': 'video',
@@ -247,15 +238,19 @@ export default function Create() {
             'docx': 'office',
             'pptx': 'office',
             'doc': 'office',
+            'ppt': 'office',
             'xls': 'office',
             'xlsx': 'office',
+            'qr': 'qr',
+            'recovery': 'recovery',
+            'html': 'create',
+            'md': 'create',
+            'csv': 'create',
+            'txt': 'create',
+            'office': 'office',
         };
 
-        if (specializedTools[newType]) {
-            setSelectedTool(specializedTools[newType] as ToolType);
-        } else {
-            setSelectedTool('create');
-        }
+        setSelectedTool(contentTypeToTool[newType] || 'create');
     };
 
     const handleClearContent = () => {
@@ -1326,8 +1321,6 @@ export default function Create() {
                         copyLabel={t('create.copyLink')}
                         openLabel={t('create.openLink')}
                         contentType={contentType}
-                        contentTypeOptions={contentTypeOptions}
-                        onContentTypeChange={(value) => handleContentTypeChange(value as ContentType)}
                         contentValue={contentValue}
                         isContentEditable={typeof content === 'string'}
                         onContentChange={setContent}
@@ -1370,9 +1363,6 @@ export default function Create() {
                         onDownload={handleDownloadRecovered}
                         onView={handleViewRecovered}
                         onCreateNew={handleGoToCreate}
-                        contentType={contentType}
-                        onContentTypeChange={(v) => setContentType(v as ContentType)}
-                        contentTypeOptions={contentTypeOptions}
                         downloadLabel={t('create.downloadFile')}
                         viewLabel={t('create.viewFile')}
                         createNewLabel={t('create.createNew')}
@@ -1656,12 +1646,11 @@ export default function Create() {
             <Container>
                 <SplitView>
                     <EditorColumn $showPreview={showPreview && selectedTool === 'create'}>
-                        <ToolSelector
-                            title={t('create.toolSelectorTitle')}
-                            label={t('create.toolSelectorLabel')}
-                            value={selectedTool}
-                            options={toolOptions}
-                            onChange={(value) => setSelectedTool(value as ToolType)}
+                        <Select
+                            label={t('create.selectType')}
+                            value={contentType}
+                            options={contentTypeOptions}
+                            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => handleContentTypeChange(event.target.value as ContentType)}
                         />
 
                         {renderSelectedTool()}
