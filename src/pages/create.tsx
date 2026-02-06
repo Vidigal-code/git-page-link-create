@@ -476,7 +476,7 @@ export default function Create() {
             }
 
             const type = parsed.type as ContentType;
-            const compressedContent = parsed.compressedContent;
+            const data = parsed.data;
 
             // Allow all supported types for recovery
             const supportedTypes: ContentType[] = ['html', 'md', 'csv', 'xlsx', 'xls', 'docx', 'pptx', 'txt', 'pdf', 'image', 'video', 'audio'];
@@ -485,13 +485,19 @@ export default function Create() {
                 return;
             }
 
-            const isBinaryType = ['xlsx', 'xls', 'docx', 'pptx', 'image', 'pdf', 'video', 'audio'].includes(type);
-            const decompressed = isBinaryType
-                ? decompressBytes(compressedContent)
-                : decompress(compressedContent);
+            let recoveredData: string | Uint8Array;
+
+            if (parsed.isCompressed && typeof data === 'string') {
+                const isBinaryType = ['xlsx', 'xls', 'docx', 'pptx', 'image', 'pdf', 'video', 'audio'].includes(type);
+                recoveredData = isBinaryType
+                    ? decompressBytes(data)
+                    : decompress(data);
+            } else {
+                recoveredData = data;
+            }
 
             setContentType(type);
-            setContent(decompressed);
+            setContent(recoveredData);
             setIsRecovered(true);
             setSuccessMessage(t('create.recoverySuccess'));
             setGeneratedLink('');
