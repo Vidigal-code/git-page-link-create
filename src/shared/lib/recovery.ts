@@ -4,6 +4,23 @@ export type RecoveryInfo = {
     isCompressed: boolean;
 };
 
+type ParseRecoveryInputOptions = {
+    /**
+     * If the input doesn't include a `type-` prefix, we can optionally assume a type.
+     * Useful when the user only has the compressed payload (e.g. `H4sIA...`).
+     */
+    assumedType?: string;
+};
+
+function looksLikeGzipBase64(value: string): boolean {
+    const v = value.trim();
+    // Common gzip+base64 prefix for compressed payloads (1F 8B => "H4sI")
+    // We accept both standard and URL-safe base64 chars.
+    if (!/^H4sI[a-zA-Z0-9\-_+/=]+$/.test(v)) return false;
+    // Avoid tiny false positives
+    return v.length >= 16;
+}
+
 /**
  * Extracts the recovery type and data from a hash or a full URL.
  * Supports both "type-compressed" and direct Data URLs.
@@ -88,6 +105,25 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
             // Allow empty compressedData for raw rendering support
             return { type, data: compressedData || '', isCompressed: true };
         }
+    }
+
+    return null;
+}
+
+/**
+ * More flexible parser for recovery inputs:
+ * - Full URLs containing `#data=` or `?data=`
+ * - `type-compressedPayload`
+ * - Direct Data URLs
+ * - Raw compressed payload (`H4sIA...`) if `assumedType` is provided
+ */
+export function parseRecoveryInput(input: string, options: ParseRecoveryInputOptions = {}): RecoveryInfo | null {
+    const parsed = parseRecoveryHash(input);
+    if (parsed) return parsed;
+
+    const assumedType = options.assumedType?.trim();
+    if (assumedType && looksLikeGzipBase64(input)) {
+        return { type: assumedType, data: input.trim(), isCompressed: true };
     }
 
     return null;

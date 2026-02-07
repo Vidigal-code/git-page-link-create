@@ -10,6 +10,9 @@ interface RecoveryToolCardProps {
     pasteLabel: string;
     recoverLabel: string;
     clearLabel: string;
+    recoveryType: string;
+    recoveryTypeOptions: Array<{ value: string; label: string }>;
+    onRecoveryTypeChange: (value: string) => void;
     hashValue: string;
     onHashChange: (value: string) => void;
     onRecover: () => void;
@@ -31,6 +34,9 @@ export function RecoveryToolCard({
     pasteLabel,
     recoverLabel,
     clearLabel,
+    recoveryType,
+    recoveryTypeOptions,
+    onRecoveryTypeChange,
     hashValue,
     onHashChange,
     onRecover,
@@ -49,6 +55,12 @@ export function RecoveryToolCard({
     return (
         <Card title={title}>
             <FormSection>
+                <Select
+                    label={selectTypeLabel}
+                    value={recoveryType}
+                    options={recoveryTypeOptions}
+                    onChange={(event) => onRecoveryTypeChange(event.target.value)}
+                />
                 <TextArea
                     label={pasteLabel}
                     value={hashValue}

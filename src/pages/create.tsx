@@ -10,7 +10,8 @@ import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } from '@/shared/lib/download';
 import { convertDocxToHtml } from '@/shared/lib/office-docx';
-import { parseRecoveryHash } from '@/shared/lib/recovery';
+import { parseRecoveryInput } from '@/shared/lib/recovery';
+import { uint8ArrayToBase64 } from '@/shared/lib/base64';
 import {
     getMaxAudioUrlLength,
     getMaxCsvUrlLength,
@@ -61,6 +62,7 @@ import {
 
 type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'doc' | 'ppt' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'recovery' | 'qr';
 type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
+type RecoverableContentType = Exclude<ContentType, 'recovery' | 'qr' | 'office'>;
 
 export default function Create() {
     const { t } = useI18n();
@@ -86,6 +88,7 @@ export default function Create() {
 
     const [recoveryHash, setRecoveryHash] = useState('');
     const [isRecovered, setIsRecovered] = useState(false);
+    const [recoveryType, setRecoveryType] = useState<RecoverableContentType>('html');
     const [qrInput, setQrInput] = useState('');
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [qrIsProcessing, setQrIsProcessing] = useState(false);
@@ -165,9 +168,66 @@ export default function Create() {
         { value: 'recovery', label: t('create.recoveryOption') },
     ], [t]);
 
+    const recoveryTypeOptions = useMemo(() => (
+        contentTypeOptions.filter((opt) => opt.value !== 'recovery' && opt.value !== 'qr')
+    ), [contentTypeOptions]);
+
     const contentValue = typeof content === 'string'
         ? content
         : t('create.binaryContentPlaceholder');
+
+    const uint8ArrayToDataUrl = (bytes: Uint8Array, mimeType: string) => (
+        `data:${mimeType};base64,${uint8ArrayToBase64(bytes)}`
+    );
+
+    const isLikelyHtml = (value: string) => /<\s*(!doctype|html|head|body)\b/i.test(value);
+
+    const handleContentTextChange = (value: string) => {
+        if (contentType !== 'html' && contentType !== 'md' && contentType !== 'csv' && contentType !== 'txt') {
+            setContent(value);
+            return;
+        }
+
+        const parsed = parseRecoveryInput(value, { assumedType: contentType });
+        if (!parsed) {
+            setContent(value);
+            return;
+        }
+
+        // Compressed payload: `H4sIA...` or `type-H4sIA...`
+        if (parsed.isCompressed && typeof parsed.data === 'string') {
+            try {
+                const decompressed = decompress(parsed.data);
+                if (contentType === 'html' && !isLikelyHtml(decompressed)) {
+                    setContent(value);
+                    return;
+                }
+                setContent(decompressed);
+                return;
+            } catch {
+                setContent(value);
+                return;
+            }
+        }
+
+        // Direct Data URL -> bytes
+        if (!parsed.isCompressed && parsed.data instanceof Uint8Array) {
+            try {
+                const decoded = new TextDecoder().decode(parsed.data);
+                if (contentType === 'html' && !isLikelyHtml(decoded)) {
+                    setContent(value);
+                    return;
+                }
+                setContent(decoded);
+                return;
+            } catch {
+                setContent(value);
+                return;
+            }
+        }
+
+        setContent(value);
+    };
 
     const getMaxLengthForContentType = (type: ContentType) => {
         switch (type) {
@@ -472,7 +532,7 @@ export default function Create() {
             );
         }
 
-        return <p>Binary file loaded ({contentType.toUpperCase()}) - Use "Download Original" or view in the dedicated renderer after generating the link.</p>;
+        return <p>Binary file loaded ({contentType.toUpperCase()}) - Use Download Original or view in the dedicated renderer after generating the link.</p>;
 
         return null;
     };
@@ -482,7 +542,7 @@ export default function Create() {
 
         try {
             setIsRecovered(false);
-            const parsed = parseRecoveryHash(recoveryHash);
+            const parsed = parseRecoveryInput(recoveryHash, { assumedType: recoveryType });
 
             if (!parsed) {
                 setError(t('create.invalidHash'));
@@ -556,11 +616,7 @@ export default function Create() {
                 const mimeType = getMimeType(contentType);
                 let dataUrl = '';
                 if (content instanceof Uint8Array) {
-                    let binary = '';
-                    for (let i = 0; i < content.byteLength; i++) {
-                        binary += String.fromCharCode(content[i]);
-                    }
-                    dataUrl = `data:${mimeType};base64,${window.btoa(binary)}`;
+                    dataUrl = uint8ArrayToDataUrl(content, mimeType);
                 } else {
                     dataUrl = content;
                 }
@@ -609,9 +665,7 @@ export default function Create() {
             // Sync recovered data to specialized tool states
             if (content) {
                 const mimeType = getMimeType(contentType);
-                const dataUrl = content instanceof Uint8Array
-                    ? `data:${mimeType};base64,${Buffer.from(content).toString('base64')}`
-                    : content;
+                const dataUrl = content instanceof Uint8Array ? uint8ArrayToDataUrl(content, mimeType) : content;
 
                 switch (specializedTools[contentType]) {
                     case 'office':
@@ -1328,7 +1382,7 @@ export default function Create() {
                         contentType={contentType}
                         contentValue={contentValue}
                         isContentEditable={typeof content === 'string'}
-                        onContentChange={setContent}
+                        onContentChange={handleContentTextChange}
                         fileInputRef={fileInputRef}
                         onFileUpload={handleFileUpload}
                         isFullScreen={isFullScreen}
@@ -1354,6 +1408,9 @@ export default function Create() {
                         pasteLabel={t('create.pasteHash')}
                         recoverLabel={t('create.recoverButton')}
                         clearLabel={t('create.clearHash')}
+                        recoveryType={recoveryType}
+                        recoveryTypeOptions={recoveryTypeOptions}
+                        onRecoveryTypeChange={(value) => setRecoveryType(value as RecoverableContentType)}
                         hashValue={recoveryHash}
                         onHashChange={(value) => {
                             setRecoveryHash(value);

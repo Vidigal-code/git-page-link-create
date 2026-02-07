@@ -1,15 +1,5 @@
 import pako from 'pako';
-
-const BASE64_CHUNK_SIZE = 0x8000;
-
-function bytesToBase64(bytes: Uint8Array): string {
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
-        const chunk = bytes.subarray(i, i + BASE64_CHUNK_SIZE);
-        binary += String.fromCharCode(...chunk);
-    }
-    return btoa(binary);
-}
+import { base64ToUint8Array, normalizeUrlSafeBase64, uint8ArrayToBase64 } from '@/shared/lib/base64';
 
 /**
  * Compress a string using gzip compression (browser-safe) and URL-safe base64
@@ -32,7 +22,7 @@ export function compressBytes(bytes: Uint8Array): string {
         const compressed = pako.gzip(bytes);
 
         // Convert to base64
-    const base64 = bytesToBase64(compressed);
+        const base64 = uint8ArrayToBase64(compressed);
 
         // Make URL safe: + -> -, / -> _, remove =
         return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -59,20 +49,8 @@ export function decompress(compressed: string): string {
  */
 export function decompressBytes(compressed: string): Uint8Array {
     try {
-        // Restore standard base64: - -> +, _ -> /
-        let base64 = compressed.replace(/-/g, '+').replace(/_/g, '/');
-
-        // Add padding if needed
-        while (base64.length % 4) {
-            base64 += '=';
-        }
-
-        // Convert base64 to Uint8Array
-        const binaryString = atob(base64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
+        const base64 = normalizeUrlSafeBase64(compressed);
+        const bytes = base64ToUint8Array(base64);
 
         // Decompress using pako
         return pako.ungzip(bytes);

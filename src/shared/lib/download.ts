@@ -7,10 +7,18 @@
 export function downloadFile(content: string | Uint8Array, filename: string, type: string): void {
     try {
         // Create a Blob from the content
-        const blobPart: BlobPart = typeof content === 'string'
-            ? content
-            : (content.buffer as ArrayBuffer);
-        const blob = new Blob([blobPart], { type });
+        const blob = typeof content === 'string'
+            ? new Blob([content], { type })
+            : (() => {
+                // NOTE: Preserve the exact byte range (byteOffset/byteLength) for subarrays.
+                const exactBytes = (content.byteOffset === 0 && content.byteLength === content.buffer.byteLength)
+                    ? content
+                    : content.slice();
+                // Always copy to a fresh ArrayBuffer to avoid any ArrayBufferLike/SharedArrayBuffer typing edge cases.
+                const copied = new Uint8Array(exactBytes.byteLength);
+                copied.set(exactBytes);
+                return new Blob([copied.buffer as ArrayBuffer], { type });
+            })();
 
         // Create a temporary URL for the blob
         const url = URL.createObjectURL(blob);
