@@ -195,7 +195,17 @@ export default function Render() {
             return (
                 <Card>
                     <ScrollableContent>
-                        <pre style={{ margin: 0, padding: '16px', whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.6' }}>
+                        <pre style={{
+                            margin: 0,
+                            padding: '16px',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            maxWidth: '100%',
+                            fontFamily: 'monospace',
+                            fontSize: '14px',
+                            lineHeight: '1.6',
+                        }}>
                             {strContent}
                         </pre>
                     </ScrollableContent>
