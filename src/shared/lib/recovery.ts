@@ -12,13 +12,50 @@ type ParseRecoveryInputOptions = {
     assumedType?: string;
 };
 
+const SUPPORTED_PREFIX_TYPES = new Set([
+    'html',
+    'md',
+    'csv',
+    'txt',
+    'xlsx',
+    'xls',
+    'docx',
+    'pptx',
+    'doc',
+    'ppt',
+    'pdf',
+    'image',
+    'video',
+    'audio',
+]);
+
+function stripAllWhitespace(value: string): string {
+    return value.replace(/\s+/g, '');
+}
+
+function isSupportedPrefixType(value: string): boolean {
+    return SUPPORTED_PREFIX_TYPES.has(value);
+}
+
 function looksLikeGzipBase64(value: string): boolean {
-    const v = value.trim();
+    const v = stripAllWhitespace(value.trim());
     // Common gzip+base64 prefix for compressed payloads (1F 8B => "H4sI")
     // We accept both standard and URL-safe base64 chars.
     if (!/^H4sI[a-zA-Z0-9\-_+/=]+$/.test(v)) return false;
     // Avoid tiny false positives
     return v.length >= 16;
+}
+
+function extractDataParam(value: string, marker: '#data=' | '?data='): string {
+    const idx = value.indexOf(marker);
+    if (idx === -1) return value;
+    let extracted = value.slice(idx + marker.length);
+    // Stop at next query param or fragment marker
+    const ampIndex = extracted.indexOf('&');
+    if (ampIndex !== -1) extracted = extracted.slice(0, ampIndex);
+    const hashIndex = extracted.indexOf('#');
+    if (hashIndex !== -1) extracted = extracted.slice(0, hashIndex);
+    return extracted;
 }
 
 /**
@@ -30,9 +67,9 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
 
     // Support full URLs (fragment or query param)
     if (cleaned.includes('#data=')) {
-        cleaned = cleaned.split('#data=')[1];
+        cleaned = extractDataParam(cleaned, '#data=');
     } else if (cleaned.includes('?data=')) {
-        cleaned = cleaned.split('?data=')[1];
+        cleaned = extractDataParam(cleaned, '?data=');
     }
 
     // Handle potential URL encoding
@@ -98,10 +135,10 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
     // Case 2: Prefix-compressed format (type-compressedData)
     const separatorIndex = decodedValue.indexOf('-');
     if (separatorIndex !== -1) {
-        const type = decodedValue.substring(0, separatorIndex);
-        const compressedData = decodedValue.substring(separatorIndex + 1);
+        const type = decodedValue.substring(0, separatorIndex).trim();
+        const compressedData = stripAllWhitespace(decodedValue.substring(separatorIndex + 1));
 
-        if (type) {
+        if (type && isSupportedPrefixType(type)) {
             // Allow empty compressedData for raw rendering support
             return { type, data: compressedData || '', isCompressed: true };
         }
@@ -123,7 +160,7 @@ export function parseRecoveryInput(input: string, options: ParseRecoveryInputOpt
 
     const assumedType = options.assumedType?.trim();
     if (assumedType && looksLikeGzipBase64(input)) {
-        return { type: assumedType, data: input.trim(), isCompressed: true };
+        return { type: assumedType, data: stripAllWhitespace(input.trim()), isCompressed: true };
     }
 
     return null;
