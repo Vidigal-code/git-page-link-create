@@ -328,6 +328,21 @@ export default function Home() {
           </Card>
         </Section>
 
+        <Section>
+          <Card>
+            <SectionTitle>{t('home.chatLinkTitle')}</SectionTitle>
+            <p>{t('home.chatLinkDescription')}</p>
+            <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <Link href="/chat-link/" passHref legacyBehavior>
+                <Button as="a" variant="secondary">{t('home.chatLinkCta')}</Button>
+              </Link>
+              <span style={{ color: 'rgba(255,255,255,0.6)', alignSelf: 'center' }}>
+                {t('home.chatLinkNote')}
+              </span>
+            </div>
+          </Card>
+        </Section>
+
         <CTASection>
           <Link href="/create" passHref legacyBehavior>
             <Button as="a">{t('home.getStarted')}</Button>

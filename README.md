@@ -18,6 +18,7 @@
 - Video sharing: `/render/video#data={base64}` (hash-based)
 - Audio sharing: `/render/audio#data={base64}` (hash-based)
 - Microsoft Office sharing: `/render/office?source={publicUrl}` (Word/Excel/PowerPoint)
+- Link-based chat: `/chat-link/#data=chat-{hash}` (chat transcript stored in the URL hash)
 - Supports **HTML**, **Markdown**, **CSV/XLS**, **images**, **PDFs**, **videos**, **audio**, and **Microsoft Office** files
 - Secure HTML rendering via sandboxed iframe
 - QR code generator with size, margin, error correction, PNG/SVG export, copy, and open actions
@@ -32,9 +33,19 @@
 3. Share the link and render it on `/render/image`, `/render/pdf`, `/render/video`, or `/render/audio`.
 4. For Office files, paste a public URL and generate a `/render/office?source={url}` link.
 
+## Link-based chat flow
+
+1. Open `/chat-link/` and send a message (name + text). The browser stores local date/time metadata.
+2. The full transcript is compressed and saved into the URL hash: `#data=chat-...`.
+3. Share the link. Anyone can open it on any device and reply while keeping the full context.
+4. Use **Reply** to quote a previous message in the next message.
+5. Use **Copy link** / **Open link** to share or open the current transcript in a new tab.
+
 ## URL length limits
 
 Browsers enforce hard URL length limits (often around 2,000,000 characters). For large media files, use the "URL" option on the Create page to generate a short link that points to externally hosted content. This is the most reliable way to render large images, videos, audio, and PDFs across browsers. With the default limits, PDFs and media files should be ~1.3 MB or less when embedded in the URL hash. Office files must be hosted on a public URL and stay under the Office link limit.
+
+The chat transcript is also stored in the URL hash. When the transcript grows beyond the configured safe limit, the UI will warn you and prevent sending messages that would exceed the maximum URL length.
 
 ## Project structure
 
@@ -45,6 +56,7 @@ src/
 │   ├── _document.tsx
 │   ├── index.tsx
 │   ├── create.tsx
+│   ├── chat-link.tsx
 │   ├── render/
 │   │   ├── [hash].tsx
 │   │   ├── audio.tsx
@@ -58,7 +70,9 @@ src/
 │       └── index.tsx
 └── shared/
     ├── lib/
+    │   ├── base64.ts
     │   ├── compression.ts
+    │   ├── chat-link.ts
     │   ├── crypto.ts
     │   ├── download.ts
     │   ├── i18n.tsx
@@ -68,11 +82,13 @@ src/
     │   ├── video.ts
     │   ├── office.ts
     │   ├── qr.ts
+    │   ├── recovery.ts
     │   └── theme.ts
     ├── styles/
     │   ├── GlobalStyle.ts
     │   ├── theme.d.ts
     │   └── pages/
+    │       ├── chat-link.styles.ts
     │       ├── create.styles.ts
     │       ├── render.styles.ts
     │       ├── render-all.styles.ts

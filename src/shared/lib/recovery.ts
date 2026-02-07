@@ -27,6 +27,7 @@ const SUPPORTED_PREFIX_TYPES = new Set([
     'image',
     'video',
     'audio',
+    'chat',
 ]);
 
 function stripAllWhitespace(value: string): string {
