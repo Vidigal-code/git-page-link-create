@@ -181,6 +181,24 @@ export default function RenderAll() {
         );
     }
 
+    if (contentType === 'txt') {
+        const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
+        return (
+            <PageWrapper>
+                <Head>
+                    <title>Rendered Text</title>
+                </Head>
+                <StyledCard>
+                    <ScrollableContent>
+                        <pre style={{ margin: 0, padding: '16px', whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.6' }}>
+                            {strContent}
+                        </pre>
+                    </ScrollableContent>
+                </StyledCard>
+            </PageWrapper>
+        );
+    }
+
     if (contentType === 'csv' || contentType === 'xlsx') {
         type TableCell = string | number | null;
         type TableData = TableCell[][];
