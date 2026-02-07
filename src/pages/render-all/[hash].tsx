@@ -101,11 +101,22 @@ export default function RenderAll() {
             }
 
             if (type === 'xlsx') {
-                const decompressed = decompressBytes(compressedContent);
-                setContent(decompressed);
+                try {
+                    const decompressed = decompressBytes(compressedContent);
+                    setContent(decompressed);
+                } catch (e) {
+                    //console.warn('Decompression failed for xlsx, using raw content:', e);
+                    // For xlsx, raw content might not be useful as a string, but we pass it anyway
+                    setContent(compressedContent);
+                }
             } else {
-                const decompressed = decompress(compressedContent);
-                setContent(decompressed);
+                try {
+                    const decompressed = decompress(compressedContent);
+                    setContent(decompressed);
+                } catch (e) {
+                    //console.warn('Decompression failed, using raw content:', e);
+                    setContent(compressedContent);
+                }
             }
             setContentType(type);
             setIsLoading(false);

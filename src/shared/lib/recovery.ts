@@ -84,8 +84,9 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
         const type = decodedValue.substring(0, separatorIndex);
         const compressedData = decodedValue.substring(separatorIndex + 1);
 
-        if (type && compressedData) {
-            return { type, data: compressedData, isCompressed: true };
+        if (type) {
+            // Allow empty compressedData for raw rendering support
+            return { type, data: compressedData || '', isCompressed: true };
         }
     }
 

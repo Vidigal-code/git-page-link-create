@@ -70,7 +70,7 @@ export default function RenderOffice() {
                         setDocxHtml(html);
                     })
                     .catch(err => {
-                        console.error('Word conversion error:', err);
+                        //console.error('Word conversion error:', err);
                     })
                     .finally(() => {
                         setIsConverting(false);

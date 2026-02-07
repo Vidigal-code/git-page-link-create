@@ -44,7 +44,7 @@ export async function convertDocxToHtml(
 
         return result.value;
     } catch (error) {
-        console.error('Error converting DOCX to HTML:', error);
+        //console.error('Error converting DOCX to HTML:', error);
         throw new Error('Failed to convert Word document to HTML');
     }
 }

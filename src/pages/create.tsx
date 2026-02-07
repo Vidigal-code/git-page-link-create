@@ -268,7 +268,7 @@ export default function Create() {
             setIsConvertingRecovered(true);
             convertDocxToHtml(content.buffer as ArrayBuffer)
                 .then(html => setConvertedRecoveredHtml(html))
-                .catch(err => console.error('Preview conversion error:', err))
+                //.catch(err => console.error('Preview conversion error:', err))
                 .finally(() => setIsConvertingRecovered(false));
         } else {
             setConvertedRecoveredHtml(null);
@@ -503,9 +503,14 @@ export default function Create() {
 
             if (parsed.isCompressed && typeof data === 'string') {
                 const isBinaryType = ['xlsx', 'xls', 'docx', 'pptx', 'image', 'pdf', 'video', 'audio'].includes(type);
-                recoveredData = isBinaryType
-                    ? decompressBytes(data)
-                    : decompress(data);
+                try {
+                    recoveredData = isBinaryType
+                        ? decompressBytes(data)
+                        : decompress(data);
+                } catch (e) {
+                    //console.warn('Decompression failed, using raw content:', e);
+                    recoveredData = data;
+                }
             } else {
                 recoveredData = data;
             }
@@ -517,7 +522,7 @@ export default function Create() {
             setGeneratedLink('');
             setError('');
         } catch (error) {
-            console.error('Recovery error:', error);
+            //console.error('Recovery error:', error);
             setIsRecovered(false);
             setError(t('create.invalidHash'));
         }

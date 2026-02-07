@@ -19,7 +19,7 @@ export async function generateHash(content: string): Promise<string> {
         // Return first 8 characters for short hash
         return hashHex.substring(0, 8);
     } catch (error) {
-        console.error('Hash generation error:', error);
+        //console.error('Hash generation error:', error);
         throw new Error('Failed to generate hash');
     }
 }
