@@ -200,7 +200,7 @@ export default function Render() {
                             padding: '16px',
                             whiteSpace: 'pre-wrap',
                             overflowWrap: 'anywhere',
-                            wordBreak: 'break-word',
+                            wordBreak: 'break-all',
                             maxWidth: '100%',
                             fontFamily: 'monospace',
                             fontSize: '14px',

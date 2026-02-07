@@ -529,7 +529,7 @@ export default function Create() {
                 <pre style={{
                     whiteSpace: 'pre-wrap',
                     overflowWrap: 'anywhere',
-                    wordBreak: 'break-word',
+                    wordBreak: 'break-all',
                     maxWidth: '100%',
                     fontFamily: 'monospace',
                     padding: '16px',
