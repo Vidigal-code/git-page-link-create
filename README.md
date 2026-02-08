@@ -10,6 +10,10 @@
 
 **git-page-link-create** generates shareable links that render content directly in the browser—no backend required. It includes QR code generation plus image/PDF/video/audio sharing with hash-based links to avoid 431 errors, and Microsoft Office rendering from public URLs.
 
+## Project page & documentation
+
+- **Project page (demo) + docs**: [https://tinyurl.com/5n8eptkv](https://tinyurl.com/5n8eptkv)
+
 ## Key features
 
 - Permanent links: `/render?data={hash}` and `/render-all#data={hash}`
