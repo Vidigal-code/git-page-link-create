@@ -73,8 +73,10 @@ function getRecoveryTargetFromWindowLocation(): string | null {
   if (!slug) return null;
 
   if (isShortUrl || isShortUrlCompact) {
-    const suffix = z === '1' || z === '0' ? `&z=${z}` : '';
-    return withBasePath(`/shorturl/?c=${encodeURIComponent(slug)}${suffix}`);
+    // Never put the code in the query string (can hit URI length limits on large payloads).
+    // Keep `z` in query (small) and put the code in the hash (not sent to server).
+    const zQuery = z === '1' || z === '0' ? `?z=${z}` : '';
+    return withBasePath(`/shorturl/${zQuery}#c=${slug}`);
   }
 
   // Prefer shortest alias targets

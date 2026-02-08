@@ -127,16 +127,24 @@ export default function ShortUrlCreatePage() {
             // Build candidates independently so one failing codec (e.g. AT2 on huge URLs)
             // does not prevent other shorteners (e.g. RefCodes) from working.
             const candidates: Array<{ t: string; link: string }> = [];
+            const maxSafeCodeLenForPath = 1500;
+            const canUsePathTransport = (code: string) => code.length <= maxSafeCodeLenForPath;
 
             // Option A: compact AT2 token (may fail on extremely large URLs)
             try {
                 const generatedToken = encodeShortUrlToken(input, { mode: 'compact' });
-                const atPathShort = withBasePath(`/s/${generatedToken}`);
-                const atFullShort = `${window.location.origin}${atPathShort}${silentFlagSuffix}`;
-                const atPathLong = withBasePath(`/shorturl/${generatedToken}`);
-                const atFullLong = `${window.location.origin}${atPathLong}${silentFlagSuffix}`;
-                candidates.push({ t: generatedToken, link: atFullShort });
-                candidates.push({ t: generatedToken, link: atFullLong });
+                if (canUsePathTransport(generatedToken)) {
+                    const atPathShort = withBasePath(`/s/${generatedToken}`);
+                    const atFullShort = `${window.location.origin}${atPathShort}${silentFlagSuffix}`;
+                    const atPathLong = withBasePath(`/shorturl/${generatedToken}`);
+                    const atFullLong = `${window.location.origin}${atPathLong}${silentFlagSuffix}`;
+                    candidates.push({ t: generatedToken, link: atFullShort });
+                    candidates.push({ t: generatedToken, link: atFullLong });
+                }
+
+                // Hash-transport: avoids server/request URI limits for very large codes
+                const atHashPath = withBasePath(`/shorturl/${silentFlagSuffix}#c=${generatedToken}`);
+                candidates.push({ t: generatedToken, link: `${window.location.origin}${atHashPath}` });
             } catch {
                 // ignore AT failures; we can still shorten via refcodes
             }
@@ -144,12 +152,18 @@ export default function ShortUrlCreatePage() {
             // Option B: reference code (vh-/vp-/yt-/...) when possible (safe)
             const ref = encodeRefCode(input);
             if (ref) {
-                const refPathShort = withBasePath(`/s/${ref}`);
-                const refFullShort = `${window.location.origin}${refPathShort}${silentFlagSuffix}`;
-                const refPathLong = withBasePath(`/shorturl/${ref}`);
-                const refFullLong = `${window.location.origin}${refPathLong}${silentFlagSuffix}`;
-                candidates.push({ t: ref, link: refFullShort });
-                candidates.push({ t: ref, link: refFullLong });
+                if (canUsePathTransport(ref)) {
+                    const refPathShort = withBasePath(`/s/${ref}`);
+                    const refFullShort = `${window.location.origin}${refPathShort}${silentFlagSuffix}`;
+                    const refPathLong = withBasePath(`/shorturl/${ref}`);
+                    const refFullLong = `${window.location.origin}${refPathLong}${silentFlagSuffix}`;
+                    candidates.push({ t: ref, link: refFullShort });
+                    candidates.push({ t: ref, link: refFullLong });
+                }
+
+                // Hash-transport: avoids server/request URI limits for very large codes
+                const refHashPath = withBasePath(`/shorturl/${silentFlagSuffix}#c=${ref}`);
+                candidates.push({ t: ref, link: `${window.location.origin}${refHashPath}` });
 
                 // Option C: direct internal renderer link (silent + instant) when possible
                 if (instantRenderer) {

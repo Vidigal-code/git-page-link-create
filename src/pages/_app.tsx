@@ -68,6 +68,7 @@ export default function App({ Component, pageProps }: AppProps) {
             || typeof router.query.code === 'string'
             // hydration-safe fallback (prevents UI flash on first render)
             || /[?&](?:c|code)=/i.test(asPath)
+            || /#(?:c|code)=/i.test(asPath)
         );
     const zParam = router.query.z;
     const zFromAsPath = /[?&]z=([01])\b/i.exec(asPath)?.[1];
