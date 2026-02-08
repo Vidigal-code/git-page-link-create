@@ -95,7 +95,7 @@ export default function RenderImage() {
             return;
         }
         try {
-            const blob = new Blob([imageBytes], { type: imageMimeType || 'image/png' });
+            const blob = new Blob([imageBytes.slice().buffer as ArrayBuffer], { type: imageMimeType || 'image/png' });
             const url = URL.createObjectURL(blob);
             setImageBlobUrl(url);
             return () => URL.revokeObjectURL(url);
@@ -114,7 +114,7 @@ export default function RenderImage() {
         }
 
         if (imageBytes) {
-            const blob = new Blob([imageBytes], { type: imageMimeType || 'image/png' });
+            const blob = new Blob([imageBytes.slice().buffer as ArrayBuffer], { type: imageMimeType || 'image/png' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

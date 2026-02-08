@@ -113,7 +113,7 @@ export default function RenderVideo() {
                 return;
             }
 
-            const blob = new Blob([bytes], { type: videoMimeType || 'video/mp4' });
+            const blob = new Blob([bytes.slice().buffer as ArrayBuffer], { type: videoMimeType || 'video/mp4' });
             const url = URL.createObjectURL(blob);
             setVideoBlobUrl(url);
             return () => URL.revokeObjectURL(url);
@@ -132,7 +132,7 @@ export default function RenderVideo() {
         }
 
         if (videoBytes) {
-            const blob = new Blob([videoBytes], { type: videoMimeType || 'video/mp4' });
+            const blob = new Blob([videoBytes.slice().buffer as ArrayBuffer], { type: videoMimeType || 'video/mp4' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

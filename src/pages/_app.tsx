@@ -96,6 +96,11 @@ export default function App({ Component, pageProps }: AppProps) {
         && /[?&]z=1\b/.test(asPath)
         && /\/(?:s|shorturl|render|render-all|r|ra)\//.test(asPath);
 
+    // `/s/v?z=1&ref=...` is used as a silent redirector for link-register references.
+    const isLinksRegisterSilent = router.pathname === '/s/v'
+        && /[?&]z=1\b/.test(asPath)
+        && /[?&]ref=/.test(asPath);
+
     return (
         <I18nProvider>
             <ThemeProvider theme={theme}>
@@ -114,7 +119,7 @@ export default function App({ Component, pageProps }: AppProps) {
                     <meta name="twitter:image" content={ogImageUrl} />
                 </Head>
                 <GlobalStyle />
-                {isRenderAll || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect || isSilent404Recovery ? (
+                {isRenderAll || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect || isSilent404Recovery || isLinksRegisterSilent ? (
                     <Component {...pageProps} />
                 ) : (
                     <Layout

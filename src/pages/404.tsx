@@ -90,7 +90,9 @@ function getRecoveryTargetFromWindowLocation(): string | null {
     // `/s/<slug>` is the compact shorturl path, but we also want `/s/<ReferenceName>`
     // for link register lookups. Decide based on token shape + known refcodes.
     if (isShortUrlCompact && !isLikelyShortUrlCode(slug)) {
-      return withBasePath(`/s/v?ref=${encodeURIComponent(slug)}`);
+      // Default to silent mode for link-register references (instant redirect when unique).
+      const zQuery = z === '0' ? '0' : '1';
+      return withBasePath(`/s/v?z=${zQuery}&ref=${encodeURIComponent(slug)}`);
     }
 
     // Never put the code in the query string (can hit URI length limits on large payloads).

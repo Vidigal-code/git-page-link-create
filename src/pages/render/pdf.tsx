@@ -80,7 +80,7 @@ export default function RenderPdf() {
                 return;
             }
 
-            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const blob = new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setPdfBlobUrl(url);
             return () => URL.revokeObjectURL(url);
@@ -91,7 +91,7 @@ export default function RenderPdf() {
 
     const handleDownload = () => {
         if (pdfBytes) {
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const blob = new Blob([pdfBytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

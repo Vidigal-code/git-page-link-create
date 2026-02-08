@@ -96,7 +96,7 @@ export default function RenderAudio() {
             return;
         }
         try {
-            const blob = new Blob([audioBytes], { type: audioMimeType || 'audio/mpeg' });
+            const blob = new Blob([audioBytes.slice().buffer as ArrayBuffer], { type: audioMimeType || 'audio/mpeg' });
             const url = URL.createObjectURL(blob);
             setAudioBlobUrl(url);
             return () => URL.revokeObjectURL(url);
@@ -115,7 +115,7 @@ export default function RenderAudio() {
         }
 
         if (audioBytes) {
-            const blob = new Blob([audioBytes], { type: audioMimeType || 'audio/mpeg' });
+            const blob = new Blob([audioBytes.slice().buffer as ArrayBuffer], { type: audioMimeType || 'audio/mpeg' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

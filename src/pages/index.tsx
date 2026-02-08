@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -179,6 +179,10 @@ export default function Home() {
   const [linksRegisterLoading, setLinksRegisterLoading] = useState(true);
   const [linksRegisterError, setLinksRegisterError] = useState('');
   const [copiedKey, setCopiedKey] = useState<string>('');
+  const smallButtonStyle = useMemo(
+    () => ({ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' } as React.CSSProperties),
+    []
+  );
 
   useEffect(() => {
     let alive = true;
@@ -392,12 +396,25 @@ export default function Home() {
                         <Button
                           onClick={() => handleCopy(key, e.LinkOriginal)}
                           variant="secondary"
+                          style={smallButtonStyle}
                         >
                           {isCopied ? t('create.linkCopied') : t('create.copyLink')}
                         </Button>
                         <Button
+                          onClick={() => {
+                            if (typeof window === 'undefined') return;
+                            const refUrl = `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(e.ReferenceName)}/`)}`;
+                            handleCopy(`${key}-ref`, refUrl);
+                          }}
+                          variant="secondary"
+                          style={smallButtonStyle}
+                        >
+                          {copiedKey === `${key}-ref` ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
+                        </Button>
+                        <Button
                           onClick={() => window.open(e.LinkOriginal, '_blank', 'noopener,noreferrer')}
                           variant="secondary"
+                          style={smallButtonStyle}
                         >
                           {t('home.linksRegisterOpen')}
                         </Button>

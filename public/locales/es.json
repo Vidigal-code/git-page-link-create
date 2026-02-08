@@ -29,6 +29,7 @@
         "linksRegisterNameLabel": "Registro",
         "linksRegisterRefLabel": "Referencia",
         "linksRegisterOpen": "Abrir",
+        "linksRegisterCopyRef": "Copiar enlace de referencia",
         "linksRegisterLoading": "Cargando...",
         "linksRegisterEmpty": "No hay enlaces registrados.",
         "linksRegisterError": "No se pudo cargar el registro de enlaces.",

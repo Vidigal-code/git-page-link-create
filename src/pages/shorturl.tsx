@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
 import { decodeRefCode, decodeShortUrlToken } from '@/shared/lib/shorturl';
@@ -242,9 +243,7 @@ export default function ShortUrlRedirectPage() {
                                     <p style={{ margin: '0 0 6px' }}>
                                         <strong>{t('shorturlDecoder.decodedUrlLabel')}:</strong>
                                     </p>
-                                    <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                                        {decodedUrl}
-                                    </LinkDisplay>
+                                    <ReadOnlyTextarea readOnly value={decodedUrl} rows={3} />
 
                                     <ButtonGroup>
                                         <Button onClick={handleRedirect}>
