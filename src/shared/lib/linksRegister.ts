@@ -1,4 +1,5 @@
 import { withBasePath } from '@/shared/lib/basePath';
+import { SHORTURL_REF_CODES } from '@/shared/lib/shorturl/refcodes';
 
 export type LinksRegisterEntry = {
     ReferenceName: string;
@@ -56,6 +57,33 @@ export function findLinksByReference(entries: LinksRegisterEntry[], ref: string)
     const needle = ref.trim().toLowerCase();
     if (!needle) return [];
     return entries.filter((e) => (e.ReferenceName || '').trim().toLowerCase() === needle);
+}
+
+const SHORTURL_CODE_SET = Object.freeze(
+    new Set(SHORTURL_REF_CODES.map((e) => (e.code || '').toLowerCase()))
+);
+
+function isLikelyShortUrlCode(slug: string): boolean {
+    const s = (slug || '').trim();
+    if (!s) return false;
+    if (/^AT[0-9A-Za-z]/i.test(s)) return true;
+    const m = /^([a-z0-9]{1,3})-/i.exec(s);
+    if (!m?.[1]) return false;
+    return SHORTURL_CODE_SET.has(m[1].toLowerCase());
+}
+
+/**
+ * Builds a reference-link path that won't collide with shorturl token routing.
+ * - For refs that look like shorturl tokens (e.g. `AT2...`), we use `/s/@<ref>/`.
+ * - Otherwise we keep the classic `/s/<ref>/`.
+ */
+export function buildLinksRegisterReferencePath(referenceName: string, z?: '0' | '1'): string {
+    const raw = (referenceName || '').trim();
+    const safeRef = encodeURIComponent(raw);
+    const needsEscape = isLikelyShortUrlCode(raw) || raw.toLowerCase() === 'v';
+    const base = needsEscape ? `/s/@${safeRef}/` : `/s/${safeRef}/`;
+    const zQuery = z === '0' || z === '1' ? `?z=${z}` : '';
+    return withBasePath(`${base}${zQuery}`);
 }
 
 

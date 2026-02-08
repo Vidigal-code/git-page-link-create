@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useTheme } from 'styled-components';
 import { useI18n } from '@/shared/lib/i18n';
-import { fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
+import { buildLinksRegisterReferencePath, fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
 import { withBasePath } from '@/shared/lib/basePath';
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
@@ -228,7 +228,7 @@ export default function LinksRegisterVPage() {
                                             const isRefCopied = copiedKey === `${key}-ref`;
                                             const refUrl = typeof window === 'undefined'
                                                 ? ''
-                                                : `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(m.ReferenceName)}/?z=1`)}`;
+                                                : `${window.location.origin}${buildLinksRegisterReferencePath(m.ReferenceName, '1')}`;
                                             return (
                                         <div
                                             key={key}

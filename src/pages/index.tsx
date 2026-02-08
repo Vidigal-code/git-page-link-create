@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
+import { buildLinksRegisterReferencePath } from '@/shared/lib/linksRegister';
 import { fetchLinksRegister, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
 
 const HomeContainer = styled.div`
@@ -403,7 +404,7 @@ export default function Home() {
                         <Button
                           onClick={() => {
                             if (typeof window === 'undefined') return;
-                            const refUrl = `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(e.ReferenceName)}/`)}`;
+                            const refUrl = `${window.location.origin}${buildLinksRegisterReferencePath(e.ReferenceName, '1')}`;
                             handleCopy(`${key}-ref`, refUrl);
                           }}
                           variant="secondary"
@@ -414,7 +415,7 @@ export default function Home() {
                         <Button
                           onClick={() => {
                             if (typeof window === 'undefined') return;
-                            const refUrl = `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(e.ReferenceName)}/`)}`;
+                            const refUrl = `${window.location.origin}${buildLinksRegisterReferencePath(e.ReferenceName, '1')}`;
                             window.open(refUrl, '_blank', 'noopener,noreferrer');
                           }}
                           variant="secondary"
