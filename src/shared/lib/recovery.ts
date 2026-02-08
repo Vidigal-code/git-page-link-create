@@ -13,6 +13,10 @@ type ParseRecoveryInputOptions = {
 };
 
 import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { decodeAudioDataUrl } from '@/shared/lib/audio';
+import { decodeImageDataUrl } from '@/shared/lib/image';
+import { decodePdfDataUrl } from '@/shared/lib/pdf';
+import { decodeVideoDataUrl } from '@/shared/lib/video';
 
 const SUPPORTED_PREFIX_TYPES = new Set([
     'html',
@@ -75,6 +79,44 @@ function extractDataParam(value: string, marker: '#data=' | '?data=' | '#d=' | '
     const hashIndex = extracted.indexOf('#');
     if (hashIndex !== -1) extracted = extracted.slice(0, hashIndex);
     return extracted;
+}
+
+function extractDataFromUrlOrSelf(value: string): string {
+    const cleaned = value.trim();
+    if (cleaned.includes('#d=')) return extractDataParam(cleaned, '#d=');
+    if (cleaned.includes('#data=')) return extractDataParam(cleaned, '#data=');
+    if (cleaned.includes('?d=')) return extractDataParam(cleaned, '?d=');
+    if (cleaned.includes('?data=')) return extractDataParam(cleaned, '?data=');
+    return cleaned;
+}
+
+function tryDecodeCompactBytesForAssumedType(payload: string, assumedType: string): Uint8Array | null {
+    const trimmed = payload.trim();
+    const candidate = trimmed.startsWith('b-')
+        ? trimmed
+        : /^[a-zA-Z0-9\-_]+$/.test(trimmed) && trimmed.length >= 8
+            ? `b-${trimmed}`
+            : '';
+
+    if (!candidate) return null;
+
+    try {
+        if (assumedType === 'pdf') {
+            return decodePdfDataUrl(candidate).bytes ?? null;
+        }
+        if (assumedType === 'image') {
+            return decodeImageDataUrl(candidate).bytes ?? null;
+        }
+        if (assumedType === 'video') {
+            return decodeVideoDataUrl(candidate).bytes ?? null;
+        }
+        if (assumedType === 'audio') {
+            return decodeAudioDataUrl(candidate).bytes ?? null;
+        }
+        return null;
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -185,6 +227,17 @@ export function parseRecoveryInput(input: string, options: ParseRecoveryInputOpt
 
     // Normalize assumedType if user provides 1-char code
     const assumedType = options.assumedType ? decodePlatformType(options.assumedType.trim()) : undefined;
+
+    // Support compact bytes payloads used by media renderers: `b-<base64url>`.
+    // Users may paste a full URL (`...#d=b-...`) or just the payload (`b-...`) or even the raw base64url part.
+    if (assumedType && ['pdf', 'image', 'video', 'audio'].includes(assumedType)) {
+        const extracted = extractDataFromUrlOrSelf(input);
+        const bytes = tryDecodeCompactBytesForAssumedType(extracted, assumedType);
+        if (bytes) {
+            return { type: assumedType, data: bytes, isCompressed: false };
+        }
+    }
+
     if (assumedType && looksLikeGzipBase64(input)) {
         return { type: assumedType, data: stripAllWhitespace(input.trim()), isCompressed: true };
     }
