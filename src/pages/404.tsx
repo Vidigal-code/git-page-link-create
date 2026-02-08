@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
+import { SHORTURL_REF_CODES } from '@/shared/lib/shorturl/refcodes';
 
 const Container = styled.div`
   display: flex;
@@ -37,6 +38,19 @@ const ButtonGroup = styled.div`
   justify-content: center;
   flex-wrap: wrap;
 `;
+
+const SHORTURL_CODE_SET = Object.freeze(
+  new Set(SHORTURL_REF_CODES.map((e) => (e.code || '').toLowerCase()))
+);
+
+function isLikelyShortUrlCode(slug: string): boolean {
+  const s = (slug || '').trim();
+  if (!s) return false;
+  if (/^AT[0-9A-Za-z]/i.test(s)) return true;
+  const m = /^([a-z0-9]{1,3})-/i.exec(s);
+  if (!m?.[1]) return false;
+  return SHORTURL_CODE_SET.has(m[1].toLowerCase());
+}
 
 function getRecoveryTargetFromWindowLocation(): string | null {
   if (typeof window === 'undefined') return null;
@@ -73,6 +87,12 @@ function getRecoveryTargetFromWindowLocation(): string | null {
   if (!slug) return null;
 
   if (isShortUrl || isShortUrlCompact) {
+    // `/s/<slug>` is the compact shorturl path, but we also want `/s/<ReferenceName>`
+    // for link register lookups. Decide based on token shape + known refcodes.
+    if (isShortUrlCompact && !isLikelyShortUrlCode(slug)) {
+      return withBasePath(`/s/v?ref=${encodeURIComponent(slug)}`);
+    }
+
     // Never put the code in the query string (can hit URI length limits on large payloads).
     // Keep `z` in query (small) and put the code in the hash (not sent to server).
     const zQuery = z === '1' || z === '0' ? `?z=${z}` : '';

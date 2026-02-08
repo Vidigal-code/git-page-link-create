@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -6,6 +6,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
+import { fetchLinksRegister, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
 
 const HomeContainer = styled.div`
   display: flex;
@@ -171,6 +172,35 @@ export default function Home() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
   const canonicalUrl = siteUrl ? `${siteUrl}${withBasePath('/')}` : '';
   const ogImage = 'https://raw.githubusercontent.com/Vidigal-code/git-page-link-create/b09cfd263b712ab97ab4dc8e5a779ecb8cbdbe25/public/icon-site/icon.svg';
+
+  const [linksRegisterTitle, setLinksRegisterTitle] = useState('');
+  const [linksRegisterEntries, setLinksRegisterEntries] = useState<LinksRegisterEntry[]>([]);
+  const [linksRegisterLoading, setLinksRegisterLoading] = useState(true);
+  const [linksRegisterError, setLinksRegisterError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    setLinksRegisterLoading(true);
+    setLinksRegisterError('');
+    fetchLinksRegister()
+      .then((data) => {
+        if (!alive) return;
+        setLinksRegisterTitle(data.title || '');
+        setLinksRegisterEntries(data.entries || []);
+      })
+      .catch((e) => {
+        if (!alive) return;
+        setLinksRegisterError(e instanceof Error ? e.message : t('home.linksRegisterError'));
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLinksRegisterLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [t]);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -292,6 +322,89 @@ export default function Home() {
                 <Button as="a" variant="secondary">{t('home.shortUrlCta')}</Button>
               </Link>
             </div>
+          </Card>
+        </Section>
+
+        <Section>
+          <Card>
+            <SectionTitle>{t('home.linksRegisterTitle')}</SectionTitle>
+            <p>{t('home.linksRegisterDescription')}</p>
+
+            {linksRegisterTitle && (
+              <p style={{ marginTop: 8, opacity: 0.75 }}>
+                <strong>{t('home.linksRegisterNameLabel')}:</strong> {linksRegisterTitle}
+              </p>
+            )}
+
+            {linksRegisterLoading ? (
+              <p style={{ opacity: 0.8 }}>{t('home.linksRegisterLoading')}</p>
+            ) : linksRegisterError ? (
+              <p style={{ opacity: 0.8 }}>{t('home.linksRegisterError')}</p>
+            ) : linksRegisterEntries.length === 0 ? (
+              <p style={{ opacity: 0.8 }}>{t('home.linksRegisterEmpty')}</p>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  maxHeight: 420,
+                  overflowY: 'auto',
+                  paddingRight: 6,
+                }}
+              >
+                {linksRegisterEntries.map((e, idx) => (
+                  <div
+                    key={`${e.ReferenceName}-${idx}`}
+                    style={{
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: 12,
+                      padding: 12,
+                      background: 'rgba(255,255,255,0.03)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                          {e.Name || e.ReferenceName}
+                        </div>
+                        <div style={{ opacity: 0.8, fontSize: 13 }}>
+                          <strong>{t('home.linksRegisterRefLabel')}:</strong> {e.ReferenceName}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => window.open(e.LinkOriginal, '_blank', 'noopener,noreferrer')}
+                        variant="secondary"
+                      >
+                        {t('home.linksRegisterOpen')}
+                      </Button>
+                    </div>
+
+                    <textarea
+                      readOnly
+                      value={e.LinkOriginal}
+                      rows={3}
+                      style={{
+                        marginTop: 10,
+                        width: '100%',
+                        padding: '10px',
+                        borderRadius: 8,
+                        background: 'rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        color: 'inherit',
+                        fontFamily: 'monospace',
+                        resize: 'vertical',
+                        maxHeight: 160,
+                        overflowY: 'auto',
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </Section>
 
