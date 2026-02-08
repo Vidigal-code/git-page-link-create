@@ -760,18 +760,28 @@ export default function Create() {
         if (contentType === 'txt') {
             const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
             return (
-                <pre style={{
-                    whiteSpace: 'pre-wrap',
-                    overflowWrap: 'anywhere',
-                    wordBreak: 'break-all',
-                    maxWidth: '100%',
-                    fontFamily: 'monospace',
-                    padding: '16px',
-                    background: 'rgba(255,255,255,0.05)',
-                    borderRadius: '8px',
-                }}>
-                    {strContent}
-                </pre>
+                <div
+                    style={{
+                        maxHeight: '70vh',
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        paddingRight: 8,
+                    }}
+                >
+                    <pre style={{
+                        margin: 0,
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                        maxWidth: '100%',
+                        fontFamily: 'monospace',
+                        padding: '16px',
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '8px',
+                    }}>
+                        {strContent}
+                    </pre>
+                </div>
             );
         }
 
