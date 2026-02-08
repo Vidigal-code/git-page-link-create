@@ -28,16 +28,6 @@ function isValidHttpUrl(value: string): boolean {
     }
 }
 
-function truncateMiddle(value: string, maxChars: number): string {
-    const s = value || '';
-    if (!s) return '';
-    if (maxChars <= 10) return s.slice(0, maxChars);
-    if (s.length <= maxChars) return s;
-    const keepStart = Math.ceil((maxChars - 3) * 0.6);
-    const keepEnd = Math.floor((maxChars - 3) * 0.4);
-    return `${s.slice(0, keepStart)}...${s.slice(s.length - keepEnd)}`;
-}
-
 export default function ShortUrlCreatePage() {
     const { t } = useI18n();
     const [longUrl, setLongUrl] = useState('');
@@ -263,10 +253,10 @@ export default function ShortUrlCreatePage() {
                                 </p>
                                 <textarea
                                     readOnly
-                                    value={truncateMiddle(shortLink, 180)}
+                                    value={shortLink}
                                     title={shortLink}
                                     aria-label={t('shorturlCreate.shortLinkLabel')}
-                                    rows={2}
+                                    rows={4}
                                     style={{
                                         width: '100%',
                                         padding: '12px',
@@ -275,9 +265,11 @@ export default function ShortUrlCreatePage() {
                                         border: '1px solid rgba(255,255,255,0.12)',
                                         color: 'inherit',
                                         fontFamily: 'monospace',
-                                        resize: 'none',
-                                        overflow: 'hidden',
+                                        resize: 'vertical',
+                                        maxHeight: 160,
+                                        overflowY: 'auto',
                                         whiteSpace: 'pre-wrap',
+                                        overflowWrap: 'anywhere',
                                         wordBreak: 'break-word',
                                     }}
                                 />
@@ -287,10 +279,10 @@ export default function ShortUrlCreatePage() {
                                 </p>
                                 <textarea
                                     readOnly
-                                    value={truncateMiddle(token, 140)}
+                                    value={token}
                                     title={token}
                                     aria-label={t('shorturlCreate.tokenLabel')}
-                                    rows={2}
+                                    rows={3}
                                     style={{
                                         width: '100%',
                                         padding: '12px',
@@ -299,9 +291,11 @@ export default function ShortUrlCreatePage() {
                                         border: '1px solid rgba(255,255,255,0.12)',
                                         color: 'inherit',
                                         fontFamily: 'monospace',
-                                        resize: 'none',
-                                        overflow: 'hidden',
+                                        resize: 'vertical',
+                                        maxHeight: 140,
+                                        overflowY: 'auto',
                                         whiteSpace: 'pre-wrap',
+                                        overflowWrap: 'anywhere',
                                         wordBreak: 'break-word',
                                     }}
                                 />
@@ -328,10 +322,10 @@ export default function ShortUrlCreatePage() {
                                         </p>
                                         <textarea
                                             readOnly
-                                            value={truncateMiddle(altShortLink, 180)}
+                                            value={altShortLink}
                                             title={altShortLink}
                                             aria-label={t('shorturlCreate.altTitle')}
-                                            rows={2}
+                                            rows={4}
                                             style={{
                                                 width: '100%',
                                                 padding: '12px',
@@ -340,9 +334,11 @@ export default function ShortUrlCreatePage() {
                                                 border: '1px solid rgba(255,255,255,0.12)',
                                                 color: 'inherit',
                                                 fontFamily: 'monospace',
-                                                resize: 'none',
-                                                overflow: 'hidden',
+                                                resize: 'vertical',
+                                                maxHeight: 160,
+                                                overflowY: 'auto',
                                                 whiteSpace: 'pre-wrap',
+                                                overflowWrap: 'anywhere',
                                                 wordBreak: 'break-word',
                                             }}
                                         />
