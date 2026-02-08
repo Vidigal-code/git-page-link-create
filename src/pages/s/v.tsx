@@ -1,32 +1,39 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useTheme } from 'styled-components';
 import { useI18n } from '@/shared/lib/i18n';
 import { fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
 import { withBasePath } from '@/shared/lib/basePath';
 import { Card } from '@/shared/ui/Card';
-import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
-import { Container, FormSection, ButtonGroup, ErrorMessage, SuccessMessage } from '@/shared/styles/pages/create.styles';
+import { Container, FormSection, ErrorMessage } from '@/shared/styles/pages/create.styles';
 
 function openUrl(url: string): void {
     if (typeof window === 'undefined') return;
     window.location.replace(url);
 }
 
+function parseQueryParamFromAsPath(asPath: string, key: string): string {
+    const safeKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const m = new RegExp(`[?&]${safeKey}=([^&#]+)`, 'i').exec(asPath);
+    if (!m?.[1]) return '';
+    try {
+        return decodeURIComponent(m[1]);
+    } catch {
+        return m[1];
+    }
+}
+
 export default function LinksRegisterVPage() {
     const { t } = useI18n();
     const router = useRouter();
-    const [ref, setRef] = useState('');
+    const theme = useTheme();
     const [title, setTitle] = useState<string>('');
     const [entries, setEntries] = useState<LinksRegisterEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [autoGoOnce, setAutoGoOnce] = useState(false);
-    const [isSilent, setIsSilent] = useState(false);
-    const [isRedirecting, setIsRedirecting] = useState(false);
     const [copiedKey, setCopiedKey] = useState<string>('');
 
     useEffect(() => {
@@ -52,7 +59,19 @@ export default function LinksRegisterVPage() {
         };
     }, []);
 
-    const matches = useMemo(() => findLinksByReference(entries, ref), [entries, ref]);
+    const asPath = router.asPath || '';
+    const refFromQuery = useMemo(() => {
+        const qRef = router.query.ref;
+        const fromQuery = typeof qRef === 'string' ? qRef : Array.isArray(qRef) ? qRef[0] : '';
+        return (fromQuery || parseQueryParamFromAsPath(asPath, 'ref') || '').trim();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.query.ref, asPath]);
+
+    // `/s/v` is reserved; when user accesses `/s/v/` directly, treat it as reference `v`
+    // (case-insensitive matching will find `V` too).
+    const requestedRef = (refFromQuery || 'v').trim();
+
+    const matches = useMemo(() => findLinksByReference(entries, requestedRef), [entries, requestedRef]);
 
     const handleCopy = async (key: string, text: string) => {
         try {
@@ -66,59 +85,12 @@ export default function LinksRegisterVPage() {
 
     useEffect(() => {
         if (!router.isReady) return;
-        const qRef = router.query.ref;
-        const qZ = router.query.z;
-        const refStr = typeof qRef === 'string' ? qRef : Array.isArray(qRef) ? qRef[0] : '';
-        const zStr = typeof qZ === 'string' ? qZ : Array.isArray(qZ) ? qZ[0] : '';
-
-        if (refStr && !ref.trim()) {
-            setRef(refStr);
-            setAutoGoOnce(true);
-        }
-        setIsSilent(zStr === '1');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router.isReady]);
-
-    const handleGo = () => {
-        setError('');
-        setSuccess('');
-        const m = matches;
-        if (!ref.trim()) {
-            setError(t('linksRegister.missingRef'));
-            return;
-        }
-        if (m.length === 0) {
-            setError(t('linksRegister.noMatch'));
-            return;
-        }
-        if (m.length === 1) {
-            if (isSilent) {
-                setIsRedirecting(true);
-            } else {
-                setSuccess(t('linksRegister.redirecting'));
-            }
-            openUrl(m[0]!.LinkOriginal);
-            return;
-        }
-        // duplicates: show list below
-        setSuccess(t('linksRegister.multipleFound'));
-    };
-
-    useEffect(() => {
-        if (!autoGoOnce) return;
         if (loading) return;
-        if (!ref.trim()) return;
-        setAutoGoOnce(false);
-        handleGo();
+        if (!requestedRef) return;
+        if (matches.length !== 1) return;
+        openUrl(matches[0]!.LinkOriginal);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoGoOnce, loading, ref]);
-
-    // Silent mode: render a blank page while redirecting (prevents UI flash).
-    if (isSilent && isRedirecting) {
-        return null;
-    }
-
-    const showDuplicatesOnly = Boolean(router.query.ref) && !loading && ref.trim() && matches.length > 1;
+    }, [router.isReady, loading, requestedRef, matches.length]);
 
     return (
         <>
@@ -129,42 +101,7 @@ export default function LinksRegisterVPage() {
 
             <Container>
                 <FormSection>
-                    {!showDuplicatesOnly && (
-                        <Card title={t('linksRegister.title')}>
-                            <p style={{ marginTop: 0, opacity: 0.85 }}>
-                                {t('linksRegister.description')}
-                            </p>
-
-                            {title && (
-                                <p style={{ marginTop: 8, opacity: 0.75 }}>
-                                    <strong>{t('linksRegister.registerName')}:</strong> {title}
-                                </p>
-                            )}
-
-                            <Input
-                                label={t('linksRegister.refLabel')}
-                                placeholder={t('linksRegister.refPlaceholder')}
-                                value={ref}
-                                onChange={(e) => setRef(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleGo();
-                                }}
-                            />
-
-                            <ButtonGroup>
-                                <Button
-                                    onClick={handleGo}
-                                    disabled={loading}
-                                    style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
-                                >
-                                    {loading ? t('linksRegister.loading') : t('linksRegister.go')}
-                                </Button>
-                            </ButtonGroup>
-
-                            {error && <ErrorMessage>{error}</ErrorMessage>}
-                            {success && <SuccessMessage>{success}</SuccessMessage>}
-                        </Card>
-                    )}
+                    {error && <ErrorMessage>{error}</ErrorMessage>}
 
                     {matches.length > 1 && (
                         <div style={{ marginTop: 18 }}>
@@ -174,8 +111,33 @@ export default function LinksRegisterVPage() {
                                 </p>
 
                                 <p style={{ marginTop: 8, opacity: 0.75 }}>
-                                    <strong>{t('linksRegister.refLabel')}:</strong> {ref}
+                                    <strong>{t('linksRegister.refLabel')}:</strong> {requestedRef}
                                 </p>
+
+                                <div
+                                    style={{
+                                        marginTop: 10,
+                                        border: `1px solid ${theme.colors.cardBorder}`,
+                                        borderRadius: 12,
+                                        padding: 12,
+                                        background: theme.colors.cardBackground,
+                                    }}
+                                >
+                                    <div style={{ fontWeight: 800 }}>
+                                        {t('linksRegister.duplicatesInfoTitle')}
+                                    </div>
+                                    <div style={{ marginTop: 6, opacity: 0.85 }}>
+                                        {t('linksRegister.duplicatesInfoRef')} <strong>{requestedRef}</strong>{' '}
+                                        <span style={{ opacity: 0.7 }}>•</span>{' '}
+                                        {t('linksRegister.duplicatesInfoCount')} <strong>{matches.length}</strong>
+                                    </div>
+                                    <div style={{ marginTop: 6, opacity: 0.75 }}>
+                                        {t('linksRegister.duplicatesInfoSource')}{' '}
+                                        <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace' }}>
+                                            LinksRegister.json
+                                        </span>
+                                    </div>
+                                </div>
 
                                 <div
                                     style={{
@@ -194,15 +156,15 @@ export default function LinksRegisterVPage() {
                                             const isRefCopied = copiedKey === `${key}-ref`;
                                             const refUrl = typeof window === 'undefined'
                                                 ? ''
-                                                : `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(m.ReferenceName)}/`)}`;
+                                                : `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(m.ReferenceName)}/?z=1`)}`;
                                             return (
                                         <div
                                             key={key}
                                             style={{
-                                                border: '1px solid rgba(255,255,255,0.12)',
+                                                border: `1px solid ${theme.colors.cardBorder}`,
                                                 borderRadius: 12,
                                                 padding: 12,
-                                                background: 'rgba(255,255,255,0.03)',
+                                                background: theme.colors.cardBackground,
                                             }}
                                         >
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
@@ -259,6 +221,17 @@ export default function LinksRegisterVPage() {
                                 </div>
                             </Card>
                         </div>
+                    )}
+
+                    {!loading && requestedRef && matches.length === 0 && (
+                        <Card title={t('linksRegister.title')}>
+                            {title && (
+                                <p style={{ marginTop: 0, opacity: 0.75 }}>
+                                    <strong>{t('linksRegister.registerName')}:</strong> {title}
+                                </p>
+                            )}
+                            <ErrorMessage>{t('linksRegister.noMatch')}</ErrorMessage>
+                        </Card>
                     )}
                 </FormSection>
             </Container>

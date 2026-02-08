@@ -325,7 +325,11 @@
         "redirecting": "Redirecting...",
         "multipleFound": "Multiple links found for this reference.",
         "duplicatesTitle": "Multiple matches",
-        "duplicatesDescription": "More than one link uses the same reference. Pick one:"
+        "duplicatesDescription": "More than one link uses the same reference. Pick one:",
+        "duplicatesInfoTitle": "Duplicated reference",
+        "duplicatesInfoRef": "Reference:",
+        "duplicatesInfoCount": "Matches:",
+        "duplicatesInfoSource": "Source:"
     },
     "renderAudio": {
         "title": "Listen to Audio",
