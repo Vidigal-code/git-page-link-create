@@ -6,9 +6,10 @@ import { useI18n } from '@/shared/lib/i18n';
 import { fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
 import { withBasePath } from '@/shared/lib/basePath';
 import { Card } from '@/shared/ui/Card';
+import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
-import { Container, FormSection, ErrorMessage } from '@/shared/styles/pages/create.styles';
+import { Container, FormSection, ButtonGroup, ErrorMessage } from '@/shared/styles/pages/create.styles';
 
 function openUrl(url: string): void {
     if (typeof window === 'undefined') return;
@@ -35,6 +36,9 @@ export default function LinksRegisterVPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [copiedKey, setCopiedKey] = useState<string>('');
+    const [refInput, setRefInput] = useState('');
+    const [autoRedirectDone, setAutoRedirectDone] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
         let alive = true;
@@ -67,10 +71,15 @@ export default function LinksRegisterVPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router.query.ref, asPath]);
 
-    // `/s/v` is reserved; when user accesses `/s/v/` directly, treat it as reference `v`
-    // (case-insensitive matching will find `V` too).
-    const requestedRef = (refFromQuery || 'v').trim();
+    useEffect(() => {
+        if (!router.isReady) return;
+        if (refFromQuery && !refInput.trim()) {
+            setRefInput(refFromQuery);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, refFromQuery]);
 
+    const requestedRef = refInput.trim();
     const matches = useMemo(() => findLinksByReference(entries, requestedRef), [entries, requestedRef]);
 
     const handleCopy = async (key: string, text: string) => {
@@ -86,11 +95,45 @@ export default function LinksRegisterVPage() {
     useEffect(() => {
         if (!router.isReady) return;
         if (loading) return;
+        if (!refFromQuery) return;
+        if (autoRedirectDone) return;
         if (!requestedRef) return;
-        if (matches.length !== 1) return;
+        if (matches.length !== 1) return; // duplicates: show list instead
+        setAutoRedirectDone(true);
+        setIsRedirecting(true);
         openUrl(matches[0]!.LinkOriginal);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router.isReady, loading, requestedRef, matches.length]);
+    }, [router.isReady, loading, requestedRef, matches.length, refFromQuery, autoRedirectDone]);
+
+    const go404 = () => {
+        const target = withBasePath('/404');
+        if (typeof window !== 'undefined') {
+            window.location.replace(target);
+        }
+    };
+
+    const handleGo = () => {
+        setError('');
+        const ref = refInput.trim();
+        if (!ref) {
+            setError(t('linksRegister.missingRef'));
+            return;
+        }
+        const m = findLinksByReference(entries, ref);
+        if (m.length === 0) {
+            go404();
+            return;
+        }
+        if (m.length === 1) {
+            setIsRedirecting(true);
+            openUrl(m[0]!.LinkOriginal);
+            return;
+        }
+        // duplicates: render list below
+    };
+
+    // While redirecting, render blank to avoid UI flash.
+    if (isRedirecting) return null;
 
     return (
         <>
@@ -102,6 +145,35 @@ export default function LinksRegisterVPage() {
             <Container>
                 <FormSection>
                     {error && <ErrorMessage>{error}</ErrorMessage>}
+
+                    <Card title={t('linksRegister.title')}>
+                        <p style={{ marginTop: 0, opacity: 0.85 }}>
+                            {t('linksRegister.description')}
+                        </p>
+                        {title && (
+                            <p style={{ marginTop: 8, opacity: 0.75 }}>
+                                <strong>{t('linksRegister.registerName')}:</strong> {title}
+                            </p>
+                        )}
+                        <Input
+                            label={t('linksRegister.refLabel')}
+                            placeholder={t('linksRegister.refPlaceholder')}
+                            value={refInput}
+                            onChange={(e) => setRefInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleGo();
+                            }}
+                        />
+                        <ButtonGroup>
+                            <Button
+                                onClick={handleGo}
+                                disabled={loading}
+                                style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
+                            >
+                                {loading ? t('linksRegister.loading') : t('linksRegister.go')}
+                            </Button>
+                        </ButtonGroup>
+                    </Card>
 
                     {matches.length > 1 && (
                         <div style={{ marginTop: 18 }}>
@@ -221,17 +293,6 @@ export default function LinksRegisterVPage() {
                                 </div>
                             </Card>
                         </div>
-                    )}
-
-                    {!loading && requestedRef && matches.length === 0 && (
-                        <Card title={t('linksRegister.title')}>
-                            {title && (
-                                <p style={{ marginTop: 0, opacity: 0.75 }}>
-                                    <strong>{t('linksRegister.registerName')}:</strong> {title}
-                                </p>
-                            )}
-                            <ErrorMessage>{t('linksRegister.noMatch')}</ErrorMessage>
-                        </Card>
                     )}
                 </FormSection>
             </Container>
