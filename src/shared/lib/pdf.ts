@@ -1,4 +1,3 @@
-import { uint8ArrayToBase64 } from '@/shared/lib/base64';
 import { decodeTypedBytesPayload, encodeTypedBytesPayload } from '@/shared/lib/shorturl/bytesPayload';
 
 export interface PdfDataPayload {
@@ -36,9 +35,10 @@ export function decodePdfDataUrl(encoded: string): PdfDataPayload {
         if (compact.typeId !== 1) {
             throw new Error('Invalid PDF data');
         }
-        // Rebuild dataUrl only for download compatibility
-        const base64 = uint8ArrayToBase64(compact.bytes);
-        return { dataUrl: `data:application/pdf;base64,${base64}`, bytes: compact.bytes };
+        // IMPORTANT: do NOT rebuild a huge base64 data URL here.
+        // It doubles memory usage and can cause PDF viewer failures on mobile.
+        // Use `bytes` to render/download instead.
+        return { dataUrl: '', bytes: compact.bytes };
     }
 
     const dataUrl = decodeURIComponent(encoded);

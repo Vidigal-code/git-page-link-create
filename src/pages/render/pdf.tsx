@@ -166,7 +166,7 @@ export default function RenderPdf() {
             <RenderContainer>
                 <Card title={t('renderPdf.title')}>
                     <ButtonGroup>
-                        <Button onClick={handleDownload} disabled={!pdfDataUrl}>
+                        <Button onClick={handleDownload} disabled={!pdfBytes && !pdfDataUrl}>
                             {t('renderPdf.download')}
                         </Button>
                     </ButtonGroup>

@@ -87,6 +87,7 @@ export default function Custom404() {
 
   const [recoveryTarget] = useState<string | null>(() => getRecoveryTargetFromWindowLocation());
   const isRecovering = Boolean(recoveryTarget);
+  const isSilent = typeof window !== 'undefined' && new URLSearchParams(window.location.search || '').get('z') === '1';
 
   useEffect(() => {
     if (!recoveryTarget || typeof window === 'undefined') return;
@@ -95,6 +96,8 @@ export default function Custom404() {
   }, [recoveryTarget]);
 
   if (isRecovering) {
+    // Silent mode: don't show any UI while we replace the URL.
+    if (isSilent) return null;
     return (
       <Container>
         <Head>

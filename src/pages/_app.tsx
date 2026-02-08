@@ -78,6 +78,12 @@ export default function App({ Component, pageProps }: AppProps) {
     })();
     const isShortUrlBlankRedirect = hasShortUrlCode && isShortUrlSilent;
 
+    // On GitHub Pages deep-links, the app may boot on `/404` first and immediately recover.
+    // If the shared link requests silent mode (`?z=1`), avoid flashing the Layout/header.
+    const isSilent404Recovery = router.pathname === '/404'
+        && /[?&]z=1\b/.test(router.asPath || '')
+        && /\/(?:s|shorturl|render|render-all|r|ra)\//.test(router.asPath || '');
+
     return (
         <I18nProvider>
             <ThemeProvider theme={theme}>
@@ -96,7 +102,7 @@ export default function App({ Component, pageProps }: AppProps) {
                     <meta name="twitter:image" content={ogImageUrl} />
                 </Head>
                 <GlobalStyle />
-                {isRenderAll || isRender || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect ? (
+                {isRenderAll || isRender || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect || isSilent404Recovery ? (
                     <Component {...pageProps} />
                 ) : (
                     <Layout
