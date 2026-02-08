@@ -5,6 +5,7 @@ import { fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } fro
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { Container, FormSection, ButtonGroup, ErrorMessage, SuccessMessage } from '@/shared/styles/pages/create.styles';
 
 function openUrl(url: string): void {
@@ -157,26 +158,11 @@ export default function LinksRegisterVPage() {
                                                 </Button>
                                             </div>
 
-                                            <textarea
+                                            <ReadOnlyTextarea
                                                 readOnly
                                                 value={m.LinkOriginal}
                                                 rows={3}
-                                                style={{
-                                                    marginTop: 10,
-                                                    width: '100%',
-                                                    padding: '10px',
-                                                    borderRadius: 8,
-                                                    background: 'rgba(0,0,0,0.15)',
-                                                    border: '1px solid rgba(255,255,255,0.12)',
-                                                    color: 'inherit',
-                                                    fontFamily: 'monospace',
-                                                    resize: 'vertical',
-                                                    maxHeight: 160,
-                                                    overflowY: 'auto',
-                                                    whiteSpace: 'pre-wrap',
-                                                    overflowWrap: 'anywhere',
-                                                    wordBreak: 'break-word',
-                                                }}
+                                                style={{ marginTop: 10 }}
                                             />
                                         </div>
                                     ))}

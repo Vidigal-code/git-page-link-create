@@ -4,6 +4,7 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
+import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
 import { fetchLinksRegister, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
@@ -177,6 +178,7 @@ export default function Home() {
   const [linksRegisterEntries, setLinksRegisterEntries] = useState<LinksRegisterEntry[]>([]);
   const [linksRegisterLoading, setLinksRegisterLoading] = useState(true);
   const [linksRegisterError, setLinksRegisterError] = useState('');
+  const [copiedKey, setCopiedKey] = useState<string>('');
 
   useEffect(() => {
     let alive = true;
@@ -200,6 +202,16 @@ export default function Home() {
       alive = false;
     };
   }, [t]);
+
+  const handleCopy = async (key: string, url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey(''), 1200);
+    } catch {
+      // ignore
+    }
+  };
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -354,8 +366,12 @@ export default function Home() {
                 }}
               >
                 {linksRegisterEntries.map((e, idx) => (
+                  (() => {
+                    const key = `${e.ReferenceName}-${idx}`;
+                    const isCopied = copiedKey === key;
+                    return (
                   <div
-                    key={`${e.ReferenceName}-${idx}`}
+                    key={key}
                     style={{
                       border: '1px solid rgba(255,255,255,0.12)',
                       borderRadius: 12,
@@ -372,36 +388,31 @@ export default function Home() {
                           <strong>{t('home.linksRegisterRefLabel')}:</strong> {e.ReferenceName}
                         </div>
                       </div>
-                      <Button
-                        onClick={() => window.open(e.LinkOriginal, '_blank', 'noopener,noreferrer')}
-                        variant="secondary"
-                      >
-                        {t('home.linksRegisterOpen')}
-                      </Button>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <Button
+                          onClick={() => handleCopy(key, e.LinkOriginal)}
+                          variant="secondary"
+                        >
+                          {isCopied ? t('create.linkCopied') : t('create.copyLink')}
+                        </Button>
+                        <Button
+                          onClick={() => window.open(e.LinkOriginal, '_blank', 'noopener,noreferrer')}
+                          variant="secondary"
+                        >
+                          {t('home.linksRegisterOpen')}
+                        </Button>
+                      </div>
                     </div>
 
-                    <textarea
+                    <ReadOnlyTextarea
                       readOnly
                       value={e.LinkOriginal}
                       rows={3}
-                      style={{
-                        marginTop: 10,
-                        width: '100%',
-                        padding: '10px',
-                        borderRadius: 8,
-                        background: 'rgba(0,0,0,0.15)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: 'inherit',
-                        fontFamily: 'monospace',
-                        resize: 'vertical',
-                        maxHeight: 160,
-                        overflowY: 'auto',
-                        whiteSpace: 'pre-wrap',
-                        overflowWrap: 'anywhere',
-                        wordBreak: 'break-word',
-                      }}
+                      style={{ marginTop: 10 }}
                     />
                   </div>
+                    );
+                  })()
                 ))}
               </div>
             )}
