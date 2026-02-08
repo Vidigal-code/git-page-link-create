@@ -55,7 +55,8 @@ export default function App({ Component, pageProps }: AppProps) {
     if (!theme) {
         return null; // Or a loading spinner
     }
-    const isRenderAll = router.pathname.startsWith('/render-all');
+    const isRenderAll = router.pathname.startsWith('/render-all') || router.pathname === '/ra';
+    const isRender = router.pathname.startsWith('/render') || router.pathname === '/r';
     const isPdfFullscreen = router.pathname === '/render/pdf' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isVideoFullscreen = router.pathname === '/render/video' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isAudioFullscreen = router.pathname === '/render/audio' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
@@ -95,7 +96,7 @@ export default function App({ Component, pageProps }: AppProps) {
                     <meta name="twitter:image" content={ogImageUrl} />
                 </Head>
                 <GlobalStyle />
-                {isRenderAll || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect ? (
+                {isRenderAll || isRender || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect ? (
                     <Component {...pageProps} />
                 ) : (
                     <Layout
