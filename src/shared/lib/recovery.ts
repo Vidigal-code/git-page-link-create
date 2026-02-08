@@ -2,6 +2,7 @@ export type RecoveryInfo = {
     type: string;
     data: string | Uint8Array;
     isCompressed: boolean;
+    mimeType?: string;
 };
 
 type ParseRecoveryInputOptions = {
@@ -105,7 +106,7 @@ function extractDataFromUrlOrSelf(value: string): string {
     return cleaned;
 }
 
-function tryDecodeCompactBytesForAssumedType(payload: string, assumedType: string): Uint8Array | null {
+function tryDecodeCompactBytesForAssumedType(payload: string, assumedType: string): { bytes: Uint8Array; mimeType: string } | null {
     const trimmed = payload.trim();
     const candidate = trimmed.startsWith('b-')
         ? trimmed
@@ -117,16 +118,20 @@ function tryDecodeCompactBytesForAssumedType(payload: string, assumedType: strin
 
     try {
         if (assumedType === 'pdf') {
-            return decodePdfDataUrl(candidate).bytes ?? null;
+            const decoded = decodePdfDataUrl(candidate);
+            return decoded.bytes ? { bytes: decoded.bytes, mimeType: 'application/pdf' } : null;
         }
         if (assumedType === 'image') {
-            return decodeImageDataUrl(candidate).bytes ?? null;
+            const decoded = decodeImageDataUrl(candidate);
+            return decoded.bytes ? { bytes: decoded.bytes, mimeType: decoded.mimeType || 'image/png' } : null;
         }
         if (assumedType === 'video') {
-            return decodeVideoDataUrl(candidate).bytes ?? null;
+            const decoded = decodeVideoDataUrl(candidate);
+            return decoded.bytes ? { bytes: decoded.bytes, mimeType: decoded.mimeType || 'video/mp4' } : null;
         }
         if (assumedType === 'audio') {
-            return decodeAudioDataUrl(candidate).bytes ?? null;
+            const decoded = decodeAudioDataUrl(candidate);
+            return decoded.bytes ? { bytes: decoded.bytes, mimeType: decoded.mimeType || 'audio/mpeg' } : null;
         }
         return null;
     } catch {
@@ -205,7 +210,7 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
                 for (let i = 0; i < binString.length; i++) {
                     bytes[i] = binString.charCodeAt(i);
                 }
-                return { type, data: bytes, isCompressed: false };
+                return { type, data: bytes, isCompressed: false, mimeType };
             } catch {
                 return null;
             }
@@ -249,9 +254,9 @@ export function parseRecoveryInput(input: string, options: ParseRecoveryInputOpt
     // Users may paste a full URL (`...#d=b-...`) or just the payload (`b-...`) or even the raw base64url part.
     if (assumedType && ['pdf', 'image', 'video', 'audio'].includes(assumedType)) {
         const extracted = extractDataFromUrlOrSelf(input);
-        const bytes = tryDecodeCompactBytesForAssumedType(extracted, assumedType);
-        if (bytes) {
-            return { type: assumedType, data: bytes, isCompressed: false };
+        const compact = tryDecodeCompactBytesForAssumedType(extracted, assumedType);
+        if (compact) {
+            return { type: assumedType, data: compact.bytes, isCompressed: false, mimeType: compact.mimeType };
         }
     }
 
@@ -272,7 +277,14 @@ export function parseRecoveryInput(input: string, options: ParseRecoveryInputOpt
             const isMarkdown = /(^|\n)\s*#{1,6}\s+\S/.test(text) || /\[[^\]]+\]\([^)]+\)/.test(text);
             const isCsv = /,/.test(text) && /\n/.test(text);
             const type = isHtml ? 'html' : isMarkdown ? 'md' : isCsv ? 'csv' : 'txt';
-            return { type, data: text, isCompressed: false };
+            const mimeType = type === 'html'
+                ? 'text/html'
+                : type === 'md'
+                    ? 'text/markdown'
+                    : type === 'csv'
+                        ? 'text/csv'
+                        : 'text/plain';
+            return { type, data: text, isCompressed: false, mimeType };
         } catch {
             // Not text. Try bytes and infer by magic headers.
         }
@@ -287,43 +299,43 @@ export function parseRecoveryInput(input: string, options: ParseRecoveryInputOpt
 
             // PDF: %PDF
             if (b0 === 0x25 && b1 === 0x50 && b2 === 0x44 && b3 === 0x46) {
-                return { type: 'pdf', data: bytes, isCompressed: false };
+                return { type: 'pdf', data: bytes, isCompressed: false, mimeType: 'application/pdf' };
             }
             // PNG
             if (b0 === 0x89 && b1 === 0x50 && b2 === 0x4E && b3 === 0x47) {
-                return { type: 'image', data: bytes, isCompressed: false };
+                return { type: 'image', data: bytes, isCompressed: false, mimeType: 'image/png' };
             }
             // JPEG
             if (b0 === 0xFF && b1 === 0xD8 && b2 === 0xFF) {
-                return { type: 'image', data: bytes, isCompressed: false };
+                return { type: 'image', data: bytes, isCompressed: false, mimeType: 'image/jpeg' };
             }
             // GIF
             if (b0 === 0x47 && b1 === 0x49 && b2 === 0x46) {
-                return { type: 'image', data: bytes, isCompressed: false };
+                return { type: 'image', data: bytes, isCompressed: false, mimeType: 'image/gif' };
             }
             // MP4 (ftyp at offset 4)
             if (b4 === 0x66 && (bytes[5] ?? 0) === 0x74 && (bytes[6] ?? 0) === 0x79 && (bytes[7] ?? 0) === 0x70) {
-                return { type: 'video', data: bytes, isCompressed: false };
+                return { type: 'video', data: bytes, isCompressed: false, mimeType: 'video/mp4' };
             }
             // WebM / Matroska (1A 45 DF A3)
             if (b0 === 0x1A && b1 === 0x45 && b2 === 0xDF && b3 === 0xA3) {
-                return { type: 'video', data: bytes, isCompressed: false };
+                return { type: 'video', data: bytes, isCompressed: false, mimeType: 'video/webm' };
             }
             // OGG (OggS)
             if (b0 === 0x4F && b1 === 0x67 && b2 === 0x67 && b3 === 0x53) {
-                return { type: 'audio', data: bytes, isCompressed: false };
+                return { type: 'audio', data: bytes, isCompressed: false, mimeType: 'audio/ogg' };
             }
             // WAV (RIFF....WAVE)
             if (b0 === 0x52 && b1 === 0x49 && b2 === 0x46 && b3 === 0x46) {
-                return { type: 'audio', data: bytes, isCompressed: false };
+                return { type: 'audio', data: bytes, isCompressed: false, mimeType: 'audio/wav' };
             }
             // ZIP-based Office formats (PK..)
             if (b0 === 0x50 && b1 === 0x4B) {
                 // Can't reliably differentiate xlsx/docx/pptx without reading zip entries here.
-                return { type: 'xlsx', data: bytes, isCompressed: false };
+                return { type: 'xlsx', data: bytes, isCompressed: false, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' };
             }
 
-            return { type: 'txt', data: bytes, isCompressed: false };
+            return { type: 'txt', data: bytes, isCompressed: false, mimeType: 'application/octet-stream' };
         } catch {
             // fallthrough
         }

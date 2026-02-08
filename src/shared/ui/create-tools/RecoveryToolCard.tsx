@@ -17,10 +17,8 @@ interface RecoveryToolCardProps {
     isRecovered: boolean;
     onDownload: () => void;
     onView: () => void;
-    onCreateNew: () => void;
     downloadLabel: string;
     viewLabel: string;
-    createNewLabel: string;
     recoveryHelp?: string;
 }
 
@@ -36,10 +34,8 @@ export function RecoveryToolCard({
     isRecovered,
     onDownload,
     onView,
-    onCreateNew,
     downloadLabel,
     viewLabel,
-    createNewLabel,
     recoveryHelp,
 }: RecoveryToolCardProps) {
 
@@ -85,9 +81,6 @@ export function RecoveryToolCard({
                         </Button>
                         <Button onClick={onDownload} variant="secondary">
                             {downloadLabel}
-                        </Button>
-                        <Button onClick={onCreateNew}>
-                            {createNewLabel}
                         </Button>
                     </ButtonGroup>
                 </div>

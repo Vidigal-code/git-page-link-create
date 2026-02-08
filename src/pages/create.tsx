@@ -90,6 +90,8 @@ export default function Create() {
 
     const [recoveryHash, setRecoveryHash] = useState('');
     const [isRecovered, setIsRecovered] = useState(false);
+    const [recoveredMimeType, setRecoveredMimeType] = useState<string>('');
+    const [recoveredObjectUrl, setRecoveredObjectUrl] = useState<string>('');
     const [qrInput, setQrInput] = useState('');
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [qrIsProcessing, setQrIsProcessing] = useState(false);
@@ -176,6 +178,48 @@ export default function Create() {
     const uint8ArrayToDataUrl = (bytes: Uint8Array, mimeType: string) => (
         `data:${mimeType};base64,${uint8ArrayToBase64(bytes)}`
     );
+
+    const getExtensionFromMimeType = (mimeType: string): string => {
+        const m = (mimeType || '').toLowerCase().trim();
+        if (!m) return '';
+        if (m === 'application/pdf') return '.pdf';
+        if (m === 'image/jpeg') return '.jpg';
+        if (m === 'image/jpg') return '.jpg';
+        if (m === 'image/png') return '.png';
+        if (m === 'image/gif') return '.gif';
+        if (m === 'image/webp') return '.webp';
+        if (m === 'image/svg+xml') return '.svg';
+        if (m === 'video/webm') return '.webm';
+        if (m === 'video/mp4') return '.mp4';
+        if (m === 'audio/ogg') return '.ogg';
+        if (m === 'audio/wav') return '.wav';
+        if (m === 'audio/mpeg') return '.mp3';
+        if (m === 'text/html') return '.html';
+        if (m === 'text/markdown') return '.md';
+        if (m === 'text/csv') return '.csv';
+        if (m === 'text/plain') return '.txt';
+        return '';
+    };
+
+    useEffect(() => {
+        if (!recoveredObjectUrl || typeof window === 'undefined') return;
+        return () => {
+            try {
+                URL.revokeObjectURL(recoveredObjectUrl);
+            } catch {
+                // ignore
+            }
+        };
+    }, [recoveredObjectUrl]);
+
+    const tryExtractEmbeddedDataUrlFromHtml = (html: string): string => {
+        const s = (html || '').trim();
+        if (!s) return '';
+        // Look for data URLs in common media tags
+        const m = /\bsrc\s*=\s*["'](data:[^"']+)["']/i.exec(s)
+            ?? /\bhref\s*=\s*["'](data:[^"']+)["']/i.exec(s);
+        return m?.[1] || '';
+    };
 
     const isLikelyHtml = (value: string) => /<\s*(!doctype|html|head|body)\b/i.test(value);
 
@@ -559,6 +603,8 @@ export default function Create() {
 
             const type = parsed.type as ContentType;
             const data = parsed.data;
+            setRecoveredMimeType(parsed.mimeType || '');
+            setRecoveredObjectUrl('');
 
             // Allow all supported types for recovery
             const supportedTypes: ContentType[] = ['html', 'md', 'csv', 'xlsx', 'xls', 'docx', 'pptx', 'txt', 'pdf', 'image', 'video', 'audio'];
@@ -583,77 +629,43 @@ export default function Create() {
                 recoveredData = data;
             }
 
-            setContentType(type);
-            setContent(recoveredData);
+            // If a render-all link was recovered, it may be an HTML wrapper around a media data URL.
+            // Upgrade to the underlying media type (so View/Download work correctly).
+            let finalType: ContentType = type;
+            let finalData: string | Uint8Array = recoveredData;
+            let finalMimeType = parsed.mimeType || (typeof recoveredData === 'string' ? getMimeType(type) : '');
+
+            if (type === 'html' && typeof recoveredData === 'string') {
+                const embedded = tryExtractEmbeddedDataUrlFromHtml(recoveredData);
+                if (embedded) {
+                    const embeddedParsed = parseRecoveryInput(embedded);
+                    if (embeddedParsed && embeddedParsed.data instanceof Uint8Array) {
+                        const t2 = embeddedParsed.type as ContentType;
+                        if (t2 === 'pdf' || t2 === 'image' || t2 === 'video' || t2 === 'audio') {
+                            finalType = t2;
+                            finalData = embeddedParsed.data;
+                            finalMimeType = embeddedParsed.mimeType || getMimeType(t2);
+                        }
+                    }
+                }
+            }
+
+            // For binary content, always keep bytes (never keep a giant data URL string) to avoid corruption.
+            if ((finalType === 'pdf' || finalType === 'image' || finalType === 'video' || finalType === 'audio') && typeof finalData === 'string') {
+                const maybe = parseRecoveryInput(finalData);
+                if (maybe?.data instanceof Uint8Array) {
+                    finalData = maybe.data;
+                    finalMimeType = maybe.mimeType || finalMimeType;
+                }
+            }
+
+            setRecoveredMimeType(finalMimeType || '');
+            setContentType(finalType);
+            setContent(finalData);
             setIsRecovered(true);
             setSuccessMessage(t('create.recoverySuccess'));
             setGeneratedLink('');
             setError('');
-
-            // Auto-open the recovered content in the correct tool/viewer (no type dropdown needed).
-            const mimeType = getMimeType(type);
-            const toDataUrl = (bytes: Uint8Array, mime: string) => (
-                `data:${mime};base64,${uint8ArrayToBase64(bytes)}`
-            );
-
-            const goToTool = (tool: ToolType) => {
-                setSelectedTool(tool);
-                if (tool === 'create') setShowPreview(true);
-            };
-
-            if (type === 'pdf') {
-                if (recoveredData instanceof Uint8Array) {
-                    setPdfDataUrl(toDataUrl(recoveredData, mimeType));
-                } else {
-                    setPdfDataUrl(recoveredData);
-                }
-                goToTool('pdf');
-                return;
-            }
-
-            if (type === 'image') {
-                if (recoveredData instanceof Uint8Array) {
-                    setImageDataUrl(toDataUrl(recoveredData, mimeType));
-                } else {
-                    setImageDataUrl(recoveredData);
-                }
-                goToTool('image');
-                return;
-            }
-
-            if (type === 'video') {
-                if (recoveredData instanceof Uint8Array) {
-                    setVideoDataUrl(toDataUrl(recoveredData, mimeType));
-                } else {
-                    setVideoDataUrl(recoveredData);
-                }
-                goToTool('video');
-                return;
-            }
-
-            if (type === 'audio') {
-                if (recoveredData instanceof Uint8Array) {
-                    setAudioDataUrl(toDataUrl(recoveredData, mimeType));
-                } else {
-                    setAudioDataUrl(recoveredData);
-                }
-                goToTool('audio');
-                return;
-            }
-
-            if (type === 'docx' || type === 'pptx' || type === 'doc' || type === 'ppt' || type === 'xlsx' || type === 'xls') {
-                // Keep office viewer experience consistent
-                const dataUrl = recoveredData instanceof Uint8Array
-                    ? toDataUrl(recoveredData, mimeType)
-                    : recoveredData;
-                setOfficeCode(dataUrl);
-                setOfficeFile(new File([], `recovered_file.${type}`, { type: mimeType }));
-                goToTool('office');
-                return;
-            }
-
-            // Default: show in Create preview (html/md/csv/txt/etc.)
-            goToTool('create');
         } catch (error) {
             //console.error('Recovery error:', error);
             setIsRecovered(false);
@@ -663,8 +675,10 @@ export default function Create() {
 
     const handleDownloadRecovered = () => {
         if (!content) return;
-        const filename = `recovered${getFileExtension(contentType)}`;
-        const mimeType = getMimeType(contentType);
+        const isBytes = content instanceof Uint8Array;
+        const mimeType = (isBytes ? recoveredMimeType : '') || getMimeType(contentType);
+        const extFromMime = isBytes ? getExtensionFromMimeType(mimeType) : '';
+        const filename = `recovered${extFromMime || getFileExtension(contentType)}`;
         downloadFile(content, filename, mimeType);
     };
 
@@ -686,30 +700,56 @@ export default function Create() {
 
             // Sync recovered data to specialized tool states
             if (content) {
-                const mimeType = getMimeType(contentType);
-                let dataUrl = '';
+                const mimeType = (content instanceof Uint8Array ? recoveredMimeType : '') || getMimeType(contentType);
+                let viewUrl = '';
                 if (content instanceof Uint8Array) {
-                    dataUrl = uint8ArrayToDataUrl(content, mimeType);
+                    // Prefer blob URLs for large binaries (safer than huge data: URIs)
+                    try {
+                        if (recoveredObjectUrl) {
+                            URL.revokeObjectURL(recoveredObjectUrl);
+                        }
+                    } catch {
+                        // ignore
+                    }
+                    try {
+                        // Preserve exact byte range and avoid ArrayBufferLike typing issues
+                        const exactBytes = (content.byteOffset === 0 && content.byteLength === content.buffer.byteLength)
+                            ? content
+                            : content.slice();
+                        const copied = new Uint8Array(exactBytes.byteLength);
+                        copied.set(exactBytes);
+                        const blob = new Blob([copied.buffer as ArrayBuffer], { type: mimeType || 'application/octet-stream' });
+                        viewUrl = URL.createObjectURL(blob);
+                        setRecoveredObjectUrl(viewUrl);
+                    } catch {
+                        viewUrl = uint8ArrayToDataUrl(content, mimeType);
+                    }
                 } else {
-                    dataUrl = content;
+                    viewUrl = content;
                 }
 
                 switch (specializedTools[contentType]) {
                     case 'office':
-                        setOfficeCode(dataUrl);
+                        // Office viewer works best with data URLs
+                        if (content instanceof Uint8Array) {
+                            const dataUrl = uint8ArrayToDataUrl(content, mimeType);
+                            setOfficeCode(dataUrl);
+                        } else {
+                            setOfficeCode(viewUrl);
+                        }
                         setOfficeFile(new File([], `recovered_file.${contentType}`, { type: mimeType }));
                         break;
                     case 'pdf':
-                        setPdfDataUrl(dataUrl);
+                        setPdfDataUrl(viewUrl);
                         break;
                     case 'image':
-                        setImageDataUrl(dataUrl);
+                        setImageDataUrl(viewUrl);
                         break;
                     case 'video':
-                        setVideoDataUrl(dataUrl);
+                        setVideoDataUrl(viewUrl);
                         break;
                     case 'audio':
-                        setAudioDataUrl(dataUrl);
+                        setAudioDataUrl(viewUrl);
                         break;
                 }
             }
@@ -717,52 +757,6 @@ export default function Create() {
             setSelectedTool('create');
             setShowPreview(true);
         }
-    };
-
-    const handleGoToCreate = () => {
-        const specializedTools: Partial<Record<ContentType, ToolType>> = {
-            'pdf': 'pdf',
-            'image': 'image',
-            'video': 'video',
-            'audio': 'audio',
-            'docx': 'office',
-            'pptx': 'office',
-            'doc': 'office',
-            'xls': 'office',
-            'xlsx': 'office',
-        };
-
-        if (specializedTools[contentType]) {
-            setSelectedTool(specializedTools[contentType] as ToolType);
-
-            // Sync recovered data to specialized tool states
-            if (content) {
-                const mimeType = getMimeType(contentType);
-                const dataUrl = content instanceof Uint8Array ? uint8ArrayToDataUrl(content, mimeType) : content;
-
-                switch (specializedTools[contentType]) {
-                    case 'office':
-                        setOfficeCode(dataUrl);
-                        setOfficeFile(new File([], `recovered_file.${contentType}`, { type: mimeType }));
-                        break;
-                    case 'pdf':
-                        setPdfDataUrl(dataUrl);
-                        break;
-                    case 'image':
-                        setImageDataUrl(dataUrl);
-                        break;
-                    case 'video':
-                        setVideoDataUrl(dataUrl);
-                        break;
-                    case 'audio':
-                        setAudioDataUrl(dataUrl);
-                        break;
-                }
-            }
-        } else {
-            setSelectedTool('create');
-        }
-        setIsRecovered(false);
     };
 
     const processImageFile = async (file: File, shouldCompress: boolean) => {
@@ -1494,10 +1488,8 @@ export default function Create() {
                         isRecovered={isRecovered}
                         onDownload={handleDownloadRecovered}
                         onView={handleViewRecovered}
-                        onCreateNew={handleGoToCreate}
                         downloadLabel={t('create.downloadFile')}
                         viewLabel={t('create.viewFile')}
-                        createNewLabel={t('create.createNew')}
                         recoveryHelp={t('create.recoveryHelp')}
                     />
                 );
