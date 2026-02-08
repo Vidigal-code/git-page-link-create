@@ -63,6 +63,10 @@ export const Header: React.FC<HeaderProps> = ({
                         {t('create.navTitle')}
                     </StyledNavLink>
 
+                    <StyledNavLink href="/shorturl-create">
+                        {t('shorturlCreate.navTitle')}
+                    </StyledNavLink>
+
                     <Select
                         value={locale}
                         onChange={(e) => setLocale(e.target.value as Locale)}
@@ -116,6 +120,9 @@ export const Header: React.FC<HeaderProps> = ({
                     </MobileNavLink>
                     <MobileNavLink href="/create" onClick={closeMobileMenu}>
                         {t('create.navTitle')}
+                    </MobileNavLink>
+                    <MobileNavLink href="/shorturl-create" onClick={closeMobileMenu}>
+                        {t('shorturlCreate.navTitle')}
                     </MobileNavLink>
                 </MobileNav>
 

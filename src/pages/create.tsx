@@ -12,6 +12,7 @@ import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } 
 import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import { parseRecoveryInput } from '@/shared/lib/recovery';
 import { uint8ArrayToBase64 } from '@/shared/lib/base64';
+import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import {
     getMaxAudioUrlLength,
     getMaxCsvUrlLength,
@@ -364,8 +365,9 @@ export default function Create() {
         if (typeof window === 'undefined') return '';
 
         const baseUrl = window.location.origin;
-        const fullPath = withBasePath(fullScreen ? 'render-all' : 'render');
-        return `${baseUrl}${fullPath}#data=${type}-${compressed}`;
+        // Shortest aliases + trailingSlash-safe path
+        const fullPath = withBasePath(fullScreen ? '/ra/' : '/r/');
+        return `${baseUrl}${fullPath}#d=${encodePlatformType(type)}-${compressed}`;
     };
 
     const handleGenerateLink = async () => {
@@ -407,7 +409,7 @@ export default function Create() {
         if (typeof window === 'undefined') return;
 
         const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`render?source=${encodeURIComponent(contentSourceUrl)}&type=${contentType}`);
+        const fullPath = withBasePath(`/r/?source=${encodeURIComponent(contentSourceUrl)}&type=${contentType}`);
         const link = `${baseUrl}${fullPath}`;
         const maxLimit = getMaxUrlLength();
 
@@ -761,7 +763,7 @@ export default function Create() {
         const encoded = encodeImageDataUrl(imageDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/image');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxImageUrlLength()) {
             setImageError(t('create.urlTooLong'));
@@ -779,7 +781,7 @@ export default function Create() {
         const compressed = compress(html);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render-all');
-        const link = `${baseUrl}${fullPath}#data=html-${compressed}`;
+        const link = `${baseUrl}${fullPath}#d=${encodePlatformType('html')}-${compressed}`;
 
         if (link.length > getMaxUrlLength()) {
             setImageError(t('create.urlTooLong'));
@@ -841,7 +843,7 @@ export default function Create() {
         const encoded = encodePdfDataUrl(pdfDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/pdf');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxPdfUrlLength()) {
             setPdfError(t('create.urlTooLong'));
@@ -858,7 +860,7 @@ export default function Create() {
         const encoded = encodePdfDataUrl(pdfDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/pdf?fullscreen=1');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxPdfUrlLength()) {
             setPdfError(t('create.urlTooLong'));
@@ -938,7 +940,7 @@ export default function Create() {
         const encoded = encodeVideoDataUrl(videoDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/video');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxVideoUrlLength()) {
             setVideoError(t('create.urlTooLong'));
@@ -955,7 +957,7 @@ export default function Create() {
         const encoded = encodeVideoDataUrl(videoDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/video?fullscreen=1');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxVideoUrlLength()) {
             setVideoError(t('create.urlTooLong'));
@@ -1052,7 +1054,7 @@ export default function Create() {
         const encoded = encodeAudioDataUrl(audioDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/audio');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxAudioUrlLength()) {
             setAudioError(t('create.urlTooLong'));
@@ -1069,7 +1071,7 @@ export default function Create() {
         const encoded = encodeAudioDataUrl(audioDataUrl);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/audio?fullscreen=1');
-        const link = `${baseUrl}${fullPath}#data=${encoded}`;
+        const link = `${baseUrl}${fullPath}#d=${encoded}`;
 
         if (link.length > getMaxAudioUrlLength()) {
             setAudioError(t('create.urlTooLong'));
@@ -1155,7 +1157,7 @@ export default function Create() {
                 if (typeof window === 'undefined') return;
                 const baseUrl = window.location.origin;
                 const fullPath = withBasePath('render/office');
-                const link = `${baseUrl}${fullPath}#data=${type}-${compressed}`;
+                const link = `${baseUrl}${fullPath}#d=${encodePlatformType(type)}-${compressed}`;
 
                 if (link.length > getMaxOfficeUrlLength()) {
                     setOfficeError(t('create.urlTooLong'));
@@ -1212,7 +1214,7 @@ export default function Create() {
                 if (typeof window === 'undefined') return;
                 const baseUrl = window.location.origin;
                 const fullPath = withBasePath('render/office?fullscreen=1');
-                const link = `${baseUrl}${fullPath}#data=${type}-${compressed}`;
+                const link = `${baseUrl}${fullPath}#d=${encodePlatformType(type)}-${compressed}`;
 
                 if (link.length > getMaxOfficeUrlLength()) {
                     setOfficeError(t('create.urlTooLong'));
@@ -1354,7 +1356,7 @@ export default function Create() {
         if (!qrDataUrl || typeof window === 'undefined') return;
         const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
         const compressed = compress(html);
-        const fullPath = withBasePath(`render?data=html-${compressed}`);
+        const fullPath = withBasePath(`r/?d=${encodePlatformType('html')}-${compressed}`);
         const baseUrl = window.location.origin;
         setQrRenderLink(`${baseUrl}${fullPath}`);
     };
@@ -1364,7 +1366,7 @@ export default function Create() {
         const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>QR Code</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${qrDataUrl}" alt="QR code" /></body></html>`;
         const compressed = compress(html);
         const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`render-all?data=html-${compressed}`);
+        const fullPath = withBasePath(`ra/?d=${encodePlatformType('html')}-${compressed}`);
         setQrRenderAllLink(`${baseUrl}${fullPath}`);
     };
 

@@ -1,7 +1,11 @@
+import { uint8ArrayToBase64 } from '@/shared/lib/base64';
+import { decodeTypedBytesPayload, encodeTypedBytesPayload } from '@/shared/lib/shorturl/bytesPayload';
+
 export interface AudioDataPayload {
     dataUrl: string;
     mimeType: string;
     extension: string;
+    bytes?: Uint8Array;
 }
 
 export interface AudioCompressionOptions {
@@ -12,10 +16,52 @@ export interface AudioCompressionOptions {
 }
 
 export function encodeAudioDataUrl(dataUrl: string): string {
-    return encodeURIComponent(dataUrl);
+    const match = /^data:(audio\/[a-zA-Z0-9.+-]+);base64,(.*)$/.exec(dataUrl);
+    if (!match) return encodeURIComponent(dataUrl);
+    const mimeType = match[1];
+    const base64 = match[2] || '';
+    if (!base64) return encodeURIComponent(dataUrl);
+
+    const typeIdByMime: Record<string, number> = {
+        'audio/mpeg': 1,
+        'audio/mp3': 2,
+        'audio/wav': 3,
+        'audio/ogg': 4,
+        'audio/webm': 5,
+        'audio/aac': 6,
+    };
+    const typeId = typeIdByMime[mimeType] ?? 0;
+
+    try {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return encodeTypedBytesPayload(typeId, bytes);
+    } catch {
+        return encodeURIComponent(dataUrl);
+    }
 }
 
 export function decodeAudioDataUrl(encoded: string): AudioDataPayload {
+    const compact = decodeTypedBytesPayload(encoded);
+    if (compact) {
+        const mimeByTypeId: Record<number, string> = {
+            1: 'audio/mpeg',
+            2: 'audio/mp3',
+            3: 'audio/wav',
+            4: 'audio/ogg',
+            5: 'audio/webm',
+            6: 'audio/aac',
+        };
+        const mimeType = mimeByTypeId[compact.typeId] || 'audio/mpeg';
+        const extension = mimeType.split('/')[1] ?? 'mp3';
+        const base64 = uint8ArrayToBase64(compact.bytes);
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+        return { dataUrl, mimeType, extension, bytes: compact.bytes };
+    }
+
     const dataUrl = decodeURIComponent(encoded);
     const match = /^data:(audio\/[a-zA-Z0-9.+-]+);base64,/.exec(dataUrl);
 

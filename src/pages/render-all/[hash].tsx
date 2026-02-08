@@ -8,6 +8,7 @@ import { useI18n } from '@/shared/lib/i18n';
 import { decompress, decompressBytes } from '@/shared/lib/compression';
 import Link from 'next/link';
 import { Button } from '@/shared/ui/Button';
+import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import {
     PageWrapper,
     StyledCard,
@@ -24,7 +25,7 @@ import {
 
 export default function RenderAll() {
     const router = useRouter();
-    const { hash, data } = router.query;
+    const { hash, data, d } = router.query;
     const { t } = useI18n();
 
     const [content, setContent] = useState<string | Uint8Array>('');
@@ -52,12 +53,16 @@ export default function RenderAll() {
         if (typeof window === 'undefined') return;
 
         const hashValue = window.location.hash || '';
-        const hashData = hashValue.startsWith('#data=') ? hashValue.slice('#data='.length) : '';
+        const hashData = hashValue.startsWith('#data=') ? hashValue.slice('#data='.length)
+            : hashValue.startsWith('#d=') ? hashValue.slice('#d='.length)
+                : '';
         const resolvedHash = typeof hash === 'string'
             ? hash
-            : typeof data === 'string'
-                ? data
-                : hashData;
+            : typeof d === 'string'
+                ? d
+                : typeof data === 'string'
+                    ? data
+                    : hashData;
 
         if (!resolvedHash) {
             setError(true);
@@ -74,7 +79,8 @@ export default function RenderAll() {
         }
 
         try {
-            const type = resolvedHash.substring(0, separatorIndex);
+            const rawType = resolvedHash.substring(0, separatorIndex);
+            const type = decodePlatformType(rawType);
             const compressedContent = resolvedHash.substring(separatorIndex + 1);
 
             // Redirect to specialized renderers if applicable

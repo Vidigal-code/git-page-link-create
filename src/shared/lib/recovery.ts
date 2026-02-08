@@ -12,6 +12,8 @@ type ParseRecoveryInputOptions = {
     assumedType?: string;
 };
 
+import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+
 const SUPPORTED_PREFIX_TYPES = new Set([
     'html',
     'md',
@@ -28,6 +30,22 @@ const SUPPORTED_PREFIX_TYPES = new Set([
     'video',
     'audio',
     'chat',
+    // 1-char type codes (shortest links)
+    'h',
+    'm',
+    'c',
+    't',
+    'x',
+    'l',
+    'd',
+    'p',
+    'D',
+    'P',
+    'f',
+    'i',
+    'v',
+    'a',
+    'k',
 ]);
 
 function stripAllWhitespace(value: string): string {
@@ -47,7 +65,7 @@ function looksLikeGzipBase64(value: string): boolean {
     return v.length >= 16;
 }
 
-function extractDataParam(value: string, marker: '#data=' | '?data='): string {
+function extractDataParam(value: string, marker: '#data=' | '?data=' | '#d=' | '?d='): string {
     const idx = value.indexOf(marker);
     if (idx === -1) return value;
     let extracted = value.slice(idx + marker.length);
@@ -67,8 +85,12 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
     let cleaned = hash.trim();
 
     // Support full URLs (fragment or query param)
-    if (cleaned.includes('#data=')) {
+    if (cleaned.includes('#d=')) {
+        cleaned = extractDataParam(cleaned, '#d=');
+    } else if (cleaned.includes('#data=')) {
         cleaned = extractDataParam(cleaned, '#data=');
+    } else if (cleaned.includes('?d=')) {
+        cleaned = extractDataParam(cleaned, '?d=');
     } else if (cleaned.includes('?data=')) {
         cleaned = extractDataParam(cleaned, '?data=');
     }
@@ -136,10 +158,12 @@ export function parseRecoveryHash(hash: string): RecoveryInfo | null {
     // Case 2: Prefix-compressed format (type-compressedData)
     const separatorIndex = decodedValue.indexOf('-');
     if (separatorIndex !== -1) {
-        const type = decodedValue.substring(0, separatorIndex).trim();
+        let type = decodedValue.substring(0, separatorIndex).trim();
         const compressedData = stripAllWhitespace(decodedValue.substring(separatorIndex + 1));
 
         if (type && isSupportedPrefixType(type)) {
+            // Normalize 1-char codes -> full type strings
+            type = decodePlatformType(type);
             // Allow empty compressedData for raw rendering support
             return { type, data: compressedData || '', isCompressed: true };
         }
@@ -159,7 +183,8 @@ export function parseRecoveryInput(input: string, options: ParseRecoveryInputOpt
     const parsed = parseRecoveryHash(input);
     if (parsed) return parsed;
 
-    const assumedType = options.assumedType?.trim();
+    // Normalize assumedType if user provides 1-char code
+    const assumedType = options.assumedType ? decodePlatformType(options.assumedType.trim()) : undefined;
     if (assumedType && looksLikeGzipBase64(input)) {
         return { type: assumedType, data: stripAllWhitespace(input.trim()), isCompressed: true };
     }

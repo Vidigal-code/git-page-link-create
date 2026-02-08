@@ -1,14 +1,56 @@
+import { uint8ArrayToBase64 } from '@/shared/lib/base64';
+import { decodeTypedBytesPayload, encodeTypedBytesPayload } from '@/shared/lib/shorturl/bytesPayload';
+
 export interface VideoDataPayload {
     dataUrl: string;
     mimeType: string;
     extension: string;
+    bytes?: Uint8Array;
 }
 
 export function encodeVideoDataUrl(dataUrl: string): string {
-    return encodeURIComponent(dataUrl);
+    const match = /^data:(video\/[a-zA-Z0-9.+-]+);base64,(.*)$/.exec(dataUrl);
+    if (!match) return encodeURIComponent(dataUrl);
+    const mimeType = match[1];
+    const base64 = match[2] || '';
+    if (!base64) return encodeURIComponent(dataUrl);
+
+    const typeIdByMime: Record<string, number> = {
+        'video/mp4': 1,
+        'video/webm': 2,
+        'video/ogg': 3,
+        'video/x-matroska': 4,
+    };
+    const typeId = typeIdByMime[mimeType] ?? 0;
+
+    try {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return encodeTypedBytesPayload(typeId, bytes);
+    } catch {
+        return encodeURIComponent(dataUrl);
+    }
 }
 
 export function decodeVideoDataUrl(encoded: string): VideoDataPayload {
+    const compact = decodeTypedBytesPayload(encoded);
+    if (compact) {
+        const mimeByTypeId: Record<number, string> = {
+            1: 'video/mp4',
+            2: 'video/webm',
+            3: 'video/ogg',
+            4: 'video/x-matroska',
+        };
+        const mimeType = mimeByTypeId[compact.typeId] || 'video/mp4';
+        const extension = mimeType.split('/')[1] ?? 'mp4';
+        const base64 = uint8ArrayToBase64(compact.bytes);
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+        return { dataUrl, mimeType, extension, bytes: compact.bytes };
+    }
+
     const dataUrl = decodeURIComponent(encoded);
     const match = /^data:(video\/[a-zA-Z0-9.+-]+);base64,/.exec(dataUrl);
 

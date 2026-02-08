@@ -21,6 +21,7 @@ export default function RenderPdf() {
     const { data, fullscreen } = router.query;
 
     const [pdfDataUrl, setPdfDataUrl] = useState('');
+    const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
     const [error, setError] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const [pdfBlobUrl, setPdfBlobUrl] = useState('');
@@ -31,7 +32,9 @@ export default function RenderPdf() {
         if (typeof window === 'undefined') return;
 
         const hash = window.location.hash || '';
-        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length) : '';
+        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length)
+            : hash.startsWith('#d=') ? hash.slice('#d='.length)
+                : '';
         const payload = typeof data === 'string' ? data : hashData;
 
         if (!payload) {
@@ -43,6 +46,7 @@ export default function RenderPdf() {
         try {
             const decoded = decodePdfDataUrl(payload);
             setPdfDataUrl(decoded.dataUrl);
+            setPdfBytes(decoded.bytes ?? null);
             setError(false);
         } catch {
             setError(true);
@@ -52,22 +56,30 @@ export default function RenderPdf() {
     }, [data]);
 
     useEffect(() => {
-        if (!pdfDataUrl || typeof window === 'undefined') {
+        if (typeof window === 'undefined') {
             setPdfBlobUrl('');
             return;
         }
 
         try {
-            const base64 = pdfDataUrl.split(',')[1] ?? '';
-            if (!base64) {
+            const bytes = pdfBytes
+                ? pdfBytes
+                : (() => {
+                    const base64 = pdfDataUrl.split(',')[1] ?? '';
+                    if (!base64) return null;
+                    const binary = atob(base64);
+                    const b = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i += 1) {
+                        b[i] = binary.charCodeAt(i);
+                    }
+                    return b;
+                })();
+
+            if (!bytes) {
                 setPdfBlobUrl('');
                 return;
             }
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i += 1) {
-                bytes[i] = binary.charCodeAt(i);
-            }
+
             const blob = new Blob([bytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setPdfBlobUrl(url);
@@ -75,9 +87,19 @@ export default function RenderPdf() {
         } catch {
             setPdfBlobUrl('');
         }
-    }, [pdfDataUrl]);
+    }, [pdfDataUrl, pdfBytes]);
 
     const handleDownload = () => {
+        if (pdfBytes) {
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = getPdfFileName();
+            link.click();
+            URL.revokeObjectURL(url);
+            return;
+        }
         if (!pdfDataUrl) return;
         const link = document.createElement('a');
         link.href = pdfDataUrl;

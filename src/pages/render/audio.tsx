@@ -21,10 +21,13 @@ export default function RenderAudio() {
     const { data, fullscreen, source } = router.query;
 
     const [audioDataUrl, setAudioDataUrl] = useState('');
+    const [audioBytes, setAudioBytes] = useState<Uint8Array | null>(null);
+    const [audioMimeType, setAudioMimeType] = useState('audio/mpeg');
     const [audioExtension, setAudioExtension] = useState('mp3');
     const [audioSourceUrl, setAudioSourceUrl] = useState('');
     const [error, setError] = useState(false);
     const [isReady, setIsReady] = useState(false);
+    const [audioBlobUrl, setAudioBlobUrl] = useState('');
 
     const isFullscreen = fullscreen === '1' || fullscreen === 'true';
 
@@ -43,7 +46,9 @@ export default function RenderAudio() {
         }
 
         const hash = window.location.hash || '';
-        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length) : '';
+        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length)
+            : hash.startsWith('#d=') ? hash.slice('#d='.length)
+                : '';
         const payload = typeof data === 'string' ? data : hashData;
 
         if (!payload) {
@@ -55,6 +60,8 @@ export default function RenderAudio() {
         try {
             const decoded = decodeAudioDataUrl(payload);
             setAudioDataUrl(decoded.dataUrl);
+            setAudioBytes(decoded.bytes ?? null);
+            setAudioMimeType(decoded.mimeType || 'audio/mpeg');
             setAudioExtension(decoded.extension);
             setError(false);
         } catch {
@@ -64,12 +71,38 @@ export default function RenderAudio() {
         }
     }, [data, source]);
 
+    useEffect(() => {
+        if (!audioBytes || typeof window === 'undefined') {
+            setAudioBlobUrl('');
+            return;
+        }
+        try {
+            const blob = new Blob([audioBytes], { type: audioMimeType || 'audio/mpeg' });
+            const url = URL.createObjectURL(blob);
+            setAudioBlobUrl(url);
+            return () => URL.revokeObjectURL(url);
+        } catch {
+            setAudioBlobUrl('');
+        }
+    }, [audioBytes, audioMimeType]);
+
     const handleDownload = () => {
         if (audioSourceUrl) {
             const link = document.createElement('a');
             link.href = audioSourceUrl;
             link.download = getAudioFileName(audioExtension);
             link.click();
+            return;
+        }
+
+        if (audioBytes) {
+            const blob = new Blob([audioBytes], { type: audioMimeType || 'audio/mpeg' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = getAudioFileName(audioExtension);
+            link.click();
+            URL.revokeObjectURL(url);
             return;
         }
 
@@ -124,7 +157,7 @@ export default function RenderAudio() {
                     <title>{t('renderAudio.title')} - {t('common.appName')}</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
-                <FullScreenAudio controls src={audioSourceUrl || audioDataUrl || undefined} />
+                <FullScreenAudio controls src={audioSourceUrl || audioBlobUrl || audioDataUrl || undefined} />
             </>
         );
     }
@@ -147,8 +180,8 @@ export default function RenderAudio() {
 
                 <Card>
                     <AudioWrapper>
-                        {audioSourceUrl || audioDataUrl ? (
-                            <RenderedAudio controls src={audioSourceUrl || audioDataUrl} />
+                        {audioSourceUrl || audioBlobUrl || audioDataUrl ? (
+                            <RenderedAudio controls src={audioSourceUrl || audioBlobUrl || audioDataUrl} />
                         ) : (
                             <p>{t('render.error')}</p>
                         )}

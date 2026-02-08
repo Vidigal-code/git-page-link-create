@@ -21,6 +21,8 @@ export default function RenderVideo() {
     const { data, fullscreen, source } = router.query;
 
     const [videoDataUrl, setVideoDataUrl] = useState('');
+    const [videoBytes, setVideoBytes] = useState<Uint8Array | null>(null);
+    const [videoMimeType, setVideoMimeType] = useState('video/mp4');
     const [videoExtension, setVideoExtension] = useState('mp4');
     const [videoSourceUrl, setVideoSourceUrl] = useState('');
     const [error, setError] = useState(false);
@@ -44,7 +46,9 @@ export default function RenderVideo() {
         }
 
         const hash = window.location.hash || '';
-        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length) : '';
+        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length)
+            : hash.startsWith('#d=') ? hash.slice('#d='.length)
+                : '';
         const payload = typeof data === 'string' ? data : hashData;
 
         if (!payload) {
@@ -56,6 +60,8 @@ export default function RenderVideo() {
         try {
             const decoded = decodeVideoDataUrl(payload);
             setVideoDataUrl(decoded.dataUrl);
+            setVideoBytes(decoded.bytes ?? null);
+            setVideoMimeType(decoded.mimeType || 'video/mp4');
             setVideoExtension(decoded.extension);
             setError(false);
         } catch {
@@ -66,30 +72,38 @@ export default function RenderVideo() {
     }, [data]);
 
     useEffect(() => {
-        if (!videoDataUrl || typeof window === 'undefined') {
+        if (typeof window === 'undefined') {
             setVideoBlobUrl('');
             return;
         }
 
         try {
-            const base64 = videoDataUrl.split(',')[1] ?? '';
-            if (!base64) {
+            const bytes = videoBytes
+                ? videoBytes
+                : (() => {
+                    const base64 = videoDataUrl.split(',')[1] ?? '';
+                    if (!base64) return null;
+                    const binary = atob(base64);
+                    const b = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i += 1) {
+                        b[i] = binary.charCodeAt(i);
+                    }
+                    return b;
+                })();
+
+            if (!bytes) {
                 setVideoBlobUrl('');
                 return;
             }
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i += 1) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            const blob = new Blob([bytes], { type: videoDataUrl.substring(5, videoDataUrl.indexOf(';')) || 'video/mp4' });
+
+            const blob = new Blob([bytes], { type: videoMimeType || 'video/mp4' });
             const url = URL.createObjectURL(blob);
             setVideoBlobUrl(url);
             return () => URL.revokeObjectURL(url);
         } catch {
             setVideoBlobUrl('');
         }
-    }, [videoDataUrl]);
+    }, [videoDataUrl, videoBytes, videoMimeType]);
 
     const handleDownload = () => {
         if (videoSourceUrl) {
@@ -97,6 +111,17 @@ export default function RenderVideo() {
             link.href = videoSourceUrl;
             link.download = getVideoFileName(videoExtension);
             link.click();
+            return;
+        }
+
+        if (videoBytes) {
+            const blob = new Blob([videoBytes], { type: videoMimeType || 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = getVideoFileName(videoExtension);
+            link.click();
+            URL.revokeObjectURL(url);
             return;
         }
 

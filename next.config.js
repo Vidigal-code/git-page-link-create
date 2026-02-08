@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production'
+const BASE_PATH = isProd ? '/git-page-link-create' : ''
+
 const nextConfig = {
   output: 'export',
   reactStrictMode: true,
@@ -6,8 +9,8 @@ const nextConfig = {
     styledComponents: true,
   },
   // Configure for GitHub Pages deployment
-  basePath: '/git-page-link-create',
-  assetPrefix: '/git-page-link-create/',
+  basePath: BASE_PATH,
+  assetPrefix: BASE_PATH ? `${BASE_PATH}/` : '',
   trailingSlash: true,
   images: {
     unoptimized: true, // Required for static export
@@ -19,8 +22,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   env: {
-    NEXT_PUBLIC_BASE_PATH: '/git-page-link-create',
-    NEXT_PUBLIC_SITE_URL: 'https://vidigal-code.github.io/git-page-link-create',
+    NEXT_PUBLIC_BASE_PATH: BASE_PATH,
+    NEXT_PUBLIC_SITE_URL: isProd ? 'https://vidigal-code.github.io/git-page-link-create' : '',
   },
 }
 

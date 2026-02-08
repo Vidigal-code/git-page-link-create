@@ -60,6 +60,22 @@ export default function App({ Component, pageProps }: AppProps) {
     const isVideoFullscreen = router.pathname === '/render/video' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isAudioFullscreen = router.pathname === '/render/audio' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isOfficeFullscreen = router.pathname === '/render/office' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
+    const hasShortUrlCode = router.pathname === '/shorturl' && (typeof router.query.c === 'string' || typeof router.query.code === 'string');
+    const zParam = router.query.z;
+    const z = typeof zParam === 'string' ? zParam : Array.isArray(zParam) ? zParam[0] : undefined;
+    const isShortUrlSilent = (() => {
+        // Global: shared-link flag wins
+        if (z === '1') return true;
+        if (z === '0') return false;
+        if (typeof window === 'undefined') return false;
+        try {
+            const saved = window.localStorage.getItem('shorturlCreate.instantRenderer');
+            return saved !== '0'; // default: enabled
+        } catch {
+            return true;
+        }
+    })();
+    const isShortUrlBlankRedirect = hasShortUrlCode && isShortUrlSilent;
 
     return (
         <I18nProvider>
@@ -79,7 +95,7 @@ export default function App({ Component, pageProps }: AppProps) {
                     <meta name="twitter:image" content={ogImageUrl} />
                 </Head>
                 <GlobalStyle />
-                {isRenderAll || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen ? (
+                {isRenderAll || isPdfFullscreen || isVideoFullscreen || isAudioFullscreen || isOfficeFullscreen || isShortUrlBlankRedirect ? (
                     <Component {...pageProps} />
                 ) : (
                     <Layout

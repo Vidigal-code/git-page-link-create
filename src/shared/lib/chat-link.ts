@@ -63,7 +63,7 @@ export function decodeChatPayload(compressed: string): ChatLinkPayload {
 export function buildChatLinkUrl(origin: string, compressedPayload: string): string {
     // NOTE: app is exported with `trailingSlash: true` (GitHub Pages friendly)
     const path = withBasePath('/chat-link/');
-    return `${origin}${path}#data=${CHAT_TYPE_PREFIX}-${compressedPayload}`;
+    return `${origin}${path}#d=${CHAT_TYPE_PREFIX}-${compressedPayload}`;
 }
 
 export function tryReadChatPayloadFromUrl(url: string): { payload: ChatLinkPayload; compressed: string } | null {

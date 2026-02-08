@@ -10,6 +10,7 @@ import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/download';
+import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import {
     RenderContainer,
     IframeContainer,
@@ -42,18 +43,19 @@ export default function Render() {
 
     const resolvedHash = typeof hash === 'string'
         ? hash
-        : typeof data === 'string'
-            ? data
-            : '';
+        : typeof router.query.d === 'string'
+            ? (router.query.d as string)
+            : typeof data === 'string'
+                ? data
+                : '';
 
     const [fragmentData, setFragmentData] = useState<string>('');
 
     useEffect(() => {
         // Look for data in hash (fragment)
         const currentHash = window.location.hash;
-        if (currentHash.startsWith('#data=')) {
-            setFragmentData(currentHash.substring(6));
-        }
+        if (currentHash.startsWith('#data=')) setFragmentData(currentHash.substring('#data='.length));
+        else if (currentHash.startsWith('#d=')) setFragmentData(currentHash.substring('#d='.length));
     }, [hash, data]);
 
     const finalHash = fragmentData || resolvedHash;
@@ -109,7 +111,8 @@ export default function Render() {
         }
 
         try {
-            const type = finalHash.substring(0, separatorIndex);
+            const rawType = finalHash.substring(0, separatorIndex);
+            const type = decodePlatformType(rawType);
             const compressedContent = finalHash.substring(separatorIndex + 1);
 
             // Redirect to specialized renderers if applicable

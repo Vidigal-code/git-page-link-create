@@ -8,7 +8,7 @@
 
 ## Overview
 
-**git-page-link-create** generates shareable links that render content directly in the browser—no backend required. It includes QR code generation plus image/PDF/video/audio sharing with hash-based links to avoid 431 errors, and Microsoft Office rendering from public URLs.
+**git-page-link-create** generates shareable links that render content directly in the browser—no backend required. It includes QR code generation plus image/PDF/video/audio sharing with hash-based links to avoid 431 errors, Microsoft Office rendering from public URLs, and **frontend-only reversible short URLs**.
 
 ## Project page & documentation
 
@@ -17,12 +17,17 @@
 ## Key features
 
 - Permanent links: `/render?data={hash}` and `/render-all#data={hash}`
+- **Short URLs (frontend-only)**: `/shorturl-create` generates reversible short links that decode back to the original URL
+- **Shortest short path**: `/s/<code>` (recovered by `404.tsx` on static hosting)
+- **Instant renderer links**: internal content can open directly via `/r/` and `/ra/` (aliases for `/render` and `/render-all`)
 - Image sharing: `/render/image#data={base64}` (hash-based, PNG/JPG/SVG/GIF)
 - PDF sharing: `/render/pdf#data={base64}` (hash-based, multi-page)
 - Video sharing: `/render/video#data={base64}` (hash-based)
 - Audio sharing: `/render/audio#data={base64}` (hash-based)
 - Microsoft Office sharing: `/render/office?source={publicUrl}` (Word/Excel/PowerPoint)
 - Link-based chat: `/chat-link/#data=chat-{hash}` (chat transcript stored in the URL hash)
+- Shorter render markers: `#d=` and `?d=` (legacy `#data=` / `?data=` still supported)
+- Global shared-link behavior: `?z=1` = blank/silent redirect, `?z=0` = redirect UI with header/footer
 - Supports **HTML**, **Markdown**, **CSV/XLS**, **images**, **PDFs**, **videos**, **audio**, and **Microsoft Office** files
 - Secure HTML rendering via sandboxed iframe
 - QR code generator with size, margin, error correction, PNG/SVG export, copy, and open actions
@@ -60,6 +65,10 @@ src/
 │   ├── _document.tsx
 │   ├── index.tsx
 │   ├── create.tsx
+│   ├── shorturl.tsx
+│   ├── shorturl-create.tsx
+│   ├── r.tsx
+│   ├── ra.tsx
 │   ├── chat-link.tsx
 │   ├── render/
 │   │   ├── [hash].tsx
@@ -87,6 +96,18 @@ src/
     │   ├── office.ts
     │   ├── qr.ts
     │   ├── recovery.ts
+    │   ├── shorturl/
+    │   │   ├── base10.ts
+    │   │   ├── bytesPayload.ts
+    │   │   ├── dictionary.ts
+    │   │   ├── index.ts
+    │   │   ├── refcodes.ts
+    │   │   ├── shorturl.ts
+    │   │   ├── typeCodes.ts
+    │   │   └── docs/
+    │   │       ├── README.md
+    │   │       ├── pt/README.md
+    │   │       └── es/README.md
     │   └── theme.ts
     ├── styles/
     │   ├── GlobalStyle.ts
@@ -136,6 +157,10 @@ Themes live in `public/layouts/templates/`. The catalog is defined in `public/la
 ## Internationalization
 
 Translations live in `public/locales/{lang}.json`. Update `getAvailableLocales()` in `src/shared/lib/i18n.tsx` when adding languages.
+
+## Short URL docs (internal)
+
+- Implementation docs: `src/shared/lib/shorturl/docs/README.md` (also available in `pt` and `es`)
 
 ## License
 

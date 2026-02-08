@@ -10,6 +10,7 @@ import { decompressBytes } from '@/shared/lib/compression';
 import { downloadFile } from '@/shared/lib/download';
 import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import * as XLSX from 'xlsx';
+import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import {
     RenderContainer,
     ErrorContainer,
@@ -37,13 +38,13 @@ export default function RenderOffice() {
         // First try to get data from hash (fragment) - preferred for large payloads
         let dataPayload = '';
         const hash = window.location.hash;
-        if (hash.startsWith('#data=')) {
-            dataPayload = hash.substring(6);
-        }
+        if (hash.startsWith('#data=')) dataPayload = hash.substring('#data='.length);
+        else if (hash.startsWith('#d=')) dataPayload = hash.substring('#d='.length);
 
         // Fallback to query parameter (for legacy links)
-        if (!dataPayload && router.query.data && typeof router.query.data === 'string') {
-            dataPayload = router.query.data;
+        if (!dataPayload) {
+            if (router.query.d && typeof router.query.d === 'string') dataPayload = router.query.d;
+            else if (router.query.data && typeof router.query.data === 'string') dataPayload = router.query.data;
         }
 
         if (!dataPayload) return;
@@ -52,7 +53,8 @@ export default function RenderOffice() {
             const separatorIndex = dataPayload.indexOf('-');
             if (separatorIndex === -1) return;
 
-            const type = dataPayload.substring(0, separatorIndex);
+            const rawType = dataPayload.substring(0, separatorIndex);
+            const type = decodePlatformType(rawType);
             const compressedContent = dataPayload.substring(separatorIndex + 1);
             const bytes = decompressBytes(compressedContent);
 

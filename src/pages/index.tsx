@@ -279,6 +279,24 @@ export default function Home() {
 
         <Section>
           <Card>
+            <SectionTitle>{t('home.shortUrlTitle')}</SectionTitle>
+            <p>{t('home.shortUrlDescription')}</p>
+            <List>
+              <ListItem>{t('home.shortUrlFeatureCreate')}</ListItem>
+              <ListItem>{t('home.shortUrlFeatureRefCodes')}</ListItem>
+              <ListItem>{t('home.shortUrlFeatureInstant')}</ListItem>
+              <ListItem>{t('home.shortUrlFeatureSharedFlag')}</ListItem>
+            </List>
+            <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <Link href="/shorturl-create" passHref legacyBehavior>
+                <Button as="a" variant="secondary">{t('home.shortUrlCta')}</Button>
+              </Link>
+            </div>
+          </Card>
+        </Section>
+
+        <Section>
+          <Card>
             <SectionTitle>{t('home.qrHowWorksTitle')}</SectionTitle>
             <p>{t('home.qrHowWorksDescription')}</p>
             <List>

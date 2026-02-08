@@ -21,8 +21,10 @@ export default function RenderImage() {
     const { data, source } = router.query;
 
     const [imageDataUrl, setImageDataUrl] = useState('');
+    const [imageBytes, setImageBytes] = useState<Uint8Array | null>(null);
     const [imageExtension, setImageExtension] = useState('png');
     const [imageSourceUrl, setImageSourceUrl] = useState('');
+    const [imageBlobUrl, setImageBlobUrl] = useState('');
     const [error, setError] = useState(false);
     const [isReady, setIsReady] = useState(false);
 
@@ -41,7 +43,9 @@ export default function RenderImage() {
         }
 
         const hash = window.location.hash || '';
-        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length) : '';
+        const hashData = hash.startsWith('#data=') ? hash.slice('#data='.length)
+            : hash.startsWith('#d=') ? hash.slice('#d='.length)
+                : '';
         const payload = typeof data === 'string' ? data : hashData;
 
         if (!payload) {
@@ -53,6 +57,7 @@ export default function RenderImage() {
         try {
             const decoded = decodeImageDataUrl(payload);
             setImageDataUrl(decoded.dataUrl);
+            setImageBytes(decoded.bytes ?? null);
             setImageExtension(decoded.extension);
             setError(false);
         } catch {
@@ -62,12 +67,40 @@ export default function RenderImage() {
         }
     }, [data]);
 
+    useEffect(() => {
+        if (!imageBytes || typeof window === 'undefined') {
+            setImageBlobUrl('');
+            return;
+        }
+        try {
+            const mimeType = imageDataUrl.substring(5, imageDataUrl.indexOf(';')) || 'image/png';
+            const blob = new Blob([imageBytes], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            setImageBlobUrl(url);
+            return () => URL.revokeObjectURL(url);
+        } catch {
+            setImageBlobUrl('');
+        }
+    }, [imageBytes, imageDataUrl]);
+
     const handleDownload = () => {
         if (imageSourceUrl) {
             const link = document.createElement('a');
             link.href = imageSourceUrl;
             link.download = getImageFileName(imageExtension);
             link.click();
+            return;
+        }
+
+        if (imageBytes) {
+            const mimeType = imageDataUrl.substring(5, imageDataUrl.indexOf(';')) || 'image/png';
+            const blob = new Blob([imageBytes], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = getImageFileName(imageExtension);
+            link.click();
+            URL.revokeObjectURL(url);
             return;
         }
 
@@ -133,8 +166,8 @@ export default function RenderImage() {
 
                 <Card>
                     <ImageWrapper>
-                        {imageSourceUrl || imageDataUrl ? (
-                            <RenderedImage src={imageSourceUrl || imageDataUrl} alt={t('renderImage.title')} />
+                        {imageSourceUrl || imageBlobUrl || imageDataUrl ? (
+                            <RenderedImage src={imageSourceUrl || imageBlobUrl || imageDataUrl} alt={t('renderImage.title')} />
                         ) : (
                             <p>{t('render.error')}</p>
                         )}

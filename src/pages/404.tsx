@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import styled from 'styled-components';
@@ -38,36 +38,74 @@ const ButtonGroup = styled.div`
   flex-wrap: wrap;
 `;
 
+function getRecoveryTargetFromWindowLocation(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const normalizedBase = BASE_PATH.startsWith('/') ? BASE_PATH : `/${BASE_PATH}`;
+  const cleanBase = normalizedBase.endsWith('/') ? normalizedBase.slice(0, -1) : normalizedBase;
+  let path = window.location.pathname;
+  const searchParams = new URLSearchParams(window.location.search || '');
+  const z = searchParams.get('z'); // silent/instant flag for shared links (z=1 or z=0)
+
+  if (cleanBase && path.startsWith(cleanBase)) {
+    path = path.slice(cleanBase.length);
+  }
+
+  if (!path.startsWith('/')) {
+    path = `/${path}`;
+  }
+
+  const isRenderAll = path.startsWith('/render-all/') || path.startsWith('/ra/');
+  const isRender = path.startsWith('/render/') || path.startsWith('/r/');
+  const isShortUrl = path.startsWith('/shorturl/');
+  const isShortUrlCompact = path.startsWith('/s/');
+  const prefix = isRenderAll ? (path.startsWith('/ra/') ? '/ra/' : '/render-all/') : isRender ? (path.startsWith('/r/') ? '/r/' : '/render/') : '';
+
+  if (!prefix && !isShortUrl && !isShortUrlCompact) return null;
+
+  const slug = (
+    isShortUrlCompact
+      ? path.slice('/s/'.length)
+      : isShortUrl
+        ? path.slice('/shorturl/'.length)
+        : path.slice(prefix.length)
+  ).replace(/\/$/, '');
+  if (!slug) return null;
+
+  if (isShortUrl || isShortUrlCompact) {
+    const suffix = z === '1' || z === '0' ? `&z=${z}` : '';
+    return withBasePath(`/shorturl/?c=${encodeURIComponent(slug)}${suffix}`);
+  }
+
+  // Prefer shortest alias targets
+  const renderSuffix = z === '1' || z === '0' ? `&z=${z}` : '';
+  return withBasePath(`/${isRenderAll ? 'ra/' : 'r/'}?d=${slug}${renderSuffix}`);
+}
+
 export default function Custom404() {
     const { t } = useI18n();
 
+  const [recoveryTarget] = useState<string | null>(() => getRecoveryTargetFromWindowLocation());
+  const isRecovering = Boolean(recoveryTarget);
+
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!recoveryTarget || typeof window === 'undefined') return;
+    // Replace immediately to avoid showing the 404 UI for recoverable deep-links
+    window.location.replace(recoveryTarget);
+  }, [recoveryTarget]);
 
-    const normalizedBase = BASE_PATH.startsWith('/') ? BASE_PATH : `/${BASE_PATH}`;
-    const cleanBase = normalizedBase.endsWith('/') ? normalizedBase.slice(0, -1) : normalizedBase;
-    let path = window.location.pathname;
-
-    if (cleanBase && path.startsWith(cleanBase)) {
-      path = path.slice(cleanBase.length);
-    }
-
-    if (!path.startsWith('/')) {
-      path = `/${path}`;
-    }
-
-    const isRenderAll = path.startsWith('/render-all/');
-    const isRender = path.startsWith('/render/');
-    const prefix = isRenderAll ? '/render-all/' : isRender ? '/render/' : '';
-
-    if (!prefix) return;
-
-    const slug = path.slice(prefix.length).replace(/\/$/, '');
-    if (!slug) return;
-
-    const target = withBasePath(`${isRenderAll ? 'render-all' : 'render'}?data=${slug}`);
-    window.location.replace(target);
-  }, []);
+  if (isRecovering) {
+    return (
+      <Container>
+        <Head>
+          <title>Redirecting... - {t('common.appName')}</title>
+          <meta name="robots" content="noindex, nofollow" />
+        </Head>
+        <Title>{t('shorturlDecoder.redirectingTitle')}</Title>
+        <Description>{t('shorturlDecoder.description')}</Description>
+      </Container>
+    );
+  }
 
     return (
         <Container>

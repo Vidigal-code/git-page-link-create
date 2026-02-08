@@ -1,7 +1,11 @@
+import { uint8ArrayToBase64 } from '@/shared/lib/base64';
+import { decodeTypedBytesPayload, encodeTypedBytesPayload } from '@/shared/lib/shorturl/bytesPayload';
+
 export interface ImageDataPayload {
     dataUrl: string;
     mimeType: string;
     extension: string;
+    bytes?: Uint8Array;
 }
 
 export async function fileToDataUrl(file: File): Promise<string> {
@@ -22,10 +26,53 @@ export async function fileToDataUrl(file: File): Promise<string> {
 }
 
 export function encodeImageDataUrl(dataUrl: string): string {
-    return encodeURIComponent(dataUrl);
+    // New compact format: `b-<base64url(typedBytes)>`
+    const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/.exec(dataUrl);
+    if (!match) return encodeURIComponent(dataUrl);
+    const mimeType = match[1];
+    const base64 = match[2] || '';
+    if (!base64) return encodeURIComponent(dataUrl);
+
+    const typeIdByMime: Record<string, number> = {
+        'image/png': 1,
+        'image/jpeg': 2,
+        'image/jpg': 3,
+        'image/gif': 4,
+        'image/webp': 5,
+        'image/svg+xml': 6,
+    };
+    const typeId = typeIdByMime[mimeType] ?? 0;
+    try {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return encodeTypedBytesPayload(typeId, bytes);
+    } catch {
+        return encodeURIComponent(dataUrl);
+    }
 }
 
 export function decodeImageDataUrl(encoded: string): ImageDataPayload {
+    // New compact payload
+    const compact = decodeTypedBytesPayload(encoded);
+    if (compact) {
+        const mimeByTypeId: Record<number, string> = {
+            1: 'image/png',
+            2: 'image/jpeg',
+            3: 'image/jpg',
+            4: 'image/gif',
+            5: 'image/webp',
+            6: 'image/svg+xml',
+        };
+        const mimeType = mimeByTypeId[compact.typeId] || 'image/png';
+        const extension = mimeType.split('/')[1] ?? 'png';
+        const base64 = uint8ArrayToBase64(compact.bytes);
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+        return { dataUrl, mimeType, extension, bytes: compact.bytes };
+    }
+
     const dataUrl = decodeURIComponent(encoded);
     const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,/.exec(dataUrl);
 
