@@ -9,6 +9,7 @@ import { decompress, decompressBytes } from '@/shared/lib/compression';
 import Link from 'next/link';
 import { Button } from '@/shared/ui/Button';
 import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { prepareHtmlForIframe } from '@/shared/lib/html';
 import {
     PageWrapper,
     StyledCard,
@@ -42,7 +43,8 @@ export default function RenderAll() {
         }
 
         const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
-        const blob = new Blob([strContent], { type: 'text/html;charset=utf-8' });
+        const safeHtml = prepareHtmlForIframe(strContent);
+        const blob = new Blob([safeHtml], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         setHtmlBlobUrl(url);
 

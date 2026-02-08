@@ -2,7 +2,6 @@ import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { TextArea } from '@/shared/ui/Input';
-import { Select } from '@/shared/ui/Select';
 import { ButtonGroup, FormSection } from '@/shared/styles/pages/create.styles';
 
 interface RecoveryToolCardProps {
@@ -10,9 +9,6 @@ interface RecoveryToolCardProps {
     pasteLabel: string;
     recoverLabel: string;
     clearLabel: string;
-    recoveryType: string;
-    recoveryTypeOptions: Array<{ value: string; label: string }>;
-    onRecoveryTypeChange: (value: string) => void;
     hashValue: string;
     onHashChange: (value: string) => void;
     onRecover: () => void;
@@ -25,7 +21,6 @@ interface RecoveryToolCardProps {
     downloadLabel: string;
     viewLabel: string;
     createNewLabel: string;
-    selectTypeLabel: string;
     recoveryHelp?: string;
 }
 
@@ -34,9 +29,6 @@ export function RecoveryToolCard({
     pasteLabel,
     recoverLabel,
     clearLabel,
-    recoveryType,
-    recoveryTypeOptions,
-    onRecoveryTypeChange,
     hashValue,
     onHashChange,
     onRecover,
@@ -48,19 +40,12 @@ export function RecoveryToolCard({
     downloadLabel,
     viewLabel,
     createNewLabel,
-    selectTypeLabel,
     recoveryHelp,
 }: RecoveryToolCardProps) {
 
     return (
         <Card title={title}>
             <FormSection>
-                <Select
-                    label={selectTypeLabel}
-                    value={recoveryType}
-                    options={recoveryTypeOptions}
-                    onChange={(event) => onRecoveryTypeChange(event.target.value)}
-                />
                 <TextArea
                     label={pasteLabel}
                     value={hashValue}

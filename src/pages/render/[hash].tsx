@@ -11,6 +11,7 @@ import { useI18n } from '@/shared/lib/i18n';
 import { decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getMimeType, getFileExtension } from '@/shared/lib/download';
 import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { prepareHtmlForIframe } from '@/shared/lib/html';
 import {
     RenderContainer,
     IframeContainer,
@@ -181,7 +182,8 @@ export default function Render() {
     const renderContent = () => {
         if (contentType === 'html') {
             const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
-            const base64Content = btoa(unescape(encodeURIComponent(strContent)));
+            const safeHtml = prepareHtmlForIframe(strContent);
+            const base64Content = btoa(unescape(encodeURIComponent(safeHtml)));
             return (
                 <IframeContainer>
                     <StyledIframe

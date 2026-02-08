@@ -13,6 +13,7 @@ import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import { parseRecoveryInput } from '@/shared/lib/recovery';
 import { uint8ArrayToBase64 } from '@/shared/lib/base64';
 import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { prepareHtmlForIframe } from '@/shared/lib/html';
 import {
     getMaxAudioUrlLength,
     getMaxCsvUrlLength,
@@ -89,7 +90,6 @@ export default function Create() {
 
     const [recoveryHash, setRecoveryHash] = useState('');
     const [isRecovered, setIsRecovered] = useState(false);
-    const [recoveryType, setRecoveryType] = useState<RecoverableContentType>('html');
     const [qrInput, setQrInput] = useState('');
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [qrIsProcessing, setQrIsProcessing] = useState(false);
@@ -168,10 +168,6 @@ export default function Create() {
         { value: 'qr', label: t('create.qrTitle') },
         { value: 'recovery', label: t('create.recoveryOption') },
     ], [t]);
-
-    const recoveryTypeOptions = useMemo(() => (
-        contentTypeOptions.filter((opt) => opt.value !== 'recovery' && opt.value !== 'qr')
-    ), [contentTypeOptions]);
 
     const contentValue = typeof content === 'string'
         ? content
@@ -440,11 +436,12 @@ export default function Create() {
 
         if (contentType === 'html') {
             const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
-            const base64Content = btoa(unescape(encodeURIComponent(strContent)));
+            const safeHtml = prepareHtmlForIframe(strContent);
+            const base64Content = btoa(unescape(encodeURIComponent(safeHtml)));
             return (
                 <PreviewFrame
                     src={`data:text/html;base64,${base64Content}`}
-                    sandbox="allow-scripts allow-same-origin allow-forms"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
                     title="Live Preview"
                 />
             );
@@ -553,7 +550,7 @@ export default function Create() {
 
         try {
             setIsRecovered(false);
-            const parsed = parseRecoveryInput(recoveryHash, { assumedType: recoveryType });
+            const parsed = parseRecoveryInput(recoveryHash);
 
             if (!parsed) {
                 setError(t('create.invalidHash'));
@@ -592,6 +589,71 @@ export default function Create() {
             setSuccessMessage(t('create.recoverySuccess'));
             setGeneratedLink('');
             setError('');
+
+            // Auto-open the recovered content in the correct tool/viewer (no type dropdown needed).
+            const mimeType = getMimeType(type);
+            const toDataUrl = (bytes: Uint8Array, mime: string) => (
+                `data:${mime};base64,${uint8ArrayToBase64(bytes)}`
+            );
+
+            const goToTool = (tool: ToolType) => {
+                setSelectedTool(tool);
+                if (tool === 'create') setShowPreview(true);
+            };
+
+            if (type === 'pdf') {
+                if (recoveredData instanceof Uint8Array) {
+                    setPdfDataUrl(toDataUrl(recoveredData, mimeType));
+                } else {
+                    setPdfDataUrl(recoveredData);
+                }
+                goToTool('pdf');
+                return;
+            }
+
+            if (type === 'image') {
+                if (recoveredData instanceof Uint8Array) {
+                    setImageDataUrl(toDataUrl(recoveredData, mimeType));
+                } else {
+                    setImageDataUrl(recoveredData);
+                }
+                goToTool('image');
+                return;
+            }
+
+            if (type === 'video') {
+                if (recoveredData instanceof Uint8Array) {
+                    setVideoDataUrl(toDataUrl(recoveredData, mimeType));
+                } else {
+                    setVideoDataUrl(recoveredData);
+                }
+                goToTool('video');
+                return;
+            }
+
+            if (type === 'audio') {
+                if (recoveredData instanceof Uint8Array) {
+                    setAudioDataUrl(toDataUrl(recoveredData, mimeType));
+                } else {
+                    setAudioDataUrl(recoveredData);
+                }
+                goToTool('audio');
+                return;
+            }
+
+            if (type === 'docx' || type === 'pptx' || type === 'doc' || type === 'ppt' || type === 'xlsx' || type === 'xls') {
+                // Keep office viewer experience consistent
+                const dataUrl = recoveredData instanceof Uint8Array
+                    ? toDataUrl(recoveredData, mimeType)
+                    : recoveredData;
+                setOfficeCode(dataUrl);
+                setOfficeFile(new File([], `recovered_file.${type}`, { type: mimeType }));
+                goToTool('office');
+                return;
+            }
+
+            // Default: show in Create preview (html/md/csv/txt/etc.)
+            goToTool('create');
         } catch (error) {
             //console.error('Recovery error:', error);
             setIsRecovered(false);
@@ -1419,9 +1481,6 @@ export default function Create() {
                         pasteLabel={t('create.pasteHash')}
                         recoverLabel={t('create.recoverButton')}
                         clearLabel={t('create.clearHash')}
-                        recoveryType={recoveryType}
-                        recoveryTypeOptions={recoveryTypeOptions}
-                        onRecoveryTypeChange={(value) => setRecoveryType(value as RecoverableContentType)}
                         hashValue={recoveryHash}
                         onHashChange={(value) => {
                             setRecoveryHash(value);
@@ -1439,7 +1498,6 @@ export default function Create() {
                         downloadLabel={t('create.downloadFile')}
                         viewLabel={t('create.viewFile')}
                         createNewLabel={t('create.createNew')}
-                        selectTypeLabel={t('create.selectType')}
                         recoveryHelp={t('create.recoveryHelp')}
                     />
                 );
