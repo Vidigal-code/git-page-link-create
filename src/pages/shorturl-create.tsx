@@ -401,7 +401,7 @@ export default function ShortUrlCreatePage() {
                             </Card>
 
                             <div style={{ marginTop: 18 }}>
-                                <Card title={t('shorturlCreate.compareTitle')}>
+                            <Card title={t('shorturlCreate.compareTitle')}>
                                     <p style={{ marginTop: 0, opacity: 0.8 }}>
                                         {t('shorturlCreate.compareDescription')}
                                     </p>
@@ -451,16 +451,16 @@ export default function ShortUrlCreatePage() {
                                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                                     <thead>
                                                         <tr>
-                                                            <th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                            <th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)', whiteSpace: 'nowrap' }}>
                                                                 {t('shorturlCreate.compareColItem')}
                                                             </th>
-                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)', whiteSpace: 'nowrap' }}>
                                                                 {t('shorturlCreate.compareColChars')}
                                                             </th>
-                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)', whiteSpace: 'nowrap' }}>
                                                                 {t('shorturlCreate.compareColBytes')}
                                                             </th>
-                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)', whiteSpace: 'nowrap' }}>
                                                                 {t('shorturlCreate.compareColSavings')}
                                                             </th>
                                                         </tr>
@@ -493,7 +493,7 @@ export default function ShortUrlCreatePage() {
                                                                     {formatBytes(r.bytes)}
                                                                 </td>
                                                                 <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                                                                    {r.label === t('shorturlCreate.compareOriginal') ? '—' : savings(r.bytes)}
+                                                                    {r.value === original ? '—' : savings(r.bytes)}
                                                                 </td>
                                                             </tr>
                                                         ))}

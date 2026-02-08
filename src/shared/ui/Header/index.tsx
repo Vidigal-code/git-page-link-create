@@ -39,13 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
     const { locale, setLocale, t, isLoading } = useI18n();
     const locales = getAvailableLocales();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    const fallbackByLocale = <T extends string>(map: Record<Locale, T>, key: string): string => {
-        // Avoid showing raw keys (e.g. "home.navTitle") before translations load.
-        if (isLoading) return map[locale] || map.en || key;
-        const v = t(key);
-        return v === key ? (map[locale] || map.en || key) : v;
-    };
+    const tl = (key: string) => (isLoading ? '' : t(key));
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -63,15 +57,15 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Desktop Controls */}
                 <Controls>
                     <StyledNavLink href="/">
-                        {fallbackByLocale({ en: 'Home', pt: 'Início', es: 'Inicio' }, 'home.navTitle')}
+                        {tl('home.navTitle')}
                     </StyledNavLink>
 
                     <StyledNavLink href="/create">
-                        {fallbackByLocale({ en: 'Create', pt: 'Criar', es: 'Crear' }, 'create.navTitle')}
+                        {tl('create.navTitle')}
                     </StyledNavLink>
 
                     <StyledNavLink href="/shorturl-create">
-                        {fallbackByLocale({ en: 'Short URL', pt: 'URL Curta', es: 'URL Corta' }, 'shorturlCreate.navTitle')}
+                        {tl('shorturlCreate.navTitle')}
                     </StyledNavLink>
 
                     <Select
@@ -79,11 +73,9 @@ export const Header: React.FC<HeaderProps> = ({
                         onChange={(e) => setLocale(e.target.value as Locale)}
                         options={locales.map(l => ({
                             value: l.code,
-                            label: isLoading
-                                ? ({ pt: 'Português', en: 'English', es: 'Español' } as Record<Locale, string>)[l.code]
-                                : t(`langmenu.${l.code}`)
+                            label: isLoading ? l.name : t(`langmenu.${l.code}`)
                         }))}
-                        aria-label={fallbackByLocale({ en: 'Language', pt: 'Idioma', es: 'Idioma' }, 'common.language')}
+                        aria-label={isLoading ? '' : t('common.language')}
                         configKey="languageSelect"
                     />
 
@@ -92,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
                             value={currentTheme}
                             onChange={(e) => onThemeChange(e.target.value)}
                             options={availableThemes.map(t => ({ value: t.id, label: t.name }))}
-                            aria-label={fallbackByLocale({ en: 'Theme', pt: 'Tema', es: 'Tema' }, 'common.theme')}
+                            aria-label={isLoading ? '' : t('common.theme')}
                             configKey="themeSelect"
                         />
                     )}
@@ -128,13 +120,13 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <MobileNav>
                     <MobileNavLink href="/" onClick={closeMobileMenu}>
-                        {fallbackByLocale({ en: 'Home', pt: 'Início', es: 'Inicio' }, 'home.navTitle')}
+                        {tl('home.navTitle')}
                     </MobileNavLink>
                     <MobileNavLink href="/create" onClick={closeMobileMenu}>
-                        {fallbackByLocale({ en: 'Create', pt: 'Criar', es: 'Crear' }, 'create.navTitle')}
+                        {tl('create.navTitle')}
                     </MobileNavLink>
                     <MobileNavLink href="/shorturl-create" onClick={closeMobileMenu}>
-                        {fallbackByLocale({ en: 'Short URL', pt: 'URL Curta', es: 'URL Corta' }, 'shorturlCreate.navTitle')}
+                        {tl('shorturlCreate.navTitle')}
                     </MobileNavLink>
                 </MobileNav>
 
@@ -144,11 +136,9 @@ export const Header: React.FC<HeaderProps> = ({
                         onChange={(e) => setLocale(e.target.value as Locale)}
                         options={locales.map(l => ({
                             value: l.code,
-                            label: isLoading
-                                ? ({ pt: 'Português', en: 'English', es: 'Español' } as Record<Locale, string>)[l.code]
-                                : t(`langmenu.${l.code}`)
+                            label: isLoading ? l.name : t(`langmenu.${l.code}`)
                         }))}
-                        aria-label={fallbackByLocale({ en: 'Language', pt: 'Idioma', es: 'Idioma' }, 'common.language')}
+                        aria-label={isLoading ? '' : t('common.language')}
                         configKey="languageSelect"
                     />
 
@@ -157,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
                             value={currentTheme}
                             onChange={(e) => onThemeChange(e.target.value)}
                             options={availableThemes.map(t => ({ value: t.id, label: t.name }))}
-                            aria-label={fallbackByLocale({ en: 'Theme', pt: 'Tema', es: 'Tema' }, 'common.theme')}
+                            aria-label={isLoading ? '' : t('common.theme')}
                             configKey="themeSelect"
                         />
                     )}

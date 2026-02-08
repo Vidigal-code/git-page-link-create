@@ -116,6 +116,8 @@ export function I18nProvider({ children }: { children: ReactNode }): React.React
     };
 
     const t = (key: string): string => {
+        // Avoid flashing raw keys in the UI while translations are still loading.
+        if (isLoading) return '';
         return getNestedValue(translations, key);
     };
 
