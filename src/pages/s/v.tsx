@@ -230,6 +230,13 @@ export default function LinksRegisterVPage() {
                                                         {isRefCopied ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
                                                     </Button>
                                                     <Button
+                                                        onClick={() => refUrl && window.open(refUrl, '_blank', 'noopener,noreferrer')}
+                                                        variant="secondary"
+                                                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
+                                                    >
+                                                        {t('home.linksRegisterOpenRef')}
+                                                    </Button>
+                                                    <Button
                                                         onClick={() => window.open(m.LinkOriginal, '_blank', 'noopener,noreferrer')}
                                                         variant="secondary"
                                                         style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}

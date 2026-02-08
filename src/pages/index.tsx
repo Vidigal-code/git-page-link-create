@@ -412,6 +412,17 @@ export default function Home() {
                           {copiedKey === `${key}-ref` ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
                         </Button>
                         <Button
+                          onClick={() => {
+                            if (typeof window === 'undefined') return;
+                            const refUrl = `${window.location.origin}${withBasePath(`/s/${encodeURIComponent(e.ReferenceName)}/`)}`;
+                            window.open(refUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                          variant="secondary"
+                          style={smallButtonStyle}
+                        >
+                          {t('home.linksRegisterOpenRef')}
+                        </Button>
+                        <Button
                           onClick={() => window.open(e.LinkOriginal, '_blank', 'noopener,noreferrer')}
                           variant="secondary"
                           style={smallButtonStyle}
