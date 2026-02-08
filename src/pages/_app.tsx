@@ -55,15 +55,27 @@ export default function App({ Component, pageProps }: AppProps) {
     if (!theme) {
         return null; // Or a loading spinner
     }
+    const asPath = router.asPath || '';
     const isRenderAll = router.pathname.startsWith('/render-all') || router.pathname === '/ra';
     const isRender = router.pathname.startsWith('/render') || router.pathname === '/r';
     const isPdfFullscreen = router.pathname === '/render/pdf' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isVideoFullscreen = router.pathname === '/render/video' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isAudioFullscreen = router.pathname === '/render/audio' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
     const isOfficeFullscreen = router.pathname === '/render/office' && (router.query.fullscreen === '1' || router.query.fullscreen === 'true');
-    const hasShortUrlCode = router.pathname === '/shorturl' && (typeof router.query.c === 'string' || typeof router.query.code === 'string');
+    const hasShortUrlCode = router.pathname === '/shorturl'
+        && (
+            typeof router.query.c === 'string'
+            || typeof router.query.code === 'string'
+            // hydration-safe fallback (prevents UI flash on first render)
+            || /[?&](?:c|code)=/i.test(asPath)
+        );
     const zParam = router.query.z;
-    const z = typeof zParam === 'string' ? zParam : Array.isArray(zParam) ? zParam[0] : undefined;
+    const zFromAsPath = /[?&]z=([01])\b/i.exec(asPath)?.[1];
+    const z = typeof zParam === 'string'
+        ? zParam
+        : Array.isArray(zParam)
+            ? zParam[0]
+            : zFromAsPath;
     const isShortUrlSilent = (() => {
         // Global: shared-link flag wins
         if (z === '1') return true;
@@ -80,9 +92,9 @@ export default function App({ Component, pageProps }: AppProps) {
 
     // On GitHub Pages deep-links, the app may boot on `/404` first and immediately recover.
     // If the shared link requests silent mode (`?z=1`), avoid flashing the Layout/header.
-    const isSilent404Recovery = router.pathname === '/404'
-        && /[?&]z=1\b/.test(router.asPath || '')
-        && /\/(?:s|shorturl|render|render-all|r|ra)\//.test(router.asPath || '');
+    const isSilent404Recovery = (router.pathname === '/404' || router.pathname === '/_error')
+        && /[?&]z=1\b/.test(asPath)
+        && /\/(?:s|shorturl|render|render-all|r|ra)\//.test(asPath);
 
     return (
         <I18nProvider>
