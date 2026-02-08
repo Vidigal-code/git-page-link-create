@@ -28,6 +28,23 @@ function isValidHttpUrl(value: string): boolean {
     }
 }
 
+function getUtf8ByteLength(value: string): number {
+    if (!value) return 0;
+    try {
+        return new TextEncoder().encode(value).length;
+    } catch {
+        // Fallback: best-effort estimate
+        return value.length;
+    }
+}
+
+function formatBytes(bytes: number): string {
+    if (!Number.isFinite(bytes)) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function ShortUrlCreatePage() {
     const { t } = useI18n();
     const [longUrl, setLongUrl] = useState('');
@@ -382,6 +399,111 @@ export default function ShortUrlCreatePage() {
                                     {roundTripOk ? t('shorturlCreate.roundTripOk') : t('shorturlCreate.roundTripFail')}
                                 </p>
                             </Card>
+
+                            <div style={{ marginTop: 18 }}>
+                                <Card title={t('shorturlCreate.compareTitle')}>
+                                    <p style={{ marginTop: 0, opacity: 0.8 }}>
+                                        {t('shorturlCreate.compareDescription')}
+                                    </p>
+
+                                    {(() => {
+                                        const original = longUrl.trim();
+                                        const originalChars = original.length;
+                                        const originalBytes = getUtf8ByteLength(original);
+
+                                        const rows: Array<{
+                                            label: string;
+                                            value: string;
+                                            chars: number;
+                                            bytes: number;
+                                        }> = [
+                                            {
+                                                label: t('shorturlCreate.compareOriginal'),
+                                                value: original,
+                                                chars: originalChars,
+                                                bytes: originalBytes,
+                                            },
+                                            {
+                                                label: t('shorturlCreate.compareShort'),
+                                                value: shortLink,
+                                                chars: shortLink.length,
+                                                bytes: getUtf8ByteLength(shortLink),
+                                            },
+                                        ];
+
+                                        if (altShortLink) {
+                                            rows.push({
+                                                label: t('shorturlCreate.compareAlt'),
+                                                value: altShortLink,
+                                                chars: altShortLink.length,
+                                                bytes: getUtf8ByteLength(altShortLink),
+                                            });
+                                        }
+
+                                        const savings = (bytes: number) => {
+                                            if (!originalBytes) return '—';
+                                            const pct = ((originalBytes - bytes) / originalBytes) * 100;
+                                            return `${pct.toFixed(1)}%`;
+                                        };
+
+                                        return (
+                                            <div style={{ overflowX: 'auto' }}>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                    <thead>
+                                                        <tr>
+                                                            <th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                                {t('shorturlCreate.compareColItem')}
+                                                            </th>
+                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                                {t('shorturlCreate.compareColChars')}
+                                                            </th>
+                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                                {t('shorturlCreate.compareColBytes')}
+                                                            </th>
+                                                            <th style={{ textAlign: 'right', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                                                                {t('shorturlCreate.compareColSavings')}
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {rows.map((r) => (
+                                                            <tr key={r.label}>
+                                                                <td style={{ padding: '10px', verticalAlign: 'top', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>{r.label}</div>
+                                                                    <div style={{
+                                                                        fontFamily: 'monospace',
+                                                                        opacity: 0.9,
+                                                                        whiteSpace: 'pre-wrap',
+                                                                        overflowWrap: 'anywhere',
+                                                                        wordBreak: 'break-word',
+                                                                        maxHeight: 90,
+                                                                        overflowY: 'auto',
+                                                                        padding: '8px',
+                                                                        borderRadius: 8,
+                                                                        background: 'rgba(255,255,255,0.03)',
+                                                                        border: '1px solid rgba(255,255,255,0.08)'
+                                                                    }}>
+                                                                        {r.value}
+                                                                    </div>
+                                                                </td>
+                                                                <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                                                    {r.chars.toLocaleString()}
+                                                                </td>
+                                                                <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                                                    {formatBytes(r.bytes)}
+                                                                </td>
+                                                                <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                                                    {r.label === t('shorturlCreate.compareOriginal') ? '—' : savings(r.bytes)}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                    </div>
+                                        );
+                                    })()}
+                                </Card>
+                            </div>
                         </div>
                     )}
                 </FormSection>
