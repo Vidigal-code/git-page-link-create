@@ -267,6 +267,12 @@ export default function ChatLinkPage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder={t('chatLink.namePlaceholder')}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSend();
+                                        }
+                                    }}
                                 />
                                 <TextArea
                                     label={t('chatLink.messageLabel')}
@@ -274,6 +280,13 @@ export default function ChatLinkPage() {
                                     onChange={(e) => setMessage(e.target.value)}
                                     placeholder={t('chatLink.messagePlaceholder')}
                                     rows={3}
+                                    onKeyDown={(e) => {
+                                        // Enter sends; Shift+Enter inserts a newline
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSend();
+                                        }
+                                    }}
                                 />
                                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                                     <Button onClick={handleSend} disabled={!isNonEmpty(name) || !isNonEmpty(message)}>

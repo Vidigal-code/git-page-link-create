@@ -1,5 +1,15 @@
 import styled from 'styled-components';
 
+// Fixed palette for chat transcript UI (independent from site themes)
+const CHAT_BG = '#0b141a';
+const CHAT_PANEL = '#111b21';
+const CHAT_BORDER = '#2a3942';
+const CHAT_TEXT = '#e9edef';
+const CHAT_TEXT_MUTED = '#8696a0';
+const CHAT_ACCENT = '#00a884';
+const CHAT_BUBBLE_MINE = '#005c4b';
+const CHAT_BUBBLE_OTHER = '#202c33';
+
 export const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -38,10 +48,10 @@ export const ChatShell = styled.div`
   display: grid;
   grid-template-rows: 1fr auto;
   min-height: 520px;
-  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border: 1px solid ${CHAT_BORDER};
   border-radius: 14px;
   overflow: hidden;
-  background: transparent;
+  background: ${CHAT_BG};
 `;
 
 export const Messages = styled.div`
@@ -50,12 +60,13 @@ export const Messages = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: ${CHAT_BG};
 `;
 
 export const EmptyState = styled.div`
   margin: auto;
   text-align: center;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${CHAT_TEXT_MUTED};
   padding: 40px 16px;
   line-height: 1.6;
 `;
@@ -69,10 +80,10 @@ export const Bubble = styled.div<{ $mine?: boolean }>`
   max-width: min(640px, 92%);
   padding: 12px 12px 10px;
   border-radius: 14px;
-  background: ${({ theme, $mine }) => ($mine ? theme.colors.primary : theme.colors.cardBackground)};
-  color: ${({ theme, $mine }) => ($mine ? theme.colors.background : theme.colors.text)};
+  background: ${({ $mine }) => ($mine ? CHAT_BUBBLE_MINE : CHAT_BUBBLE_OTHER)};
+  color: ${CHAT_TEXT};
   box-shadow: 0 8px 22px rgba(0,0,0,0.25);
-  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border: 1px solid ${CHAT_BORDER};
 `;
 
 export const BubbleHeader = styled.div`
@@ -90,6 +101,7 @@ export const BubbleName = styled.span`
 export const BubbleMeta = styled.span`
   font-size: 0.85rem;
   opacity: 0.85;
+  color: ${CHAT_TEXT_MUTED};
 `;
 
 export const BubbleText = styled.p`
@@ -101,9 +113,9 @@ export const BubbleText = styled.p`
 export const Quote = styled.div`
   margin: 0 0 8px;
   padding: 10px 10px 8px;
-  border-left: 3px solid ${({ theme }) => theme.colors.primary};
-  background: ${({ theme }) => theme.colors.cardBackground};
-  color: ${({ theme }) => theme.colors.text};
+  border-left: 3px solid ${CHAT_ACCENT};
+  background: ${CHAT_PANEL};
+  color: ${CHAT_TEXT};
   border-radius: 10px;
 `;
 
@@ -111,7 +123,7 @@ export const QuoteName = styled.div`
   font-weight: 700;
   margin-bottom: 2px;
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.text};
+  color: ${CHAT_TEXT};
 `;
 
 export const QuoteText = styled.div`
@@ -119,16 +131,32 @@ export const QuoteText = styled.div`
   font-size: 0.95rem;
   line-height: 1.4;
   white-space: pre-wrap;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${CHAT_TEXT_MUTED};
 `;
 
 export const Composer = styled.div`
   padding: 14px;
-  border-top: 1px solid ${({ theme }) => theme.colors.cardBorder};
-  background: transparent;
+  border-top: 1px solid ${CHAT_BORDER};
+  background: ${CHAT_PANEL};
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  /* Force fixed colors for inputs inside the chat composer (avoid theme clashes) */
+  label {
+    color: ${CHAT_TEXT_MUTED};
+  }
+
+  input, textarea, select {
+    background: ${CHAT_BG} !important;
+    color: ${CHAT_TEXT} !important;
+    border-color: ${CHAT_BORDER} !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: ${CHAT_TEXT_MUTED} !important;
+    opacity: 0.75;
+  }
 `;
 
 export const ReplyBar = styled.div`
@@ -138,13 +166,13 @@ export const ReplyBar = styled.div`
   gap: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: ${({ theme }) => theme.colors.background};
-  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  background: ${CHAT_BG};
+  border: 1px solid ${CHAT_BORDER};
 `;
 
 export const ReplyText = styled.div`
   font-size: 0.95rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${CHAT_TEXT_MUTED};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
