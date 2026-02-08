@@ -69,6 +69,29 @@ export default function RenderImage() {
         }
     }, [data]);
 
+    // Legacy links may contain a huge `data:*;base64,...` which can throw "URI Too Long" in some browsers.
+    // Convert to bytes and render via Blob URL instead.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (imageBytes) return;
+        if (!imageDataUrl) return;
+        if (!imageDataUrl.startsWith('data:')) return;
+        const base64 = imageDataUrl.split(',')[1] ?? '';
+        if (!base64) return;
+        try {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i += 1) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            setImageBytes(bytes);
+            // Drop the giant string to reduce memory pressure
+            setImageDataUrl('');
+        } catch {
+            // keep as-is
+        }
+    }, [imageDataUrl, imageBytes]);
+
     useEffect(() => {
         if (!imageBytes || typeof window === 'undefined') {
             setImageBlobUrl('');
@@ -158,7 +181,7 @@ export default function RenderImage() {
             <RenderContainer>
                 <Card title={t('renderImage.title')}>
                     <ButtonGroup>
-                        <Button onClick={handleDownload} disabled={!imageDataUrl}>
+                        <Button onClick={handleDownload} disabled={!imageSourceUrl && !imageBlobUrl && !imageDataUrl && !imageBytes}>
                             {t('renderImage.download')}
                         </Button>
                     </ButtonGroup>

@@ -21,7 +21,6 @@ import {
     FormSection,
     ErrorMessage,
     SuccessMessage,
-    LinkDisplay,
 } from '@/shared/styles/pages/create.styles';
 
 function extractCodeFromLocation(): string {
@@ -317,18 +316,54 @@ export default function ShortUrlRedirectPage() {
                     <p style={{ margin: '0 0 10px', opacity: 0.85 }}>
                         <strong>{t('shorturlDecoder.codeLabel')}:</strong>
                     </p>
-                    <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                        {code}
-                    </LinkDisplay>
+                    <textarea
+                        readOnly
+                        value={code}
+                        aria-label={t('shorturlDecoder.codeLabel')}
+                        rows={6}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            borderRadius: 8,
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.12)',
+                            color: 'inherit',
+                            fontFamily: 'monospace',
+                            resize: 'vertical',
+                            maxHeight: 220,
+                            overflowY: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                        }}
+                    />
 
                     {decodedUrl && (
                         <>
                             <p style={{ margin: '14px 0 6px', opacity: 0.85 }}>
                                 <strong>{t('shorturlDecoder.decodedUrlLabel')}:</strong>
                             </p>
-                            <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                                {decodedUrl}
-                            </LinkDisplay>
+                            <textarea
+                                readOnly
+                                value={decodedUrl}
+                                aria-label={t('shorturlDecoder.decodedUrlLabel')}
+                                rows={4}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    borderRadius: 8,
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    color: 'inherit',
+                                    fontFamily: 'monospace',
+                                    resize: 'vertical',
+                                    maxHeight: 180,
+                                    overflowY: 'auto',
+                                    whiteSpace: 'pre-wrap',
+                                    overflowWrap: 'anywhere',
+                                    wordBreak: 'break-word',
+                                }}
+                            />
                         </>
                     )}
 

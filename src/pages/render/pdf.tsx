@@ -92,11 +92,14 @@ export default function RenderPdf() {
             const blob = new Blob([bytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setPdfBlobUrl(url);
+            // IMPORTANT: In fullscreen mode we navigate to `blob:`. If we revoke on unmount,
+            // the browser may fail to load the PDF and show "I/O error".
+            if (isFullscreen) return;
             return () => URL.revokeObjectURL(url);
         } catch {
             setPdfBlobUrl('');
         }
-    }, [pdfDataUrl, pdfBytes]);
+    }, [pdfDataUrl, pdfBytes, isFullscreen]);
 
     const handleDownload = () => {
         if (pdfBytes) {

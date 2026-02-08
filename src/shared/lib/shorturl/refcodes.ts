@@ -210,6 +210,18 @@ export const SHORTURL_REF_CODES: ReadonlyArray<ShortUrlRefCodeEntry> = Object.fr
     { code: 'dc', prefix: 'https://docs.google.com/', note: 'google docs' },
     { code: 'db', prefix: 'https://www.dropbox.com/', note: 'dropbox' },
     { code: 'rw', prefix: 'https://raw.githubusercontent.com/', note: 'github raw' },
+
+    // File hosting / sharing
+    { code: 'mg', prefix: 'https://mega.nz/file/', note: 'mega file' },
+    { code: 'mga', prefix: 'https://mega.nz/folder/', note: 'mega folder' },
+    { code: 'mf', prefix: 'https://www.mediafire.com/file/', note: 'mediafire file' },
+    { code: 'mfs', prefix: 'https://www.mediafire.com/?', note: 'mediafire (generic)' },
+    { code: 'od', prefix: 'https://onedrive.live.com/', note: 'onedrive' },
+    { code: '1d', prefix: 'https://1drv.ms/', note: 'onedrive short' },
+    { code: 'bx', prefix: 'https://box.com/', note: 'box' },
+    { code: 'bxs', prefix: 'https://app.box.com/', note: 'box app' },
+    { code: 'wt', prefix: 'https://we.tl/', note: 'wetransfer short' },
+    { code: 'wtr', prefix: 'https://wetransfer.com/', note: 'wetransfer' },
 ]);
 
 const REF_PREFIX_BY_CODE = Object.freeze(

@@ -71,6 +71,29 @@ export default function RenderAudio() {
         }
     }, [data, source]);
 
+    // Legacy links may contain a huge `data:*;base64,...` which can throw "URI Too Long" in some browsers.
+    // Convert to bytes and render via Blob URL instead.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (audioBytes) return;
+        if (!audioDataUrl) return;
+        if (!audioDataUrl.startsWith('data:')) return;
+        const base64 = audioDataUrl.split(',')[1] ?? '';
+        if (!base64) return;
+        try {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i += 1) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            setAudioBytes(bytes);
+            // Drop the giant string to reduce memory pressure
+            setAudioDataUrl('');
+        } catch {
+            // keep as-is
+        }
+    }, [audioDataUrl, audioBytes]);
+
     useEffect(() => {
         if (!audioBytes || typeof window === 'undefined') {
             setAudioBlobUrl('');
@@ -172,7 +195,7 @@ export default function RenderAudio() {
             <RenderContainer>
                 <Card title={t('renderAudio.title')}>
                     <ButtonGroup>
-                        <Button onClick={handleDownload} disabled={!audioDataUrl && !audioSourceUrl}>
+                        <Button onClick={handleDownload} disabled={!audioSourceUrl && !audioBlobUrl && !audioDataUrl && !audioBytes}>
                             {t('renderAudio.download')}
                         </Button>
                     </ButtonGroup>

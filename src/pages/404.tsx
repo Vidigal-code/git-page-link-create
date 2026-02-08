@@ -83,7 +83,13 @@ function getRecoveryTargetFromWindowLocation(): string | null {
 }
 
 export default function Custom404() {
-    const { t } = useI18n();
+    const { t, locale, isLoading } = useI18n();
+
+  const safeT = (key: string, fallback: Record<'en' | 'pt' | 'es', string>) => {
+    if (isLoading) return fallback[locale] || fallback.en || key;
+    const v = t(key);
+    return v === key ? (fallback[locale] || fallback.en || key) : v;
+  };
 
   const [recoveryTarget] = useState<string | null>(() => getRecoveryTargetFromWindowLocation());
   const isRecovering = Boolean(recoveryTarget);
@@ -104,8 +110,12 @@ export default function Custom404() {
           <title>Redirecting... - {t('common.appName')}</title>
           <meta name="robots" content="noindex, nofollow" />
         </Head>
-        <Title>{t('shorturlDecoder.redirectingTitle')}</Title>
-        <Description>{t('shorturlDecoder.description')}</Description>
+        <Title>{safeT('shorturlDecoder.redirectingTitle', { en: 'Redirecting...', pt: 'Redirecionando...', es: 'Redirigiendo...' })}</Title>
+        <Description>{safeT('shorturlDecoder.description', {
+          en: 'Paste a token (AT...) or a full short link and decode it back to the original URL.',
+          pt: 'Cole um token (AT...) ou o link curto completo e decodifique para a URL original.',
+          es: 'Pega un token (AT...) o el enlace corto completo y decodifícalo a la URL original.'
+        })}</Description>
       </Container>
     );
   }
