@@ -15,7 +15,8 @@ export interface AudioCompressionOptions {
 }
 
 export function encodeAudioDataUrl(dataUrl: string): string {
-    const match = /^data:(audio\/[a-zA-Z0-9.+-]+);base64,(.*)$/.exec(dataUrl);
+    // Allow optional MIME parameters (e.g. `audio/webm;codecs=opus`)
+    const match = /^data:(audio\/[a-zA-Z0-9.+-]+)(?:;[^,]*?)?;base64,(.*)$/.exec(dataUrl);
     if (!match) return encodeURIComponent(dataUrl);
     const mimeType = match[1];
     const base64 = match[2] || '';
@@ -62,7 +63,7 @@ export function decodeAudioDataUrl(encoded: string): AudioDataPayload {
     }
 
     const dataUrl = decodeURIComponent(encoded);
-    const match = /^data:(audio\/[a-zA-Z0-9.+-]+);base64,/.exec(dataUrl);
+    const match = /^data:(audio\/[a-zA-Z0-9.+-]+)(?:;[^,]*?)?;base64,/.exec(dataUrl);
 
     if (!match) {
         throw new Error('Invalid audio data');

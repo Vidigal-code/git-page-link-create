@@ -13,7 +13,7 @@ import {
     ErrorDescription,
     ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
-import { AudioWrapper, RenderedAudio, FullScreenAudio } from '@/shared/styles/pages/render-audio.styles';
+import { AudioWrapper, RenderedAudio, FullScreenAudio, FullScreenAudioCard, FullScreenAudioWrapper } from '@/shared/styles/pages/render-audio.styles';
 
 export default function RenderAudio() {
     const router = useRouter();
@@ -176,7 +176,11 @@ export default function RenderAudio() {
                     <title>{t('renderAudio.title')} - {t('common.appName')}</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
-                <FullScreenAudio controls src={audioSourceUrl || audioBlobUrl || audioDataUrl || undefined} />
+                <FullScreenAudioWrapper>
+                    <FullScreenAudioCard>
+                        <FullScreenAudio controls src={audioSourceUrl || audioBlobUrl || audioDataUrl || undefined} />
+                    </FullScreenAudioCard>
+                </FullScreenAudioWrapper>
             </>
         );
     }

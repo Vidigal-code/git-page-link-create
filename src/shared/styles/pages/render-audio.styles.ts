@@ -15,7 +15,26 @@ export const RenderedAudio = styled.audio`
   max-width: 640px;
 `;
 
+export const FullScreenAudioWrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: ${({ theme }) => theme.colors.background};
+`;
+
+export const FullScreenAudioCard = styled.div`
+  width: 100%;
+  max-width: 720px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  background: ${({ theme }) => theme.colors.cardBackground};
+`;
+
 export const FullScreenAudio = styled.audio`
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  max-width: 720px;
 `;

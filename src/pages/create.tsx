@@ -32,7 +32,7 @@ import { generateQrCodeDataUrl, generateQrCodeSvg } from '@/shared/lib/qr';
 import { compressImageFile, encodeImageDataUrl, fileToDataUrl } from '@/shared/lib/image';
 import { encodePdfDataUrl } from '@/shared/lib/pdf';
 import { compressVideoFile, encodeVideoDataUrl } from '@/shared/lib/video';
-import { compressAudioFile, encodeAudioDataUrl } from '@/shared/lib/audio';
+import { compressAudioFile, encodeAudioDataUrl, getSupportedAudioMimeType } from '@/shared/lib/audio';
 import { getOfficeViewerUrl } from '@/shared/lib/office';
 import {
     AudioToolCard,
@@ -143,6 +143,18 @@ export default function Create() {
     const [isAudioProcessing, setIsAudioProcessing] = useState(false);
     const [audioCompressProgress, setAudioCompressProgress] = useState<number | null>(null);
 
+    const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>([]);
+    const [selectedAudioDeviceId, setSelectedAudioDeviceId] = useState<string>('');
+    const [isAudioRecording, setIsAudioRecording] = useState(false);
+    const [audioRecordingError, setAudioRecordingError] = useState('');
+    const [audioRecordingSeconds, setAudioRecordingSeconds] = useState(0);
+    const [audioRecordingPercent, setAudioRecordingPercent] = useState(0);
+    const audioRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioStreamRef = useRef<MediaStream | null>(null);
+    const audioChunksRef = useRef<BlobPart[]>([]);
+    const audioBytesRef = useRef<number>(0);
+    const audioTimerRef = useRef<number | null>(null);
+
     const [officeSourceUrl, setOfficeSourceUrl] = useState('');
     const [officeLink, setOfficeLink] = useState('');
     const [officeRenderAllLink, setOfficeRenderAllLink] = useState('');
@@ -153,6 +165,163 @@ export default function Create() {
     useEffect(() => {
         loadAvailableThemes();
     }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (selectedTool !== 'audio') return;
+        const mediaDevices = navigator?.mediaDevices;
+        if (!mediaDevices?.enumerateDevices) return;
+
+        let alive = true;
+        const load = async () => {
+            try {
+                let devices = await mediaDevices.enumerateDevices();
+                let audioInputs = devices.filter((d) => d.kind === 'audioinput');
+
+                // If labels are missing, request permission once to unlock device labels.
+                if (audioInputs.length > 0 && audioInputs.every((d) => !d.label)) {
+                    const stream = await mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach((t) => t.stop());
+                    devices = await mediaDevices.enumerateDevices();
+                    audioInputs = devices.filter((d) => d.kind === 'audioinput');
+                }
+
+                if (!alive) return;
+                setAudioInputDevices(audioInputs);
+                if (!selectedAudioDeviceId && audioInputs[0]?.deviceId) {
+                    setSelectedAudioDeviceId(audioInputs[0].deviceId);
+                }
+            } catch {
+                // ignore (user may block permission)
+            }
+        };
+
+        void load();
+        return () => {
+            alive = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTool]);
+
+    const estimateAudioDataUrlLength = (bytes: number, mimeType: string): number => {
+        const header = `data:${mimeType || 'audio/webm'};base64,`;
+        const base64Len = Math.ceil(bytes / 3) * 4;
+        return header.length + base64Len;
+    };
+
+    const stopAudioRecording = () => {
+        try {
+            const recorder = audioRecorderRef.current;
+            if (recorder && recorder.state !== 'inactive') {
+                recorder.stop();
+            }
+        } catch {
+            // ignore
+        }
+        try {
+            audioStreamRef.current?.getTracks().forEach((t) => t.stop());
+        } catch {
+            // ignore
+        }
+        audioRecorderRef.current = null;
+        audioStreamRef.current = null;
+        if (audioTimerRef.current) {
+            window.clearInterval(audioTimerRef.current);
+            audioTimerRef.current = null;
+        }
+        setIsAudioRecording(false);
+    };
+
+    const startAudioRecording = async () => {
+        if (typeof window === 'undefined') return;
+        setAudioRecordingError('');
+        setAudioError('');
+
+        if (!navigator?.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+            setAudioRecordingError(t('create.audioRecordNotSupported'));
+            return;
+        }
+
+        if (isAudioRecording) return;
+
+        try {
+            const deviceId = selectedAudioDeviceId;
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: deviceId ? { deviceId: { exact: deviceId } } : true,
+            });
+            audioStreamRef.current = stream;
+
+            const resolvedMimeType = getSupportedAudioMimeType('audio/webm;codecs=opus');
+            const audioBitsPerSecond = compressAudio ? 64_000 : 96_000;
+            const recorder = new MediaRecorder(stream, {
+                mimeType: resolvedMimeType,
+                audioBitsPerSecond,
+            });
+            audioRecorderRef.current = recorder;
+            audioChunksRef.current = [];
+            audioBytesRef.current = 0;
+            setAudioRecordingSeconds(0);
+            setAudioRecordingPercent(0);
+            setIsAudioRecording(true);
+
+            const maxLen = getMaxAudioUrlLength();
+            const safetyBuffer = 1400; // avoid overshooting due to headers/rounding
+
+            recorder.ondataavailable = (event) => {
+                if (!event.data || event.data.size <= 0) return;
+                audioChunksRef.current.push(event.data);
+                audioBytesRef.current += event.data.size;
+
+                const estimatedLen = estimateAudioDataUrlLength(audioBytesRef.current, recorder.mimeType || resolvedMimeType || 'audio/webm');
+                const pct = maxLen > 0 ? Math.min(100, Math.round((estimatedLen / maxLen) * 100)) : 0;
+                setAudioRecordingPercent(pct);
+
+                if (maxLen > 0 && estimatedLen >= Math.max(0, maxLen - safetyBuffer)) {
+                    setAudioRecordingError(t('create.audioRecordLimitReached'));
+                    stopAudioRecording();
+                }
+            };
+
+            recorder.onstop = async () => {
+                try {
+                    const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || resolvedMimeType || 'audio/webm' });
+                    const reader = new FileReader();
+                    const dataUrl = await new Promise<string>((resolve, reject) => {
+                        reader.onerror = () => reject(new Error('read_error'));
+                        reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+                        reader.readAsDataURL(blob);
+                    });
+
+                    if (!dataUrl) {
+                        setAudioRecordingError(t('create.audioError'));
+                        return;
+                    }
+
+                    // Guard: ensure within configured max length
+                    if (maxLen > 0 && dataUrl.length > maxLen) {
+                        setAudioRecordingError(t('create.urlTooLong'));
+                        return;
+                    }
+
+                    setAudioDataUrl(dataUrl);
+                    setAudioLink('');
+                    setAudioRenderAllLink('');
+                    setAudioSourceLink('');
+                    setAudioFile(null);
+                } catch {
+                    setAudioRecordingError(t('create.audioError'));
+                }
+            };
+
+            recorder.start(500);
+            audioTimerRef.current = window.setInterval(() => {
+                setAudioRecordingSeconds((s) => s + 1);
+            }, 1000);
+        } catch {
+            setAudioRecordingError(t('create.audioMicPermissionDenied'));
+            stopAudioRecording();
+        }
+    };
 
     const contentTypeOptions = useMemo(() => [
         { value: 'html', label: t('home.html') },
@@ -178,6 +347,28 @@ export default function Create() {
     const uint8ArrayToDataUrl = (bytes: Uint8Array, mimeType: string) => (
         `data:${mimeType};base64,${uint8ArrayToBase64(bytes)}`
     );
+
+    const blobUrlToDataUrl = async (blobUrl: string): Promise<string> => {
+        const res = await fetch(blobUrl);
+        if (!res.ok) throw new Error('blob_fetch_failed');
+        const blob = await res.blob();
+        return await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('blob_read_failed'));
+            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+            reader.readAsDataURL(blob);
+        });
+    };
+
+    const resolveDataUrlForEncoding = async (value: string): Promise<string> => {
+        const v = (value || '').trim();
+        if (!v) return '';
+        if (v.startsWith('blob:')) {
+            const dataUrl = await blobUrlToDataUrl(v);
+            return dataUrl || '';
+        }
+        return v;
+    };
 
     const getExtensionFromMimeType = (mimeType: string): string => {
         const m = (mimeType || '').toLowerCase().trim();
@@ -594,6 +785,14 @@ export default function Create() {
 
         try {
             setIsRecovered(false);
+
+            // Blob URLs are not shareable/persistent across sessions/devices.
+            // Some users accidentally generate links like `#d=blob:https://...`.
+            if (/(\bblob:|blob%3a)/i.test(recoveryHash)) {
+                setError(t('create.recoveryBlobNotSupported'));
+                return;
+            }
+
             const parsed = parseRecoveryInput(recoveryHash);
 
             if (!parsed) {
@@ -812,11 +1011,18 @@ export default function Create() {
         }
     };
 
-    const handleGenerateImageLink = () => {
+    const handleGenerateImageLink = async () => {
         if (!imageDataUrl || typeof window === 'undefined') return;
         setImageError('');
 
-        const encoded = encodeImageDataUrl(imageDataUrl);
+        let resolved = imageDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(imageDataUrl);
+        } catch {
+            setImageError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodeImageDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/image');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -829,11 +1035,19 @@ export default function Create() {
         setImageLink(link);
     };
 
-    const handleGenerateImageRenderAllLink = () => {
+    const handleGenerateImageRenderAllLink = async () => {
         if (!imageDataUrl || typeof window === 'undefined') return;
         setImageError('');
 
-        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Image</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${imageDataUrl}" alt="Image" /></body></html>`;
+        let resolved = imageDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(imageDataUrl);
+        } catch {
+            setImageError(t('create.invalidHash'));
+            return;
+        }
+
+        const html = `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Image</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;}img{max-width:90vw;max-height:90vh;background:#fff;padding:16px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);}</style></head><body><img src="${resolved}" alt="Image" /></body></html>`;
         const compressed = compress(html);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render-all');
@@ -892,11 +1106,18 @@ export default function Create() {
         }
     };
 
-    const handleGeneratePdfLink = () => {
+    const handleGeneratePdfLink = async () => {
         if (!pdfDataUrl || typeof window === 'undefined') return;
         setPdfError('');
 
-        const encoded = encodePdfDataUrl(pdfDataUrl);
+        let resolved = pdfDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(pdfDataUrl);
+        } catch {
+            setPdfError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodePdfDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/pdf');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -909,11 +1130,18 @@ export default function Create() {
         setPdfLink(link);
     };
 
-    const handleGeneratePdfRenderAllLink = () => {
+    const handleGeneratePdfRenderAllLink = async () => {
         if (!pdfDataUrl || typeof window === 'undefined') return;
         setPdfError('');
 
-        const encoded = encodePdfDataUrl(pdfDataUrl);
+        let resolved = pdfDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(pdfDataUrl);
+        } catch {
+            setPdfError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodePdfDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/pdf?fullscreen=1');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -989,11 +1217,18 @@ export default function Create() {
         }
     };
 
-    const handleGenerateVideoLink = () => {
+    const handleGenerateVideoLink = async () => {
         if (!videoDataUrl || typeof window === 'undefined') return;
         setVideoError('');
 
-        const encoded = encodeVideoDataUrl(videoDataUrl);
+        let resolved = videoDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(videoDataUrl);
+        } catch {
+            setVideoError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodeVideoDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/video');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -1006,11 +1241,18 @@ export default function Create() {
         setVideoLink(link);
     };
 
-    const handleGenerateVideoRenderAllLink = () => {
+    const handleGenerateVideoRenderAllLink = async () => {
         if (!videoDataUrl || typeof window === 'undefined') return;
         setVideoError('');
 
-        const encoded = encodeVideoDataUrl(videoDataUrl);
+        let resolved = videoDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(videoDataUrl);
+        } catch {
+            setVideoError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodeVideoDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/video?fullscreen=1');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -1103,11 +1345,18 @@ export default function Create() {
         }
     };
 
-    const handleGenerateAudioLink = () => {
+    const handleGenerateAudioLink = async () => {
         if (!audioDataUrl || typeof window === 'undefined') return;
         setAudioError('');
 
-        const encoded = encodeAudioDataUrl(audioDataUrl);
+        let resolved = audioDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(audioDataUrl);
+        } catch {
+            setAudioError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodeAudioDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/audio');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -1120,11 +1369,18 @@ export default function Create() {
         setAudioLink(link);
     };
 
-    const handleGenerateAudioRenderAllLink = () => {
+    const handleGenerateAudioRenderAllLink = async () => {
         if (!audioDataUrl || typeof window === 'undefined') return;
         setAudioError('');
 
-        const encoded = encodeAudioDataUrl(audioDataUrl);
+        let resolved = audioDataUrl;
+        try {
+            resolved = await resolveDataUrlForEncoding(audioDataUrl);
+        } catch {
+            setAudioError(t('create.invalidHash'));
+            return;
+        }
+        const encoded = encodeAudioDataUrl(resolved);
         const baseUrl = window.location.origin;
         const fullPath = withBasePath('render/audio?fullscreen=1');
         const link = `${baseUrl}${fullPath}#d=${encoded}`;
@@ -1152,10 +1408,16 @@ export default function Create() {
     };
 
     const handleClearAudio = () => {
+        if (isAudioRecording) {
+            stopAudioRecording();
+        }
         setAudioDataUrl('');
         setAudioLink('');
         setAudioRenderAllLink('');
         setAudioError('');
+        setAudioRecordingError('');
+        setAudioRecordingSeconds(0);
+        setAudioRecordingPercent(0);
         setAudioSourceLink('');
         setAudioSourceUrl('');
         setAudioFile(null);
@@ -1638,6 +1900,20 @@ export default function Create() {
                         onGenerateRenderAll={handleGenerateAudioRenderAllLink}
                         onClear={handleClearAudio}
                         onCopyLink={handleCopyLink}
+                        recordTitle={t('create.audioRecordTitle')}
+                        micLabel={t('create.audioMicLabel')}
+                        recordStartLabel={t('create.audioRecordStart')}
+                        recordStopLabel={t('create.audioRecordStop')}
+                        recordingLabel={t('create.audioRecording')}
+                        devices={audioInputDevices}
+                        selectedDeviceId={selectedAudioDeviceId}
+                        onDeviceChange={setSelectedAudioDeviceId}
+                        isRecording={isAudioRecording}
+                        recordingSeconds={audioRecordingSeconds}
+                        recordingPercent={audioRecordingPercent}
+                        recordingError={audioRecordingError}
+                        onStartRecording={startAudioRecording}
+                        onStopRecording={stopAudioRecording}
                     />
                 );
             case 'office':

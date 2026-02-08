@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { Select } from '@/shared/ui/Select';
 import {
     AudioPlaceholder,
     AudioPlayer,
@@ -54,6 +55,22 @@ interface AudioToolCardProps {
     onGenerateRenderAll: () => void;
     onClear: () => void;
     onCopyLink: (value: string) => void;
+
+    // Recording
+    recordTitle: string;
+    micLabel: string;
+    recordStartLabel: string;
+    recordStopLabel: string;
+    recordingLabel: string;
+    devices: MediaDeviceInfo[];
+    selectedDeviceId: string;
+    onDeviceChange: (deviceId: string) => void;
+    isRecording: boolean;
+    recordingSeconds: number;
+    recordingPercent: number;
+    recordingError: string;
+    onStartRecording: () => void;
+    onStopRecording: () => void;
 }
 
 export function AudioToolCard({
@@ -92,11 +109,66 @@ export function AudioToolCard({
     onGenerateRenderAll,
     onClear,
     onCopyLink,
+    recordTitle,
+    micLabel,
+    recordStartLabel,
+    recordStopLabel,
+    recordingLabel,
+    devices,
+    selectedDeviceId,
+    onDeviceChange,
+    isRecording,
+    recordingSeconds,
+    recordingPercent,
+    recordingError,
+    onStartRecording,
+    onStopRecording,
 }: AudioToolCardProps) {
     return (
         <Card title={title}>
             <AudioSection>
                 <p style={{ margin: 0 }}>{description}</p>
+
+                <div style={{ marginTop: 14 }}>
+                    <p style={{ margin: 0, fontWeight: 700 }}>{recordTitle}</p>
+                    {devices.length > 0 && (
+                        <div style={{ marginTop: 10 }}>
+                            <Select
+                                label={micLabel}
+                                value={selectedDeviceId}
+                                options={devices.map((d, idx) => ({
+                                    value: d.deviceId,
+                                    label: d.label || `Microphone ${idx + 1}`,
+                                }))}
+                                onChange={(event) => onDeviceChange(event.target.value)}
+                                disabled={isRecording}
+                            />
+                        </div>
+                    )}
+
+                    <ButtonGroup style={{ marginTop: 12 }}>
+                        {!isRecording ? (
+                            <Button onClick={onStartRecording} variant="secondary">
+                                {recordStartLabel}
+                            </Button>
+                        ) : (
+                            <Button onClick={onStopRecording} variant="secondary">
+                                {recordStopLabel}
+                            </Button>
+                        )}
+                    </ButtonGroup>
+
+                    {isRecording && (
+                        <p style={{ margin: '10px 0 0', opacity: 0.85 }}>
+                            {recordingLabel} {recordingSeconds}s • {recordingPercent}%
+                        </p>
+                    )}
+
+                    {recordingError && (
+                        <ErrorMessage>{recordingError}</ErrorMessage>
+                    )}
+                </div>
+
                 <FileInput
                     ref={audioInputRef}
                     type="file"
