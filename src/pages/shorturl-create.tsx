@@ -124,39 +124,44 @@ export default function ShortUrlCreatePage() {
         if (typeof window === 'undefined') return;
 
         try {
-            // Option A: compact AT2 token
-            const generatedToken = encodeShortUrlToken(input, { mode: 'compact' });
-            const atPathShort = withBasePath(`/s/${generatedToken}`);
-            const atFullShort = `${window.location.origin}${atPathShort}${silentFlagSuffix}`;
-            const atPathLong = withBasePath(`/shorturl/${generatedToken}`);
-            const atFullLong = `${window.location.origin}${atPathLong}${silentFlagSuffix}`;
+            // Build candidates independently so one failing codec (e.g. AT2 on huge URLs)
+            // does not prevent other shorteners (e.g. RefCodes) from working.
+            const candidates: Array<{ t: string; link: string }> = [];
 
-            // Option B: reference code (vh-/vp-/yt-/...) when possible
-            const ref = encodeRefCode(input);
-            const refPathShort = ref ? withBasePath(`/s/${ref}`) : '';
-            const refFullShort = ref ? `${window.location.origin}${refPathShort}${silentFlagSuffix}` : '';
-            const refPathLong = ref ? withBasePath(`/shorturl/${ref}`) : '';
-            const refFullLong = ref ? `${window.location.origin}${refPathLong}${silentFlagSuffix}` : '';
-
-            // Option C: direct internal renderer link (silent + instant) when possible
-            const directInternal = (() => {
-                if (!instantRenderer || !ref) return '';
-                const decoded = decodeRefCode(ref);
-                if (!decoded || decoded.kind !== 'path') return '';
-                return `${window.location.origin}${decoded.path}`;
-            })();
-
-            // Choose the shortest full link as the primary output.
-            const candidates: Array<{ t: string; link: string }> = [
-                { t: generatedToken, link: atFullShort },
-                { t: generatedToken, link: atFullLong },
-            ];
-            if (ref) {
-                if (refFullShort) candidates.push({ t: ref, link: refFullShort });
-                if (refFullLong) candidates.push({ t: ref, link: refFullLong });
+            // Option A: compact AT2 token (may fail on extremely large URLs)
+            try {
+                const generatedToken = encodeShortUrlToken(input, { mode: 'compact' });
+                const atPathShort = withBasePath(`/s/${generatedToken}`);
+                const atFullShort = `${window.location.origin}${atPathShort}${silentFlagSuffix}`;
+                const atPathLong = withBasePath(`/shorturl/${generatedToken}`);
+                const atFullLong = `${window.location.origin}${atPathLong}${silentFlagSuffix}`;
+                candidates.push({ t: generatedToken, link: atFullShort });
+                candidates.push({ t: generatedToken, link: atFullLong });
+            } catch {
+                // ignore AT failures; we can still shorten via refcodes
             }
-            if (directInternal && ref) {
-                candidates.push({ t: ref, link: directInternal });
+
+            // Option B: reference code (vh-/vp-/yt-/...) when possible (safe)
+            const ref = encodeRefCode(input);
+            if (ref) {
+                const refPathShort = withBasePath(`/s/${ref}`);
+                const refFullShort = `${window.location.origin}${refPathShort}${silentFlagSuffix}`;
+                const refPathLong = withBasePath(`/shorturl/${ref}`);
+                const refFullLong = `${window.location.origin}${refPathLong}${silentFlagSuffix}`;
+                candidates.push({ t: ref, link: refFullShort });
+                candidates.push({ t: ref, link: refFullLong });
+
+                // Option C: direct internal renderer link (silent + instant) when possible
+                if (instantRenderer) {
+                    const decoded = decodeRefCode(ref);
+                    if (decoded && decoded.kind === 'path') {
+                        candidates.push({ t: ref, link: `${window.location.origin}${decoded.path}` });
+                    }
+                }
+            }
+
+            if (candidates.length === 0) {
+                throw new Error(t('shorturlCreate.error'));
             }
 
             // Remove duplicates

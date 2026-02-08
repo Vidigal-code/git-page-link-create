@@ -1,4 +1,3 @@
-import { uint8ArrayToBase64 } from '@/shared/lib/base64';
 import { decodeTypedBytesPayload, encodeTypedBytesPayload } from '@/shared/lib/shorturl/bytesPayload';
 
 export interface ImageDataPayload {
@@ -68,9 +67,9 @@ export function decodeImageDataUrl(encoded: string): ImageDataPayload {
         };
         const mimeType = mimeByTypeId[compact.typeId] || 'image/png';
         const extension = mimeType.split('/')[1] ?? 'png';
-        const base64 = uint8ArrayToBase64(compact.bytes);
-        const dataUrl = `data:${mimeType};base64,${base64}`;
-        return { dataUrl, mimeType, extension, bytes: compact.bytes };
+        // IMPORTANT: do NOT rebuild a huge base64 data URL here (memory heavy).
+        // Use `bytes` + mimeType instead.
+        return { dataUrl: '', mimeType, extension, bytes: compact.bytes };
     }
 
     const dataUrl = decodeURIComponent(encoded);

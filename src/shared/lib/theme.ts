@@ -17,6 +17,7 @@ let maxPdfUrlLength = 8000;
 let maxVideoUrlLength = 8000;
 let maxAudioUrlLength = 8000;
 let maxOfficeUrlLength = 8000;
+let shortUrlRedirectDelaySeconds = 5;
 let availableThemes: {
     id: string;
     name: string;
@@ -52,6 +53,9 @@ export async function loadAvailableThemes(): Promise<typeof availableThemes> {
         maxVideoUrlLength = data.MaxVideoUrlLength || maxUrlLength;
         maxAudioUrlLength = data.MaxAudioUrlLength || maxUrlLength;
     maxOfficeUrlLength = data.MaxOfficeUrlLength || maxUrlLength;
+        shortUrlRedirectDelaySeconds = Number.isFinite(data.ShortUrlRedirectDelaySeconds)
+            ? Math.max(0, Math.min(60, Math.floor(data.ShortUrlRedirectDelaySeconds)))
+            : 5;
         return availableThemes;
     } catch {
         return [];
@@ -245,5 +249,13 @@ export function getMaxAudioUrlLength(): number {
  */
 export function getMaxOfficeUrlLength(): number {
     return maxOfficeUrlLength;
+}
+
+/**
+ * Get the redirect delay (seconds) used by `/shorturl` when the shared link requests
+ * non-silent mode (`?z=0`).
+ */
+export function getShortUrlRedirectDelaySeconds(): number {
+    return shortUrlRedirectDelaySeconds;
 }
 

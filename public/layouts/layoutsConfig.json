@@ -10,6 +10,7 @@
     "MaxVideoUrlLength": 2000000,
     "MaxAudioUrlLength": 2000000,
     "MaxOfficeUrlLength": 2000000,
+    "ShortUrlRedirectDelaySeconds": 5,
     "LangDefault": "en",
     "ThemeDefault": "github-dark",
     "layouts": [

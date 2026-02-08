@@ -13,7 +13,7 @@ import {
     ErrorDescription,
     ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
-import { PdfWrapper, PdfFrame, FullScreenPdfFrame } from '@/shared/styles/pages/render-pdf.styles';
+import { PdfWrapper, PdfFrame } from '@/shared/styles/pages/render-pdf.styles';
 
 export default function RenderPdf() {
     const router = useRouter();
@@ -27,6 +27,15 @@ export default function RenderPdf() {
     const [pdfBlobUrl, setPdfBlobUrl] = useState('');
 
     const isFullscreen = fullscreen === '1' || fullscreen === 'true';
+
+    // Some browsers show "I/O error" when rendering blob-PDFs inside an iframe.
+    // For fullscreen mode, prefer navigating directly to the blob URL once ready.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (!isFullscreen) return;
+        if (!pdfBlobUrl) return;
+        window.location.replace(pdfBlobUrl);
+    }, [isFullscreen, pdfBlobUrl]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -145,13 +154,13 @@ export default function RenderPdf() {
     }
 
     if (isFullscreen) {
+        // Blank while we build the blob URL; once ready we navigate to it.
         return (
             <>
                 <Head>
                     <title>{t('renderPdf.title')} - {t('common.appName')}</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
-                <FullScreenPdfFrame src={pdfBlobUrl || undefined} title={t('renderPdf.title')} />
             </>
         );
     }

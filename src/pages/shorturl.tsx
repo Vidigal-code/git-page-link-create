@@ -8,6 +8,7 @@ import { Input } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
 import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
 import { decodeRefCode, decodeShortUrlToken } from '@/shared/lib/shorturl';
+import { getShortUrlRedirectDelaySeconds } from '@/shared/lib/theme';
 import {
     RenderContainer,
     ErrorContainer,
@@ -78,6 +79,11 @@ export default function ShortUrlRedirectPage() {
     const [success, setSuccess] = useState<string>('');
     const [manualTokenInput, setManualTokenInput] = useState('');
     const [decodedUrl, setDecodedUrl] = useState('');
+    const delaySeconds = useMemo(() => {
+        const d = getShortUrlRedirectDelaySeconds();
+        return Number.isFinite(d) ? Math.max(0, Math.min(60, Math.floor(d))) : 5;
+    }, []);
+    const [countdownSec, setCountdownSec] = useState<number>(delaySeconds);
     const [silentRedirect] = useState(() => {
         if (typeof window === 'undefined') return true;
         try {
@@ -102,30 +108,50 @@ export default function ShortUrlRedirectPage() {
         if (typeof window === 'undefined') return;
         if (!code) return;
 
+        setError('');
+        setSuccess('');
+        setDecodedUrl('');
+        setCountdownSec(delaySeconds);
+
         try {
-            // 1) AT* tokens (legacy digits-only + new compact v2)
-            if (code.trim().toUpperCase().startsWith('AT')) {
-                const url = decodeShortUrlToken(code);
-                window.location.replace(url);
+            const targetUrl = (() => {
+                // 1) AT* tokens (legacy digits-only + new compact v2)
+                if (code.trim().toUpperCase().startsWith('AT')) {
+                    return decodeShortUrlToken(code);
+                }
+
+                // 2) Reference codes (vh-/vp-/yt-/...)
+                const decoded = decodeRefCode(code);
+                if (!decoded) throw new Error('Invalid shorturl token');
+                if (decoded.kind === 'absolute') return decoded.url;
+                return `${window.location.origin}${decoded.path}`;
+            })();
+
+            // Silent: redirect immediately and render nothing
+            if (silentRedirect) {
+                window.location.replace(targetUrl);
                 return;
             }
 
-            // 2) Reference codes (vh-/vp-/yt-/...)
-            const decoded = decodeRefCode(code);
-            if (!decoded) {
-                throw new Error('Invalid shorturl token');
-            }
-            if (decoded.kind === 'absolute') {
-                window.location.replace(decoded.url);
-                return;
-            }
+            // Non-silent: show the decoded target and wait a bit (natural delay)
+            setDecodedUrl(targetUrl);
 
-            const target = `${window.location.origin}${decoded.path}`;
-            window.location.replace(target);
+            const timeout = window.setTimeout(() => {
+                window.location.replace(targetUrl);
+            }, delaySeconds * 1000);
+
+            const interval = window.setInterval(() => {
+                setCountdownSec((prev) => (prev > 0 ? prev - 1 : 0));
+            }, 1000);
+
+            return () => {
+                window.clearTimeout(timeout);
+                window.clearInterval(interval);
+            };
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Invalid shorturl token');
         }
-    }, [code]);
+    }, [code, silentRedirect, delaySeconds]);
 
     const handleDecode = () => {
         setError('');
@@ -288,12 +314,38 @@ export default function ShortUrlRedirectPage() {
             </Head>
             <RenderContainer>
                 <Card title={t('shorturlDecoder.redirectingTitle')}>
-                    <p style={{ margin: '0 0 6px', opacity: 0.85 }}>
+                    <p style={{ margin: '0 0 10px', opacity: 0.85 }}>
                         <strong>{t('shorturlDecoder.codeLabel')}:</strong>
                     </p>
                     <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                         {code}
                     </LinkDisplay>
+
+                    {decodedUrl && (
+                        <>
+                            <p style={{ margin: '14px 0 6px', opacity: 0.85 }}>
+                                <strong>{t('shorturlDecoder.decodedUrlLabel')}:</strong>
+                            </p>
+                            <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                                {decodedUrl}
+                            </LinkDisplay>
+                        </>
+                    )}
+
+                    <p style={{ marginTop: 14, opacity: 0.8 }}>
+                        {t('shorturlDecoder.redirectingIn')} {countdownSec}s…
+                    </p>
+
+                    {decodedUrl && (
+                        <ButtonGroup>
+                            <Button onClick={handleRedirect}>
+                                {t('shorturlDecoder.redirect')}
+                            </Button>
+                            <Button onClick={() => handleCopy(decodedUrl)} variant="secondary">
+                                {t('create.copyLink')}
+                            </Button>
+                        </ButtonGroup>
+                    )}
                 </Card>
             </RenderContainer>
         </>

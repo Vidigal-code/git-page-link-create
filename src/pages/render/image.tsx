@@ -23,6 +23,7 @@ export default function RenderImage() {
     const [imageDataUrl, setImageDataUrl] = useState('');
     const [imageBytes, setImageBytes] = useState<Uint8Array | null>(null);
     const [imageExtension, setImageExtension] = useState('png');
+    const [imageMimeType, setImageMimeType] = useState('image/png');
     const [imageSourceUrl, setImageSourceUrl] = useState('');
     const [imageBlobUrl, setImageBlobUrl] = useState('');
     const [error, setError] = useState(false);
@@ -59,6 +60,7 @@ export default function RenderImage() {
             setImageDataUrl(decoded.dataUrl);
             setImageBytes(decoded.bytes ?? null);
             setImageExtension(decoded.extension);
+            setImageMimeType(decoded.mimeType || 'image/png');
             setError(false);
         } catch {
             setError(true);
@@ -73,15 +75,14 @@ export default function RenderImage() {
             return;
         }
         try {
-            const mimeType = imageDataUrl.substring(5, imageDataUrl.indexOf(';')) || 'image/png';
-            const blob = new Blob([imageBytes], { type: mimeType });
+            const blob = new Blob([imageBytes], { type: imageMimeType || 'image/png' });
             const url = URL.createObjectURL(blob);
             setImageBlobUrl(url);
             return () => URL.revokeObjectURL(url);
         } catch {
             setImageBlobUrl('');
         }
-    }, [imageBytes, imageDataUrl]);
+    }, [imageBytes, imageMimeType]);
 
     const handleDownload = () => {
         if (imageSourceUrl) {
@@ -93,8 +94,7 @@ export default function RenderImage() {
         }
 
         if (imageBytes) {
-            const mimeType = imageDataUrl.substring(5, imageDataUrl.indexOf(';')) || 'image/png';
-            const blob = new Blob([imageBytes], { type: mimeType });
+            const blob = new Blob([imageBytes], { type: imageMimeType || 'image/png' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
