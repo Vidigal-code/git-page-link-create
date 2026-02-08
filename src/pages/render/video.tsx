@@ -59,8 +59,25 @@ export default function RenderVideo() {
 
         try {
             const decoded = decodeVideoDataUrl(payload);
-            setVideoDataUrl(decoded.dataUrl);
-            setVideoBytes(decoded.bytes ?? null);
+            // Avoid giant legacy data URLs (can throw "URI Too Long" in some browsers).
+            if (!decoded.bytes && decoded.dataUrl?.startsWith('data:') && decoded.dataUrl.length > 20_000) {
+                const base64 = decoded.dataUrl.split(',')[1] ?? '';
+                if (base64) {
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i += 1) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+                    setVideoBytes(bytes);
+                    setVideoDataUrl('');
+                } else {
+                    setVideoDataUrl(decoded.dataUrl);
+                    setVideoBytes(null);
+                }
+            } else {
+                setVideoDataUrl(decoded.dataUrl);
+                setVideoBytes(decoded.bytes ?? null);
+            }
             setVideoMimeType(decoded.mimeType || 'video/mp4');
             setVideoExtension(decoded.extension);
             setError(false);

@@ -57,8 +57,25 @@ export default function RenderImage() {
 
         try {
             const decoded = decodeImageDataUrl(payload);
-            setImageDataUrl(decoded.dataUrl);
-            setImageBytes(decoded.bytes ?? null);
+            // Avoid rendering giant data URLs directly (can throw "URI Too Long" in some browsers).
+            if (!decoded.bytes && decoded.dataUrl?.startsWith('data:') && decoded.dataUrl.length > 20_000) {
+                const base64 = decoded.dataUrl.split(',')[1] ?? '';
+                if (base64) {
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i += 1) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+                    setImageBytes(bytes);
+                    setImageDataUrl('');
+                } else {
+                    setImageDataUrl(decoded.dataUrl);
+                    setImageBytes(null);
+                }
+            } else {
+                setImageDataUrl(decoded.dataUrl);
+                setImageBytes(decoded.bytes ?? null);
+            }
             setImageExtension(decoded.extension);
             setImageMimeType(decoded.mimeType || 'image/png');
             setError(false);
@@ -69,28 +86,8 @@ export default function RenderImage() {
         }
     }, [data]);
 
-    // Legacy links may contain a huge `data:*;base64,...` which can throw "URI Too Long" in some browsers.
-    // Convert to bytes and render via Blob URL instead.
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        if (imageBytes) return;
-        if (!imageDataUrl) return;
-        if (!imageDataUrl.startsWith('data:')) return;
-        const base64 = imageDataUrl.split(',')[1] ?? '';
-        if (!base64) return;
-        try {
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i += 1) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            setImageBytes(bytes);
-            // Drop the giant string to reduce memory pressure
-            setImageDataUrl('');
-        } catch {
-            // keep as-is
-        }
-    }, [imageDataUrl, imageBytes]);
+    // Note: we convert legacy huge `data:` payloads to bytes in the main decode effect above,
+    // to avoid even a single render with an oversized `src=...`.
 
     useEffect(() => {
         if (!imageBytes || typeof window === 'undefined') {

@@ -59,8 +59,25 @@ export default function RenderAudio() {
 
         try {
             const decoded = decodeAudioDataUrl(payload);
-            setAudioDataUrl(decoded.dataUrl);
-            setAudioBytes(decoded.bytes ?? null);
+            // Avoid giant legacy data URLs (can throw "URI Too Long" in some browsers).
+            if (!decoded.bytes && decoded.dataUrl?.startsWith('data:') && decoded.dataUrl.length > 20_000) {
+                const base64 = decoded.dataUrl.split(',')[1] ?? '';
+                if (base64) {
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i += 1) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+                    setAudioBytes(bytes);
+                    setAudioDataUrl('');
+                } else {
+                    setAudioDataUrl(decoded.dataUrl);
+                    setAudioBytes(null);
+                }
+            } else {
+                setAudioDataUrl(decoded.dataUrl);
+                setAudioBytes(decoded.bytes ?? null);
+            }
             setAudioMimeType(decoded.mimeType || 'audio/mpeg');
             setAudioExtension(decoded.extension);
             setError(false);
@@ -70,29 +87,8 @@ export default function RenderAudio() {
             setIsReady(true);
         }
     }, [data, source]);
-
-    // Legacy links may contain a huge `data:*;base64,...` which can throw "URI Too Long" in some browsers.
-    // Convert to bytes and render via Blob URL instead.
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        if (audioBytes) return;
-        if (!audioDataUrl) return;
-        if (!audioDataUrl.startsWith('data:')) return;
-        const base64 = audioDataUrl.split(',')[1] ?? '';
-        if (!base64) return;
-        try {
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i += 1) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            setAudioBytes(bytes);
-            // Drop the giant string to reduce memory pressure
-            setAudioDataUrl('');
-        } catch {
-            // keep as-is
-        }
-    }, [audioDataUrl, audioBytes]);
+    // Note: we convert legacy huge `data:` payloads to bytes in the main decode effect above,
+    // to avoid even a single render with an oversized `src=...`.
 
     useEffect(() => {
         if (!audioBytes || typeof window === 'undefined') {
