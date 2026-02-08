@@ -14,7 +14,6 @@ import {
     Container,
     ErrorMessage,
     FormSection,
-    LinkDisplay,
     SuccessMessage,
     StyledCheckbox,
 } from '@/shared/styles/pages/create.styles';
@@ -27,6 +26,16 @@ function isValidHttpUrl(value: string): boolean {
     } catch {
         return false;
     }
+}
+
+function truncateMiddle(value: string, maxChars: number): string {
+    const s = value || '';
+    if (!s) return '';
+    if (maxChars <= 10) return s.slice(0, maxChars);
+    if (s.length <= maxChars) return s;
+    const keepStart = Math.ceil((maxChars - 3) * 0.6);
+    const keepEnd = Math.floor((maxChars - 3) * 0.4);
+    return `${s.slice(0, keepStart)}...${s.slice(s.length - keepEnd)}`;
 }
 
 export default function ShortUrlCreatePage() {
@@ -252,16 +261,50 @@ export default function ShortUrlCreatePage() {
                                 <p style={{ margin: '0 0 6px' }}>
                                     <strong>{t('shorturlCreate.shortLinkLabel')}:</strong>
                                 </p>
-                                <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                                    {shortLink}
-                                </LinkDisplay>
+                                <textarea
+                                    readOnly
+                                    value={truncateMiddle(shortLink, 180)}
+                                    title={shortLink}
+                                    aria-label={t('shorturlCreate.shortLinkLabel')}
+                                    rows={2}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: 8,
+                                        background: 'rgba(255,255,255,0.04)',
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        color: 'inherit',
+                                        fontFamily: 'monospace',
+                                        resize: 'none',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                    }}
+                                />
 
                                 <p style={{ margin: '0 0 6px' }}>
                                     <strong>{t('shorturlCreate.tokenLabel')}:</strong>
                                 </p>
-                                <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                                    {token}
-                                </LinkDisplay>
+                                <textarea
+                                    readOnly
+                                    value={truncateMiddle(token, 140)}
+                                    title={token}
+                                    aria-label={t('shorturlCreate.tokenLabel')}
+                                    rows={2}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: 8,
+                                        background: 'rgba(255,255,255,0.04)',
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        color: 'inherit',
+                                        fontFamily: 'monospace',
+                                        resize: 'none',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                    }}
+                                />
 
                                 <ButtonGroup>
                                     <Button onClick={() => handleCopy(shortLink)}>
@@ -283,9 +326,26 @@ export default function ShortUrlCreatePage() {
                                         <p style={{ margin: '0 0 6px' }}>
                                             <strong>{t('shorturlCreate.altTitle')}:</strong>
                                         </p>
-                                        <LinkDisplay style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                                            {altShortLink}
-                                        </LinkDisplay>
+                                        <textarea
+                                            readOnly
+                                            value={truncateMiddle(altShortLink, 180)}
+                                            title={altShortLink}
+                                            aria-label={t('shorturlCreate.altTitle')}
+                                            rows={2}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px',
+                                                borderRadius: 8,
+                                                background: 'rgba(255,255,255,0.04)',
+                                                border: '1px solid rgba(255,255,255,0.12)',
+                                                color: 'inherit',
+                                                fontFamily: 'monospace',
+                                                resize: 'none',
+                                                overflow: 'hidden',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word',
+                                            }}
+                                        />
                                         <ButtonGroup>
                                             <Button onClick={() => handleCopy(altShortLink)} variant="secondary">
                                                 {t('create.copyLink')}
