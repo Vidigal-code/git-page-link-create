@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     ButtonGroup,
     ErrorMessage,
@@ -115,7 +116,7 @@ export function PdfToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(pdfLink, '_blank')}
+                                onClick={() => safeOpenUrl(pdfLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -132,7 +133,7 @@ export function PdfToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(pdfRenderAllLink, '_blank')}
+                                onClick={() => safeOpenUrl(pdfRenderAllLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}

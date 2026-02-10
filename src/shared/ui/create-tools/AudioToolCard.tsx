@@ -3,6 +3,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     AudioPlaceholder,
     AudioPlayer,
@@ -246,7 +247,7 @@ export function AudioToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(audioLink, '_blank')}
+                                onClick={() => safeOpenUrl(audioLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -263,7 +264,7 @@ export function AudioToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(audioRenderAllLink, '_blank')}
+                                onClick={() => safeOpenUrl(audioRenderAllLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -280,7 +281,7 @@ export function AudioToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(audioSourceLink, '_blank')}
+                                onClick={() => safeOpenUrl(audioSourceLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}

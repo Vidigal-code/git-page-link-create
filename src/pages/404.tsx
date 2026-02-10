@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
 import { SHORTURL_REF_CODES } from '@/shared/lib/shorturl/refcodes';
+import { safeLocationReplace } from '@/shared/lib/browser';
 
 const Container = styled.div`
   display: flex;
@@ -121,7 +122,7 @@ export default function Custom404() {
   useEffect(() => {
     if (!recoveryTarget || typeof window === 'undefined') return;
     // Replace immediately to avoid showing the 404 UI for recoverable deep-links
-    window.location.replace(recoveryTarget);
+    safeLocationReplace(recoveryTarget);
   }, [recoveryTarget]);
 
   if (isRecovering) {

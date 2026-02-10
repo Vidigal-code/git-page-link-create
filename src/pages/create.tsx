@@ -34,6 +34,7 @@ import { encodePdfDataUrl } from '@/shared/lib/pdf';
 import { compressVideoFile, encodeVideoDataUrl } from '@/shared/lib/video';
 import { compressAudioFile, encodeAudioDataUrl, getSupportedAudioMimeType } from '@/shared/lib/audio';
 import { getOfficeViewerUrl } from '@/shared/lib/office';
+import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
 import {
     AudioToolCard,
     ContentToolCard,
@@ -653,10 +654,8 @@ export default function Create() {
         setContentSourceLink(link);
     };
 
-    const handleCopyLink = (value: string) => {
-        if (navigator?.clipboard?.writeText) {
-            navigator.clipboard.writeText(value);
-        }
+    const handleCopyLink = async (value: string) => {
+        await copyTextToClipboard(value);
         setSuccessMessage(t('create.linkCopied'));
     };
 
@@ -1641,7 +1640,7 @@ export default function Create() {
         const response = await fetch(qrDataUrl);
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
-        const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        const newWindow = safeOpenUrl(blobUrl, '_blank', 'noopener,noreferrer');
         if (!newWindow) {
             URL.revokeObjectURL(blobUrl);
             return;
@@ -1657,7 +1656,7 @@ export default function Create() {
         const size = Math.max(320, Math.min(qrSize, 800));
         const left = window.screenX + (window.outerWidth - size) / 2;
         const top = window.screenY + (window.outerHeight - size) / 2;
-        const popup = window.open(
+        const popup = safeOpenUrl(
             blobUrl,
             '_blank',
             `noopener,noreferrer,width=${size},height=${size},left=${left},top=${top}`
@@ -2074,7 +2073,7 @@ export default function Create() {
                                             {t('create.copyLink')}
                                         </Button>
                                         <Button
-                                            onClick={() => window.open(generatedLink, '_blank')}
+                                            onClick={() => safeOpenUrl(generatedLink, '_blank')}
                                             variant="secondary"
                                         >
                                             {t('create.openLink')}

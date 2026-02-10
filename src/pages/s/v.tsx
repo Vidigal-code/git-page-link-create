@@ -3,18 +3,17 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useTheme } from 'styled-components';
 import { useI18n } from '@/shared/lib/i18n';
-import { buildLinksRegisterReferencePath, fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
+import { buildLinksRegisterReferenceUrl, fetchLinksRegister, findLinksByReference, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
 import { withBasePath } from '@/shared/lib/basePath';
+import { copyTextToClipboard, getSiteOrigin, safeLocationReplace, safeOpenUrl } from '@/shared/lib/browser';
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { Container, FormSection, ButtonGroup, ErrorMessage } from '@/shared/styles/pages/create.styles';
 
-function openUrl(url: string): void {
-    if (typeof window === 'undefined') return;
-    window.location.replace(url);
-}
+type Theme = ReturnType<typeof useTheme>;
+type TFn = ReturnType<typeof useI18n>['t'];
 
 function parseQueryParamFromAsPath(asPath: string, key: string): string {
     const safeKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -25,6 +24,91 @@ function parseQueryParamFromAsPath(asPath: string, key: string): string {
     } catch {
         return m[1];
     }
+}
+
+type LinksRegisterMatchCardProps = {
+    entry: LinksRegisterEntry;
+    index: number;
+    copiedKey: string;
+    onCopy: (key: string, text: string) => void;
+    t: TFn;
+    theme: Theme;
+    siteOrigin: string;
+};
+
+function LinksRegisterMatchCard({
+    entry,
+    index,
+    copiedKey,
+    onCopy,
+    t,
+    theme,
+    siteOrigin,
+}: LinksRegisterMatchCardProps) {
+    const key = `${entry.ReferenceName}-${index}`;
+    const isCopied = copiedKey === key;
+    const isRefCopied = copiedKey === `${key}-ref`;
+    const refUrl = buildLinksRegisterReferenceUrl(siteOrigin, entry.ReferenceName, '1');
+
+    return (
+        <div
+            key={key}
+            style={{
+                border: `1px solid ${theme.colors.cardBorder}`,
+                borderRadius: 12,
+                padding: 12,
+                background: theme.colors.cardBackground,
+            }}
+        >
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                        {entry.Name || t('linksRegister.item')}
+                    </div>
+                    <div style={{ opacity: 0.8, fontSize: 13 }}>
+                        <strong>{t('linksRegister.refLabel')}:</strong> {entry.ReferenceName}
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <Button
+                        onClick={() => onCopy(key, entry.LinkOriginal)}
+                        variant="secondary"
+                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
+                    >
+                        {isCopied ? t('create.linkCopied') : t('create.copyLink')}
+                    </Button>
+                    <Button
+                        onClick={() => refUrl && onCopy(`${key}-ref`, refUrl)}
+                        variant="secondary"
+                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
+                    >
+                        {isRefCopied ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
+                    </Button>
+                    <Button
+                        onClick={() => refUrl && safeOpenUrl(refUrl, '_blank', 'noopener,noreferrer')}
+                        variant="secondary"
+                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
+                    >
+                        {t('home.linksRegisterOpenRef')}
+                    </Button>
+                    <Button
+                        onClick={() => safeOpenUrl(entry.LinkOriginal, '_blank', 'noopener,noreferrer')}
+                        variant="secondary"
+                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
+                    >
+                        {t('linksRegister.open')}
+                    </Button>
+                </div>
+            </div>
+
+            <ReadOnlyTextarea
+                readOnly
+                value={entry.LinkOriginal}
+                rows={3}
+                style={{ marginTop: 10 }}
+            />
+        </div>
+    );
 }
 
 export default function LinksRegisterVPage() {
@@ -39,6 +123,7 @@ export default function LinksRegisterVPage() {
     const [refInput, setRefInput] = useState('');
     const [autoRedirectDone, setAutoRedirectDone] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
+    const siteOrigin = useMemo(() => getSiteOrigin(), []);
 
     useEffect(() => {
         let alive = true;
@@ -83,13 +168,10 @@ export default function LinksRegisterVPage() {
     const matches = useMemo(() => findLinksByReference(entries, requestedRef), [entries, requestedRef]);
 
     const handleCopy = async (key: string, text: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopiedKey(key);
-            window.setTimeout(() => setCopiedKey(''), 1200);
-        } catch {
-            // ignore
-        }
+        const ok = await copyTextToClipboard(text);
+        if (!ok) return;
+        setCopiedKey(key);
+        window.setTimeout(() => setCopiedKey(''), 1200);
     };
 
     useEffect(() => {
@@ -101,14 +183,14 @@ export default function LinksRegisterVPage() {
         if (matches.length !== 1) return; // duplicates: show list instead
         setAutoRedirectDone(true);
         setIsRedirecting(true);
-        openUrl(matches[0]!.LinkOriginal);
+        safeLocationReplace(matches[0]!.LinkOriginal);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router.isReady, loading, requestedRef, matches.length, refFromQuery, autoRedirectDone]);
 
     const go404 = () => {
         const target = withBasePath('/404');
         if (typeof window !== 'undefined') {
-            window.location.replace(target);
+            safeLocationReplace(target);
         }
     };
 
@@ -126,7 +208,7 @@ export default function LinksRegisterVPage() {
         }
         if (m.length === 1) {
             setIsRedirecting(true);
-            openUrl(m[0]!.LinkOriginal);
+            safeLocationReplace(m[0]!.LinkOriginal);
             return;
         }
         // duplicates: render list below
@@ -222,73 +304,16 @@ export default function LinksRegisterVPage() {
                                     }}
                                 >
                                     {matches.map((m, idx) => (
-                                        (() => {
-                                            const key = `${m.ReferenceName}-${idx}`;
-                                            const isCopied = copiedKey === key;
-                                            const isRefCopied = copiedKey === `${key}-ref`;
-                                            const refUrl = typeof window === 'undefined'
-                                                ? ''
-                                                : `${window.location.origin}${buildLinksRegisterReferencePath(m.ReferenceName, '1')}`;
-                                            return (
-                                        <div
-                                            key={key}
-                                            style={{
-                                                border: `1px solid ${theme.colors.cardBorder}`,
-                                                borderRadius: 12,
-                                                padding: 12,
-                                                background: theme.colors.cardBackground,
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                                                        {m.Name || t('linksRegister.item')}
-                                                    </div>
-                                                    <div style={{ opacity: 0.8, fontSize: 13 }}>
-                                                        <strong>{t('linksRegister.refLabel')}:</strong> {m.ReferenceName}
-                                                    </div>
-                                                </div>
-                                                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                                                    <Button
-                                                        onClick={() => handleCopy(key, m.LinkOriginal)}
-                                                        variant="secondary"
-                                                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
-                                                    >
-                                                        {isCopied ? t('create.linkCopied') : t('create.copyLink')}
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => refUrl && handleCopy(`${key}-ref`, refUrl)}
-                                                        variant="secondary"
-                                                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
-                                                    >
-                                                        {isRefCopied ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => refUrl && window.open(refUrl, '_blank', 'noopener,noreferrer')}
-                                                        variant="secondary"
-                                                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
-                                                    >
-                                                        {t('home.linksRegisterOpenRef')}
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => window.open(m.LinkOriginal, '_blank', 'noopener,noreferrer')}
-                                                        variant="secondary"
-                                                        style={{ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' }}
-                                                    >
-                                                        {t('linksRegister.open')}
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            <ReadOnlyTextarea
-                                                readOnly
-                                                value={m.LinkOriginal}
-                                                rows={3}
-                                                style={{ marginTop: 10 }}
-                                            />
-                                        </div>
-                                            );
-                                        })()
+                                        <LinksRegisterMatchCard
+                                            key={`${m.ReferenceName}-${idx}`}
+                                            entry={m}
+                                            index={idx}
+                                            copiedKey={copiedKey}
+                                            onCopy={handleCopy}
+                                            t={t}
+                                            theme={theme}
+                                            siteOrigin={siteOrigin}
+                                        />
                                     ))}
                                 </div>
                             </Card>

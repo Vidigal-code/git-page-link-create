@@ -10,6 +10,7 @@ import { useI18n } from '@/shared/lib/i18n';
 import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
 import { decodeRefCode, decodeShortUrlToken } from '@/shared/lib/shorturl';
 import { getShortUrlRedirectDelaySeconds } from '@/shared/lib/theme';
+import { copyTextToClipboard, getSiteOrigin, safeLocationReplace, safeOpenUrl } from '@/shared/lib/browser';
 import {
     RenderContainer,
     ErrorContainer,
@@ -124,12 +125,12 @@ export default function ShortUrlRedirectPage() {
                 const decoded = decodeRefCode(code);
                 if (!decoded) throw new Error('Invalid shorturl token');
                 if (decoded.kind === 'absolute') return decoded.url;
-                return `${window.location.origin}${decoded.path}`;
+                return `${getSiteOrigin()}${decoded.path}`;
             })();
 
             // Silent: redirect immediately and render nothing
             if (silentRedirect) {
-                window.location.replace(targetUrl);
+                safeLocationReplace(targetUrl);
                 return;
             }
 
@@ -137,7 +138,7 @@ export default function ShortUrlRedirectPage() {
             setDecodedUrl(targetUrl);
 
             const timeout = window.setTimeout(() => {
-                window.location.replace(targetUrl);
+                safeLocationReplace(targetUrl);
             }, delaySeconds * 1000);
 
             const interval = window.setInterval(() => {
@@ -174,7 +175,7 @@ export default function ShortUrlRedirectPage() {
                 if (decoded.kind === 'absolute') {
                     setDecodedUrl(decoded.url);
                 } else {
-                    setDecodedUrl(`${window.location.origin}${decoded.path}`);
+                    setDecodedUrl(`${getSiteOrigin()}${decoded.path}`);
                 }
             }
             setSuccess(t('shorturlDecoder.decoded'));
@@ -185,18 +186,13 @@ export default function ShortUrlRedirectPage() {
 
     const handleRedirect = () => {
         if (!decodedUrl || typeof window === 'undefined') return;
-        window.location.replace(decodedUrl);
+        safeLocationReplace(decodedUrl);
     };
 
     const handleCopy = async (value: string) => {
-        try {
-            if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(value);
-                setSuccess(t('create.linkCopied'));
-            }
-        } catch {
-            // ignore
-        }
+        const ok = await copyTextToClipboard(value);
+        if (!ok) return;
+        setSuccess(t('create.linkCopied'));
     };
 
     // When visiting `/shorturl` without a token, act as a decoder UI.
@@ -253,7 +249,7 @@ export default function ShortUrlRedirectPage() {
                                             {t('create.copyLink')}
                                         </Button>
                                         <Button
-                                            onClick={() => window.open(decodedUrl, '_blank', 'noopener,noreferrer')}
+                                            onClick={() => safeOpenUrl(decodedUrl, '_blank', 'noopener,noreferrer')}
                                             variant="secondary"
                                         >
                                             {t('create.openLink')}

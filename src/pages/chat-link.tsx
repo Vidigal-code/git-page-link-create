@@ -4,6 +4,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input, TextArea } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
+import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
 import { getMaxUrlLength } from '@/shared/lib/theme';
 import {
     ChatLinkMessage,
@@ -149,18 +150,15 @@ export default function ChatLinkPage() {
 
     const handleCopy = async () => {
         if (!shareLink) return;
-        try {
-            await navigator.clipboard.writeText(shareLink);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1400);
-        } catch {
-            // ignore
-        }
+        const ok = await copyTextToClipboard(shareLink);
+        if (!ok) return;
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1400);
     };
 
     const handleOpenLink = () => {
         if (!shareLink) return;
-        window.open(shareLink, '_blank', 'noopener,noreferrer');
+        safeOpenUrl(shareLink, '_blank', 'noopener,noreferrer');
     };
 
     const handleClear = () => {

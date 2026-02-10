@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
+import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
 import { decodeRefCode, decodeShortUrlToken, encodeRefCode, encodeShortUrlToken } from '@/shared/lib/shorturl';
 import {
     ButtonGroup,
@@ -225,14 +226,9 @@ export default function ShortUrlCreatePage() {
     };
 
     const handleCopy = async (value: string) => {
-        try {
-            if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(value);
-            }
-            setSuccess(t('create.linkCopied'));
-        } catch {
-            // ignore
-        }
+        const ok = await copyTextToClipboard(value);
+        if (!ok) return;
+        setSuccess(t('create.linkCopied'));
     };
 
     return (
@@ -344,7 +340,7 @@ export default function ShortUrlCreatePage() {
                                         {t('shorturlCreate.copyToken')}
                                     </Button>
                                     <Button
-                                        onClick={() => window.open(shortLink, '_blank', 'noopener,noreferrer')}
+                                        onClick={() => safeOpenUrl(shortLink, '_blank', 'noopener,noreferrer')}
                                         variant="secondary"
                                     >
                                         {t('create.openLink')}
@@ -386,7 +382,7 @@ export default function ShortUrlCreatePage() {
                                                 {t('shorturlCreate.copyToken')}
                                             </Button>
                                             <Button
-                                                onClick={() => window.open(altShortLink, '_blank', 'noopener,noreferrer')}
+                                                onClick={() => safeOpenUrl(altShortLink, '_blank', 'noopener,noreferrer')}
                                                 variant="secondary"
                                             >
                                                 {t('create.openLink')}

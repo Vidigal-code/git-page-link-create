@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input, TextArea } from '@/shared/ui/Input';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     ButtonGroup,
     ErrorMessage,
@@ -172,7 +173,7 @@ export function OfficeToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(officeLink, '_blank')}
+                                onClick={() => safeOpenUrl(officeLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -189,7 +190,7 @@ export function OfficeToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(officeRenderAllLink, '_blank')}
+                                onClick={() => safeOpenUrl(officeRenderAllLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}

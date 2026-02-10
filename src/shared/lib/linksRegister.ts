@@ -86,4 +86,11 @@ export function buildLinksRegisterReferencePath(referenceName: string, z?: '0' |
     return withBasePath(`${base}${zQuery}`);
 }
 
+export function buildLinksRegisterReferenceUrl(origin: string, referenceName: string, z?: '0' | '1'): string {
+    const basePath = buildLinksRegisterReferencePath(referenceName, z);
+    if (!origin) return basePath;
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    return `${cleanOrigin}${basePath}`;
+}
+
 

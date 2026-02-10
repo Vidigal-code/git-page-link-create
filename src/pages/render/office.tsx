@@ -11,6 +11,7 @@ import { downloadFile } from '@/shared/lib/download';
 import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import * as XLSX from 'xlsx';
 import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     RenderContainer,
     ErrorContainer,
@@ -201,7 +202,7 @@ export default function RenderOffice() {
                     <>
                         <Card title={t('renderOffice.title')}>
                             <ButtonGroup>
-                                <Button onClick={() => window.open(sourceUrl, '_blank')}>
+                                <Button onClick={() => safeOpenUrl(sourceUrl, '_blank')}>
                                     {t('renderOffice.openSource')}
                                 </Button>
                             </ButtonGroup>

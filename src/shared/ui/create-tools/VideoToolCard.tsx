@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     ButtonGroup,
     CheckboxContainer,
@@ -174,7 +175,7 @@ export function VideoToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(videoLink, '_blank')}
+                                onClick={() => safeOpenUrl(videoLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -191,7 +192,7 @@ export function VideoToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(videoRenderAllLink, '_blank')}
+                                onClick={() => safeOpenUrl(videoRenderAllLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -208,7 +209,7 @@ export function VideoToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(videoSourceLink, '_blank')}
+                                onClick={() => safeOpenUrl(videoSourceLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}

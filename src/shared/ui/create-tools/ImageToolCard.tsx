@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     ButtonGroup,
     CheckboxContainer,
@@ -176,7 +177,7 @@ export function ImageToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(imageLink, '_blank')}
+                                onClick={() => safeOpenUrl(imageLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -193,7 +194,7 @@ export function ImageToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(imageRenderAllLink, '_blank')}
+                                onClick={() => safeOpenUrl(imageRenderAllLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -210,7 +211,7 @@ export function ImageToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(imageSourceLink, '_blank')}
+                                onClick={() => safeOpenUrl(imageSourceLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}

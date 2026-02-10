@@ -3,6 +3,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input, TextArea } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     ButtonGroup,
     LinkDisplay,
@@ -230,7 +231,7 @@ export function QrToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(qrRenderLink, '_blank')}
+                                onClick={() => safeOpenUrl(qrRenderLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
@@ -247,7 +248,7 @@ export function QrToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(qrRenderAllLink, '_blank')}
+                                onClick={() => safeOpenUrl(qrRenderAllLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}

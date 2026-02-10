@@ -7,8 +7,11 @@ import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
-import { buildLinksRegisterReferencePath } from '@/shared/lib/linksRegister';
+import { buildLinksRegisterReferenceUrl } from '@/shared/lib/linksRegister';
 import { fetchLinksRegister, type LinksRegisterEntry } from '@/shared/lib/linksRegister';
+import { copyTextToClipboard, getSiteOrigin, safeOpenUrl } from '@/shared/lib/browser';
+
+type TFn = ReturnType<typeof useI18n>['t'];
 
 const HomeContainer = styled.div`
   display: flex;
@@ -169,6 +172,89 @@ const CTASection = styled.div`
   }
 `;
 
+type LinksRegisterEntryCardProps = {
+  entry: LinksRegisterEntry;
+  index: number;
+  copiedKey: string;
+  onCopy: (key: string, url: string) => void;
+  t: TFn;
+  siteOrigin: string;
+  smallButtonStyle: React.CSSProperties;
+};
+
+function LinksRegisterEntryCard({
+  entry,
+  index,
+  copiedKey,
+  onCopy,
+  t,
+  siteOrigin,
+  smallButtonStyle,
+}: LinksRegisterEntryCardProps) {
+  const key = `${entry.ReferenceName}-${index}`;
+  const isCopied = copiedKey === key;
+  const refUrl = buildLinksRegisterReferenceUrl(siteOrigin, entry.ReferenceName, '1');
+
+  return (
+    <div
+      style={{
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 12,
+        padding: 12,
+        background: 'rgba(255,255,255,0.03)',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>
+            {entry.Name || entry.ReferenceName}
+          </div>
+          <div style={{ opacity: 0.8, fontSize: 13 }}>
+            <strong>{t('home.linksRegisterRefLabel')}:</strong> {entry.ReferenceName}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Button
+            onClick={() => onCopy(key, entry.LinkOriginal)}
+            variant="secondary"
+            style={smallButtonStyle}
+          >
+            {isCopied ? t('create.linkCopied') : t('create.copyLink')}
+          </Button>
+          <Button
+            onClick={() => onCopy(`${key}-ref`, refUrl)}
+            variant="secondary"
+            style={smallButtonStyle}
+          >
+            {copiedKey === `${key}-ref` ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
+          </Button>
+          <Button
+            onClick={() => safeOpenUrl(refUrl, '_blank', 'noopener,noreferrer')}
+            variant="secondary"
+            style={smallButtonStyle}
+          >
+            {t('home.linksRegisterOpenRef')}
+          </Button>
+          <Button
+            onClick={() => safeOpenUrl(entry.LinkOriginal, '_blank', 'noopener,noreferrer')}
+            variant="secondary"
+            style={smallButtonStyle}
+          >
+            {t('home.linksRegisterOpen')}
+          </Button>
+        </div>
+      </div>
+
+      <ReadOnlyTextarea
+        readOnly
+        value={entry.LinkOriginal}
+        rows={3}
+        style={{ marginTop: 10 }}
+      />
+    </div>
+  );
+}
+
 export default function Home() {
   const { t } = useI18n();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
@@ -180,6 +266,7 @@ export default function Home() {
   const [linksRegisterLoading, setLinksRegisterLoading] = useState(true);
   const [linksRegisterError, setLinksRegisterError] = useState('');
   const [copiedKey, setCopiedKey] = useState<string>('');
+  const siteOrigin = useMemo(() => getSiteOrigin(), []);
   const smallButtonStyle = useMemo(
     () => ({ padding: '8px 14px', fontSize: '0.85rem', letterSpacing: '0.5px' } as React.CSSProperties),
     []
@@ -209,13 +296,10 @@ export default function Home() {
   }, [t]);
 
   const handleCopy = async (key: string, url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedKey(key);
-      window.setTimeout(() => setCopiedKey(''), 1200);
-    } catch {
-      // ignore
-    }
+    const ok = await copyTextToClipboard(url);
+    if (!ok) return;
+    setCopiedKey(key);
+    window.setTimeout(() => setCopiedKey(''), 1200);
   };
 
   const jsonLd = {
@@ -370,78 +454,17 @@ export default function Home() {
                   paddingRight: 6,
                 }}
               >
-                {linksRegisterEntries.map((e, idx) => (
-                  (() => {
-                    const key = `${e.ReferenceName}-${idx}`;
-                    const isCopied = copiedKey === key;
-                    return (
-                  <div
-                    key={key}
-                    style={{
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      borderRadius: 12,
-                      padding: 12,
-                      background: 'rgba(255,255,255,0.03)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                      <div>
-                        <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                          {e.Name || e.ReferenceName}
-                        </div>
-                        <div style={{ opacity: 0.8, fontSize: 13 }}>
-                          <strong>{t('home.linksRegisterRefLabel')}:</strong> {e.ReferenceName}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <Button
-                          onClick={() => handleCopy(key, e.LinkOriginal)}
-                          variant="secondary"
-                          style={smallButtonStyle}
-                        >
-                          {isCopied ? t('create.linkCopied') : t('create.copyLink')}
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            if (typeof window === 'undefined') return;
-                            const refUrl = `${window.location.origin}${buildLinksRegisterReferencePath(e.ReferenceName, '1')}`;
-                            handleCopy(`${key}-ref`, refUrl);
-                          }}
-                          variant="secondary"
-                          style={smallButtonStyle}
-                        >
-                          {copiedKey === `${key}-ref` ? t('create.linkCopied') : t('home.linksRegisterCopyRef')}
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            if (typeof window === 'undefined') return;
-                            const refUrl = `${window.location.origin}${buildLinksRegisterReferencePath(e.ReferenceName, '1')}`;
-                            window.open(refUrl, '_blank', 'noopener,noreferrer');
-                          }}
-                          variant="secondary"
-                          style={smallButtonStyle}
-                        >
-                          {t('home.linksRegisterOpenRef')}
-                        </Button>
-                        <Button
-                          onClick={() => window.open(e.LinkOriginal, '_blank', 'noopener,noreferrer')}
-                          variant="secondary"
-                          style={smallButtonStyle}
-                        >
-                          {t('home.linksRegisterOpen')}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <ReadOnlyTextarea
-                      readOnly
-                      value={e.LinkOriginal}
-                      rows={3}
-                      style={{ marginTop: 10 }}
-                    />
-                  </div>
-                    );
-                  })()
+                {linksRegisterEntries.map((entry, idx) => (
+                  <LinksRegisterEntryCard
+                    key={`${entry.ReferenceName}-${idx}`}
+                    entry={entry}
+                    index={idx}
+                    copiedKey={copiedKey}
+                    onCopy={handleCopy}
+                    t={t}
+                    siteOrigin={siteOrigin}
+                    smallButtonStyle={smallButtonStyle}
+                  />
                 ))}
               </div>
             )}

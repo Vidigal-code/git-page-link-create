@@ -3,6 +3,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Select } from '@/shared/ui/Select';
 import { Input, TextArea } from '@/shared/ui/Input';
+import { safeOpenUrl } from '@/shared/lib/browser';
 import {
     ButtonGroup,
     CheckboxContainer,
@@ -158,7 +159,7 @@ export function ContentToolCard({
                                 {copyLabel}
                             </Button>
                             <Button
-                                onClick={() => window.open(contentSourceLink, '_blank')}
+                                onClick={() => safeOpenUrl(contentSourceLink, '_blank')}
                                 variant="secondary"
                             >
                                 {openLabel}
