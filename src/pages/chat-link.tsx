@@ -13,7 +13,7 @@ import {
     createEmptyChatPayload,
     encodeChatPayload,
     formatMessageTimestamp,
-    tryReadChatPayloadFromUrl,
+    tryReadChatPayloadFromUrl, ReplyTarget, isNonEmpty, newId,
 } from '@/shared/lib/chat-link';
 import {
     Bubble,
@@ -39,17 +39,6 @@ import {
     TopBar,
     TopBarLeft,
 } from '@/shared/styles/pages/chat-link.styles';
-
-type ReplyTarget = { id: string } | null;
-
-function newId(): string {
-    // Short, URL-friendly, stable enough for a link-based transcript
-    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function isNonEmpty(value: string): boolean {
-    return value.trim().length > 0;
-}
 
 export default function ChatLinkPage() {
     const { t, locale } = useI18n();

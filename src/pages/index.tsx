@@ -38,8 +38,7 @@ const Title = styled.h1`
   margin-bottom: 16px;
   ${({ theme }) => theme.animations.enableGlow && `
     text-shadow: 0 0 20px ${theme.colors.primary};
-  `}
-
+  `};
   @media (max-width: 768px) {
     font-size: ${({ theme }) => theme.typography.fontSize.large};
     margin-bottom: 12px;

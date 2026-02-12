@@ -2,6 +2,84 @@ import pako from 'pako';
 import { bytesToDecimalString, decimalStringToBytes } from '@/shared/lib/shorturl/base10';
 import { base64ToUint8Array, normalizeUrlSafeBase64, uint8ArrayToBase64 } from '@/shared/lib/base64';
 import { findBestDictionaryMatch, getDictionaryPrefixById } from '@/shared/lib/shorturl/dictionary';
+import {BASE_PATH} from "@/shared/lib/basePath";
+
+
+export function isValidHttpUrl(value: string): boolean {
+    if (!value) return false;
+    try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+export function getUtf8ByteLength(value: string): number {
+    if (!value) return 0;
+    try {
+        return new TextEncoder().encode(value).length;
+    } catch {
+        // Fallback: best-effort estimate
+        return value.length;
+    }
+}
+
+export function formatBytes(bytes: number): string {
+    if (!Number.isFinite(bytes)) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function extractCodeFromLocation(): string {
+    if (typeof window === 'undefined') return '';
+
+    // Prefer query param
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('c') || params.get('code');
+    if (code) return code;
+
+    // Fallback: hash `#c=...` / `#code=...`
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#c=')) return hash.slice('#c='.length);
+    if (hash.startsWith('#code=')) return hash.slice('#code='.length);
+
+    // Fallback: path `/shorturl/AT...` (useful in dev/other hosts)
+    const normalizedBase = BASE_PATH.startsWith('/') ? BASE_PATH : `/${BASE_PATH}`;
+    const cleanBase = normalizedBase.endsWith('/') ? normalizedBase.slice(0, -1) : normalizedBase;
+    let path = window.location.pathname;
+    if (cleanBase && path.startsWith(cleanBase)) path = path.slice(cleanBase.length);
+    if (!path.startsWith('/')) path = `/${path}`;
+
+    const prefixes = ['/shorturl/', '/s/'];
+    const prefix = prefixes.find((p) => path.startsWith(p));
+    if (!prefix) return '';
+    return path.slice(prefix.length).replace(/\/$/, '');
+}
+
+export function extractTokenFromUserInput(value: string): string {
+    const cleaned = value.trim();
+    if (!cleaned) return '';
+
+    // Raw token
+    if (/^AT[0-9A-Za-z][0-9A-Za-z\-_]+$/i.test(cleaned)) return cleaned;
+
+    // Full URL containing `/shorturl/<code>` or `/s/<code>`
+    const matchPath = /\/(?:shorturl|s)\/(AT[0-9A-Za-z][0-9A-Za-z\-_]+|[a-z0-9]{1,3}-[^?#\s]+)/i.exec(cleaned);
+    if (matchPath?.[1]) return matchPath[1];
+
+    // URL containing `?c=...` or `?code=...`
+    const matchQuery = /[?&](?:c|code)=(AT[0-9A-Za-z][0-9A-Za-z\-_]+)/i.exec(cleaned);
+    if (matchQuery?.[1]) return matchQuery[1];
+
+    // Hash containing `#c=...` or `#code=...`
+    const matchHash = /#(?:c|code)=(AT[0-9A-Za-z][0-9A-Za-z\-_]+)/i.exec(cleaned);
+    if (matchHash?.[1]) return matchHash[1];
+
+    return cleaned;
+}
+
 
 export type ShortUrlCodecOptions = {
     /**

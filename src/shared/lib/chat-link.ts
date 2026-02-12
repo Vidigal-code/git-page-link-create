@@ -2,6 +2,17 @@ import { compress, decompress } from '@/shared/lib/compression';
 import { withBasePath } from '@/shared/lib/basePath';
 import { parseRecoveryHash } from '@/shared/lib/recovery';
 
+export type ReplyTarget = { id: string } | null;
+
+export function newId(): string {
+    // Short, URL-friendly, stable enough for a link-based transcript
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function isNonEmpty(value: string): boolean {
+    return value.trim().length > 0;
+}
+
 export type ChatLinkMessage = {
     id: string;
     name: string;

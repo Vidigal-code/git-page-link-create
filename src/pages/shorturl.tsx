@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
-import { BASE_PATH, withBasePath } from '@/shared/lib/basePath';
+import { withBasePath } from '@/shared/lib/basePath';
 import { decodeRefCode, decodeShortUrlToken } from '@/shared/lib/shorturl';
 import { getShortUrlRedirectDelaySeconds } from '@/shared/lib/theme';
 import { copyTextToClipboard, getSiteOrigin, safeLocationReplace, safeOpenUrl } from '@/shared/lib/browser';
@@ -25,53 +25,7 @@ import {
     SuccessMessage,
 } from '@/shared/styles/pages/create.styles';
 
-function extractCodeFromLocation(): string {
-    if (typeof window === 'undefined') return '';
-
-    // Prefer query param
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('c') || params.get('code');
-    if (code) return code;
-
-    // Fallback: hash `#c=...` / `#code=...`
-    const hash = window.location.hash || '';
-    if (hash.startsWith('#c=')) return hash.slice('#c='.length);
-    if (hash.startsWith('#code=')) return hash.slice('#code='.length);
-
-    // Fallback: path `/shorturl/AT...` (useful in dev/other hosts)
-    const normalizedBase = BASE_PATH.startsWith('/') ? BASE_PATH : `/${BASE_PATH}`;
-    const cleanBase = normalizedBase.endsWith('/') ? normalizedBase.slice(0, -1) : normalizedBase;
-    let path = window.location.pathname;
-    if (cleanBase && path.startsWith(cleanBase)) path = path.slice(cleanBase.length);
-    if (!path.startsWith('/')) path = `/${path}`;
-
-    const prefixes = ['/shorturl/', '/s/'];
-    const prefix = prefixes.find((p) => path.startsWith(p));
-    if (!prefix) return '';
-    return path.slice(prefix.length).replace(/\/$/, '');
-}
-
-function extractTokenFromUserInput(value: string): string {
-    const cleaned = value.trim();
-    if (!cleaned) return '';
-
-    // Raw token
-    if (/^AT[0-9A-Za-z][0-9A-Za-z\-_]+$/i.test(cleaned)) return cleaned;
-
-    // Full URL containing `/shorturl/<code>` or `/s/<code>`
-    const matchPath = /\/(?:shorturl|s)\/(AT[0-9A-Za-z][0-9A-Za-z\-_]+|[a-z0-9]{1,3}-[^?#\s]+)/i.exec(cleaned);
-    if (matchPath?.[1]) return matchPath[1];
-
-    // URL containing `?c=...` or `?code=...`
-    const matchQuery = /[?&](?:c|code)=(AT[0-9A-Za-z][0-9A-Za-z\-_]+)/i.exec(cleaned);
-    if (matchQuery?.[1]) return matchQuery[1];
-
-    // Hash containing `#c=...` or `#code=...`
-    const matchHash = /#(?:c|code)=(AT[0-9A-Za-z][0-9A-Za-z\-_]+)/i.exec(cleaned);
-    if (matchHash?.[1]) return matchHash[1];
-
-    return cleaned;
-}
+import {extractCodeFromLocation, extractTokenFromUserInput} from "@/shared/lib/shorturl";
 
 export default function ShortUrlRedirectPage() {
     const router = useRouter();

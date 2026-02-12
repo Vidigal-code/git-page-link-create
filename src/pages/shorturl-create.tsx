@@ -1,13 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
 import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
-import { decodeRefCode, decodeShortUrlToken, encodeRefCode, encodeShortUrlToken } from '@/shared/lib/shorturl';
+import {
+    decodeRefCode,
+    decodeShortUrlToken,
+    encodeRefCode,
+    encodeShortUrlToken, formatBytes, getUtf8ByteLength,
+    isValidHttpUrl
+} from '@/shared/lib/shorturl';
 import {
     ButtonGroup,
     CheckboxContainer,
@@ -18,33 +23,6 @@ import {
     SuccessMessage,
     StyledCheckbox,
 } from '@/shared/styles/pages/create.styles';
-
-function isValidHttpUrl(value: string): boolean {
-    if (!value) return false;
-    try {
-        const parsed = new URL(value);
-        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-        return false;
-    }
-}
-
-function getUtf8ByteLength(value: string): number {
-    if (!value) return 0;
-    try {
-        return new TextEncoder().encode(value).length;
-    } catch {
-        // Fallback: best-effort estimate
-        return value.length;
-    }
-}
-
-function formatBytes(bytes: number): string {
-    if (!Number.isFinite(bytes)) return '0 B';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export default function ShortUrlCreatePage() {
     const { t } = useI18n();
