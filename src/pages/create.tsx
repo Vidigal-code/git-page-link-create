@@ -29,6 +29,7 @@ import {
 } from '@/shared/lib/theme';
 import { withBasePath } from '@/shared/lib/basePath';
 import { generateQrCodeDataUrl, generateQrCodeSvg } from '@/shared/lib/qr';
+import { encodeShortUrlToken, isValidHttpUrl } from '@/shared/lib/shorturl/shorturl';
 import { compressImageFile, encodeImageDataUrl, fileToDataUrl } from '@/shared/lib/image';
 import { encodePdfDataUrl } from '@/shared/lib/pdf';
 import { compressVideoFile, encodeVideoDataUrl } from '@/shared/lib/video';
@@ -1590,12 +1591,24 @@ export default function Create() {
     const handleGenerateQr = async () => {
         try {
             setQrIsProcessing(true);
-            const dataUrl = await generateQrCodeDataUrl(qrInput, {
+            let qrText = qrInput;
+            // Se for uma URL longa, encurte antes de gerar o QR
+            if (isValidHttpUrl(qrInput) && qrInput.length > 200) {
+                try {
+                    qrText = window.location.origin + '/shorturl/' + encodeShortUrlToken(qrInput);
+                } catch (e) {
+                    setQrHasError(true);
+                    setQrDataUrl('');
+                    setQrSvg('');
+                    return;
+                }
+            }
+            const dataUrl = await generateQrCodeDataUrl(qrText, {
                 width: qrSize,
                 margin: qrMargin,
                 errorCorrectionLevel: qrCorrection,
             });
-            const svgContent = await generateQrCodeSvg(qrInput, {
+            const svgContent = await generateQrCodeSvg(qrText, {
                 width: qrSize,
                 margin: qrMargin,
                 errorCorrectionLevel: qrCorrection,
