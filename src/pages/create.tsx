@@ -79,12 +79,12 @@ export default function Create() {
     const [successMessage, setSuccessMessage] = useState('');
     const [showPreview, setShowPreview] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const imageInputRef = useRef<HTMLInputElement>(null);
-    const pdfInputRef = useRef<HTMLInputElement>(null);
-    const videoInputRef = useRef<HTMLInputElement>(null);
-    const audioInputRef = useRef<HTMLInputElement>(null);
-    const officeInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null!);
+    const imageInputRef = useRef<HTMLInputElement>(null!);
+    const pdfInputRef = useRef<HTMLInputElement>(null!);
+    const videoInputRef = useRef<HTMLInputElement>(null!);
+    const audioInputRef = useRef<HTMLInputElement>(null!);
+    const officeInputRef = useRef<HTMLInputElement>(null!);
 
     const [contentSourceUrl, setContentSourceUrl] = useState('');
     const [contentSourceLink, setContentSourceLink] = useState('');
