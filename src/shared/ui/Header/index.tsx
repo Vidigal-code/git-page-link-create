@@ -42,6 +42,10 @@ export const Header: React.FC<HeaderProps> = ({
     const locales = getAvailableLocales();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const tl = (key: string) => (isLoading ? '' : t(key));
+    const tlOr = (key: string, fallback: string) => {
+        const value = tl(key);
+        return !value || value === key ? fallback : value;
+    };
     const createDropdownValue = (
         router.pathname === '/shorturl-create'
             ? '/shorturl-create'
@@ -50,9 +54,9 @@ export const Header: React.FC<HeaderProps> = ({
                 : '/create'
     );
     const createDropdownOptions = [
-        { value: '/create', label: tl('headerDropdown.createPage') },
-        { value: '/shorturl-create', label: tl('headerDropdown.shortUrlPage') },
-        { value: '/create-links', label: tl('headerDropdown.createLinksPage') },
+        { value: '/create', label: tlOr('headerDropdown.createPage', 'Create Content') },
+        { value: '/shorturl-create', label: tlOr('headerDropdown.shortUrlPage', 'Create Short URL') },
+        { value: '/create-links', label: tlOr('headerDropdown.createLinksPage', 'Create Links') },
     ];
 
     const toggleMobileMenu = () => {
@@ -78,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
                         value={createDropdownValue}
                         onChange={(e) => { void router.push(e.target.value); }}
                         options={createDropdownOptions}
-                        aria-label={tl('headerDropdown.createAria')}
+                        aria-label={tlOr('headerDropdown.createAria', 'Create dropdown')}
                     />
 
                     <Select
@@ -142,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
                             void router.push(e.target.value);
                         }}
                         options={createDropdownOptions}
-                        aria-label={tl('headerDropdown.createAria')}
+                        aria-label={tlOr('headerDropdown.createAria', 'Create dropdown')}
                     />
                 </MobileNav>
 
