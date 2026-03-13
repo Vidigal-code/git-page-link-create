@@ -38,7 +38,19 @@ function createSocialLinkItem(link: SocialLinkInput): string {
     return `<a class="social-link" href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
 }
 
-export function buildTemplateLinksHtml(template: LinksTemplate, formData: TemplateLinksFormData): string {
+interface BuildHtmlLocaleTexts {
+    defaultWebsiteLabel?: string;
+    emptyLinksText?: string;
+    toggleTitle?: string;
+    switchToLight?: string;
+    switchToDark?: string;
+}
+
+export function buildTemplateLinksHtml(
+    template: LinksTemplate,
+    formData: TemplateLinksFormData,
+    localeTexts: BuildHtmlLocaleTexts = {},
+): string {
     const mode = resolveMode(formData.mode);
     const light = template.modes.light;
     const dark = template.modes.dark;
@@ -48,6 +60,12 @@ export function buildTemplateLinksHtml(template: LinksTemplate, formData: Templa
     const backgroundEffect = template.effects?.backgroundEffect || 'aurora';
     const hoverEffect = template.effects?.hoverEffect || 'lift';
     const responsiveMaxWidth = Math.max(template.layout.containerMaxWidth, 980);
+    const htmlLang = formData.locale || 'en';
+    const defaultWebsiteLabel = localeTexts.defaultWebsiteLabel || 'Website';
+    const emptyLinksText = localeTexts.emptyLinksText || 'No social links added.';
+    const toggleTitle = localeTexts.toggleTitle || 'Toggle color theme';
+    const switchToLight = localeTexts.switchToLight || 'Switch to light mode';
+    const switchToDark = localeTexts.switchToDark || 'Switch to dark mode';
     const name = escapeHtml(formData.profileName || 'Meu Link');
     const bio = escapeHtml(formData.profileBio || '');
     const websiteLink = formData.websiteUrl
@@ -58,14 +76,14 @@ export function buildTemplateLinksHtml(template: LinksTemplate, formData: Templa
         .filter(Boolean)
         .join('');
     const websiteHtml = websiteLink && isValidHttpUrl(websiteLink.url)
-        ? `<a class="website-link" href="${escapeHtml(websiteLink.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(formData.websiteLabel?.trim() || 'Website')}</a>`
+        ? `<a class="website-link" href="${escapeHtml(websiteLink.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(formData.websiteLabel?.trim() || defaultWebsiteLabel)}</a>`
         : '';
     const avatarHtml = formData.avatarUrl && isValidHttpUrl(formData.avatarUrl)
         ? `<img class="avatar" src="${escapeHtml(formData.avatarUrl)}" alt="${name}" loading="lazy" />`
         : '';
 
     return `<!doctype html>
-<html lang="pt-BR" data-theme="${mode}">
+<html lang="${escapeHtml(htmlLang)}" data-theme="${mode}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -248,7 +266,7 @@ body{
     <section class="header">
       ${mode === 'auto' ? `
       <div class="header-top">
-        <button class="theme-toggle" type="button" id="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle color theme">
+        <button class="theme-toggle" type="button" id="theme-toggle-btn" aria-label="${escapeHtml(toggleTitle)}" title="${escapeHtml(toggleTitle)}">
           <span class="theme-icon" id="theme-toggle-icon"></span>
         </button>
       </div>` : ''}
@@ -260,7 +278,7 @@ body{
     </section>
     ${websiteHtml}
     <section class="${linksClass}">
-      ${linksHtml || '<div class="empty">Nenhuma rede social adicionada.</div>'}
+      ${linksHtml || `<div class="empty">${escapeHtml(emptyLinksText)}</div>`}
     </section>
     </section>
   </main>
@@ -280,13 +298,13 @@ body{
 
       function renderToggle(){
         if(currentMode === 'dark'){
-          toggleBtn.setAttribute('aria-label','Switch to light mode');
-          toggleBtn.setAttribute('title','Switch to light mode');
+          toggleBtn.setAttribute('aria-label','${escapeHtml(switchToLight)}');
+          toggleBtn.setAttribute('title','${escapeHtml(switchToLight)}');
           toggleIcon.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3c0 .17-.01.34-.01.51A7.5 7.5 0 0 0 20.49 12c.17 0 .34 0 .51-.01Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
           return;
         }
-        toggleBtn.setAttribute('aria-label','Switch to dark mode');
-        toggleBtn.setAttribute('title','Switch to dark mode');
+        toggleBtn.setAttribute('aria-label','${escapeHtml(switchToDark)}');
+        toggleBtn.setAttribute('title','${escapeHtml(switchToDark)}');
         toggleIcon.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
       }
 

@@ -5,6 +5,7 @@ import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { Select } from '@/shared/ui/Select';
 import { SOCIAL_PLATFORMS, SocialLinkInput } from '@/shared/lib/templateslinks';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface SocialLinksFormProps {
     title: string;
@@ -46,19 +47,25 @@ export const SocialLinksForm: React.FC<SocialLinksFormProps> = ({
     onRemoveLink,
     onChangeLink,
 }) => {
+    const { t } = useI18n();
+    const options = SOCIAL_PLATFORMS.map((platform) => ({
+        value: platform.key,
+        label: t(`createLinks.platform.${platform.key}.label`),
+    }));
+
+    const placeholderByKey = (key: SocialLinkInput['platform']) => {
+        return t(`createLinks.platform.${key}.placeholder`);
+    };
+
     return (
         <Card title={title}>
             <List>
                 {links.map((item) => {
-                    const selected = SOCIAL_PLATFORMS.find((platform) => platform.key === item.platform);
                     return (
                         <Row key={item.id}>
                             <Select
                                 value={item.platform}
-                                options={SOCIAL_PLATFORMS.map((platform) => ({
-                                    value: platform.key,
-                                    label: platform.label,
-                                }))}
+                                options={options}
                                 onChange={(event) => onChangeLink(item.id, 'platform', event.target.value)}
                             />
                             {item.platform === 'custom' && (
@@ -66,13 +73,13 @@ export const SocialLinksForm: React.FC<SocialLinksFormProps> = ({
                                     label={customLabelText}
                                     value={item.customLabel || ''}
                                     onChange={(event) => onChangeLink(item.id, 'customLabel', event.target.value)}
-                                    placeholder="Ex: Portifolio"
+                                    placeholder={t('createLinks.customLabelPlaceholder')}
                                 />
                             )}
                             <Input
                                 value={item.url}
                                 onChange={(event) => onChangeLink(item.id, 'url', event.target.value)}
-                                placeholder={selected?.placeholder || 'https://'}
+                                placeholder={placeholderByKey(item.platform) || t('createLinks.socialUrlPlaceholderDefault')}
                             />
                             <Actions>
                                 <Button type="button" variant="secondary" onClick={() => onRemoveLink(item.id)}>

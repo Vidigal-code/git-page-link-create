@@ -299,6 +299,8 @@
         "addSocial": "Add social link",
         "removeSocial": "Remove",
         "customLabel": "Custom label",
+        "customLabelPlaceholder": "e.g. Portfolio",
+        "socialUrlPlaceholderDefault": "https://your-link.com",
         "finalizeTitle": "Final result",
         "generateFinalHtml": "Generate final HTML",
         "generateRenderAll": "Generate render-all link",
@@ -320,6 +322,57 @@
         "lightButton": "Light",
         "darkButton": "Dark",
         "autoButton": "Auto",
+        "defaultWebsiteLabel": "Website",
+        "emptyLinksText": "No social links added.",
+        "toggleThemeTitle": "Toggle color theme",
+        "switchToLight": "Switch to light mode",
+        "switchToDark": "Switch to dark mode",
+        "platform": {
+            "instagram": {
+                "label": "Instagram",
+                "placeholder": "@username or URL"
+            },
+            "facebook": {
+                "label": "Facebook",
+                "placeholder": "username or URL"
+            },
+            "whatsapp": {
+                "label": "WhatsApp",
+                "placeholder": "+14155552671 or URL"
+            },
+            "telegram": {
+                "label": "Telegram",
+                "placeholder": "@username or URL"
+            },
+            "x": {
+                "label": "X",
+                "placeholder": "@username or URL"
+            },
+            "website": {
+                "label": "Website",
+                "placeholder": "https://site.com"
+            },
+            "youtube": {
+                "label": "YouTube",
+                "placeholder": "channel or URL"
+            },
+            "linkedin": {
+                "label": "LinkedIn",
+                "placeholder": "in/username or URL"
+            },
+            "tiktok": {
+                "label": "TikTok",
+                "placeholder": "@username or URL"
+            },
+            "github": {
+                "label": "GitHub",
+                "placeholder": "username or URL"
+            },
+            "custom": {
+                "label": "Custom",
+                "placeholder": "https://your-link.com"
+            }
+        },
         "loadError": "Could not load templates.",
         "templateRequired": "Select a template to continue."
     },

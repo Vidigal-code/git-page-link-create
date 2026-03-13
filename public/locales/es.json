@@ -299,6 +299,8 @@
         "addSocial": "Agregar red social",
         "removeSocial": "Eliminar",
         "customLabel": "Nombre personalizado",
+        "customLabelPlaceholder": "Ej: Portafolio",
+        "socialUrlPlaceholderDefault": "https://tu-link.com",
         "finalizeTitle": "Resultado final",
         "generateFinalHtml": "Generar HTML final",
         "generateRenderAll": "Generar link render-all",
@@ -320,6 +322,57 @@
         "lightButton": "Light",
         "darkButton": "Dark",
         "autoButton": "Auto",
+        "defaultWebsiteLabel": "Sitio web",
+        "emptyLinksText": "No se agregaron redes sociales.",
+        "toggleThemeTitle": "Alternar tema de color",
+        "switchToLight": "Cambiar a modo claro",
+        "switchToDark": "Cambiar a modo oscuro",
+        "platform": {
+            "instagram": {
+                "label": "Instagram",
+                "placeholder": "@usuario o URL"
+            },
+            "facebook": {
+                "label": "Facebook",
+                "placeholder": "usuario o URL"
+            },
+            "whatsapp": {
+                "label": "WhatsApp",
+                "placeholder": "+34123456789 o URL"
+            },
+            "telegram": {
+                "label": "Telegram",
+                "placeholder": "@usuario o URL"
+            },
+            "x": {
+                "label": "X",
+                "placeholder": "@usuario o URL"
+            },
+            "website": {
+                "label": "Sitio web",
+                "placeholder": "https://sitio.com"
+            },
+            "youtube": {
+                "label": "YouTube",
+                "placeholder": "canal o URL"
+            },
+            "linkedin": {
+                "label": "LinkedIn",
+                "placeholder": "in/usuario o URL"
+            },
+            "tiktok": {
+                "label": "TikTok",
+                "placeholder": "@usuario o URL"
+            },
+            "github": {
+                "label": "GitHub",
+                "placeholder": "usuario o URL"
+            },
+            "custom": {
+                "label": "Personalizado",
+                "placeholder": "https://tu-link.com"
+            }
+        },
         "loadError": "No se pudieron cargar los templates.",
         "templateRequired": "Selecciona un template para continuar."
     },

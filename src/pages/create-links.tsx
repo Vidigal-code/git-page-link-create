@@ -48,7 +48,7 @@ const initialFormData: TemplateLinksFormData = {
 };
 
 export default function CreateLinksPage() {
-    const { t } = useI18n();
+    const { t, locale } = useI18n();
     const [templates, setTemplates] = useState<LinksTemplate[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
     const [formData, setFormData] = useState<TemplateLinksFormData>(initialFormData);
@@ -79,8 +79,18 @@ export default function CreateLinksPage() {
 
     const previewHtml = useMemo(() => {
         if (!selectedTemplate) return '';
-        return buildTemplateLinksHtml(selectedTemplate, formData);
-    }, [selectedTemplate, formData]);
+        return buildTemplateLinksHtml(
+            selectedTemplate,
+            { ...formData, locale },
+            {
+                defaultWebsiteLabel: t('createLinks.defaultWebsiteLabel'),
+                emptyLinksText: t('createLinks.emptyLinksText'),
+                toggleTitle: t('createLinks.toggleThemeTitle'),
+                switchToLight: t('createLinks.switchToLight'),
+                switchToDark: t('createLinks.switchToDark'),
+            },
+        );
+    }, [selectedTemplate, formData, locale, t]);
 
     const updateLink = (id: string, field: 'platform' | 'url' | 'customLabel', value: string) => {
         setFormData((prev) => ({

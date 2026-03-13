@@ -56,6 +56,7 @@ export interface SocialLinkInput {
 }
 
 export interface TemplateLinksFormData {
+    locale?: 'pt' | 'en' | 'es';
     profileName: string;
     profileBio: string;
     avatarUrl: string;
