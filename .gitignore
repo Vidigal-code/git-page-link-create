@@ -1,5 +1,6 @@
 # Dependencies
 /node_modules
+pnpm-lock.yaml
 /.pnp
 .pnp.js
 
@@ -19,6 +20,7 @@
 
 # Debug
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
