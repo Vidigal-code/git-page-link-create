@@ -1,0 +1,38 @@
+{
+  "id": "spatial-style",
+  "name": "Spatial Style",
+  "description": "Space-inspired interface with minimal structure and sharp typography.",
+  "layout": {
+    "style": "minimal",
+    "containerMaxWidth": 500,
+    "avatarShape": "square"
+  },
+  "effects": {
+    "backgroundEffect": "stars",
+    "hoverEffect": "lift"
+  },
+  "modes": {
+    "light": {
+      "background": "#f8fafc",
+      "surface": "#ffffff",
+      "text": "#1a202c",
+      "mutedText": "#4a5568",
+      "primary": "#111827",
+      "primaryText": "#ffffff",
+      "border": "#e2e8f0",
+      "chip": "#edf2f7",
+      "shadow": "0 10px 22px rgba(15, 23, 42, 0.09)"
+    },
+    "dark": {
+      "background": "#0b0f14",
+      "surface": "#101720",
+      "text": "#edf2f7",
+      "mutedText": "#a0aec0",
+      "primary": "#f7fafc",
+      "primaryText": "#111827",
+      "border": "#243040",
+      "chip": "#1a2433",
+      "shadow": "0 14px 30px rgba(0, 0, 0, 0.42)"
+    }
+  }
+}

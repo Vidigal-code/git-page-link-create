@@ -1,0 +1,38 @@
+{
+  "id": "forest-moss",
+  "name": "Forest Moss",
+  "description": "Organic design with natural greens and soft contrast.",
+  "layout": {
+    "style": "minimal",
+    "containerMaxWidth": 660,
+    "avatarShape": "rounded"
+  },
+  "effects": {
+    "backgroundEffect": "mesh",
+    "hoverEffect": "outline"
+  },
+  "modes": {
+    "light": {
+      "background": "#eff7ef",
+      "surface": "#ffffff",
+      "text": "#1f3528",
+      "mutedText": "#4f6f5d",
+      "primary": "#2d8a58",
+      "primaryText": "#ffffff",
+      "border": "#d4e8d8",
+      "chip": "#e8f4ea",
+      "shadow": "0 14px 30px rgba(51,117,78,0.15)"
+    },
+    "dark": {
+      "background": "#0e1a13",
+      "surface": "#17261d",
+      "text": "#e5f4e9",
+      "mutedText": "#a6c5b1",
+      "primary": "#56c07d",
+      "primaryText": "#102015",
+      "border": "#2e4938",
+      "chip": "#213629",
+      "shadow": "0 18px 34px rgba(0,0,0,0.5)"
+    }
+  }
+}

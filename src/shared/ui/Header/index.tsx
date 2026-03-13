@@ -16,6 +16,7 @@ import {
 import { Select } from '../Select';
 import { ThemeModeToggle } from '../ThemeModeToggle';
 import { useI18n, getAvailableLocales, Locale } from '@/shared/lib/i18n';
+import { useRouter } from 'next/router';
 
 interface HeaderProps {
     currentTheme: string;
@@ -37,9 +38,22 @@ export const Header: React.FC<HeaderProps> = ({
     hideThemeSelector
 }) => {
     const { locale, setLocale, t, isLoading } = useI18n();
+    const router = useRouter();
     const locales = getAvailableLocales();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const tl = (key: string) => (isLoading ? '' : t(key));
+    const createDropdownValue = (
+        router.pathname === '/shorturl-create'
+            ? '/shorturl-create'
+            : router.pathname === '/create-links'
+                ? '/create-links'
+                : '/create'
+    );
+    const createDropdownOptions = [
+        { value: '/create', label: tl('headerDropdown.createPage') },
+        { value: '/shorturl-create', label: tl('headerDropdown.shortUrlPage') },
+        { value: '/create-links', label: tl('headerDropdown.createLinksPage') },
+    ];
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -60,13 +74,12 @@ export const Header: React.FC<HeaderProps> = ({
                         {tl('home.navTitle')}
                     </StyledNavLink>
 
-                    <StyledNavLink href="/create">
-                        {tl('create.navTitle')}
-                    </StyledNavLink>
-
-                    <StyledNavLink href="/shorturl-create">
-                        {tl('shorturlCreate.navTitle')}
-                    </StyledNavLink>
+                    <Select
+                        value={createDropdownValue}
+                        onChange={(e) => { void router.push(e.target.value); }}
+                        options={createDropdownOptions}
+                        aria-label={tl('headerDropdown.createAria')}
+                    />
 
                     <Select
                         value={locale}
@@ -122,12 +135,15 @@ export const Header: React.FC<HeaderProps> = ({
                     <MobileNavLink href="/" onClick={closeMobileMenu}>
                         {tl('home.navTitle')}
                     </MobileNavLink>
-                    <MobileNavLink href="/create" onClick={closeMobileMenu}>
-                        {tl('create.navTitle')}
-                    </MobileNavLink>
-                    <MobileNavLink href="/shorturl-create" onClick={closeMobileMenu}>
-                        {tl('shorturlCreate.navTitle')}
-                    </MobileNavLink>
+                    <Select
+                        value={createDropdownValue}
+                        onChange={(e) => {
+                            closeMobileMenu();
+                            void router.push(e.target.value);
+                        }}
+                        options={createDropdownOptions}
+                        aria-label={tl('headerDropdown.createAria')}
+                    />
                 </MobileNav>
 
                 <MobileControls>

@@ -1,0 +1,38 @@
+{
+  "id": "electric-lime",
+  "name": "Electric Lime",
+  "description": "High-energy lime accents with cyber aesthetics.",
+  "layout": {
+    "style": "grid",
+    "containerMaxWidth": 760,
+    "avatarShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "grid",
+    "hoverEffect": "glow"
+  },
+  "modes": {
+    "light": {
+      "background": "#f7ffef",
+      "surface": "#ffffff",
+      "text": "#283b1c",
+      "mutedText": "#5f7f48",
+      "primary": "#7ecf2d",
+      "primaryText": "#15240b",
+      "border": "#e2f4cf",
+      "chip": "#f0fae6",
+      "shadow": "0 18px 34px rgba(114,160,52,0.2)"
+    },
+    "dark": {
+      "background": "#101b08",
+      "surface": "#1b2a12",
+      "text": "#efffe2",
+      "mutedText": "#b8d49d",
+      "primary": "#b6ff5f",
+      "primaryText": "#1a2a11",
+      "border": "#385224",
+      "chip": "#263a1a",
+      "shadow": "0 20px 38px rgba(0,0,0,0.56)"
+    }
+  }
+}

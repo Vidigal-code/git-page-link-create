@@ -1,0 +1,38 @@
+{
+  "id": "modern-style",
+  "name": "Modern Style",
+  "description": "Modern glass look with rounded controls and balanced contrast.",
+  "layout": {
+    "style": "glass",
+    "containerMaxWidth": 560,
+    "avatarShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "mesh",
+    "hoverEffect": "glow"
+  },
+  "modes": {
+    "light": {
+      "background": "#eaf7ff",
+      "surface": "rgba(255, 255, 255, 0.88)",
+      "text": "#12304a",
+      "mutedText": "#4b6983",
+      "primary": "#0d99ff",
+      "primaryText": "#ffffff",
+      "border": "rgba(255, 255, 255, 0.75)",
+      "chip": "rgba(227, 243, 255, 0.9)",
+      "shadow": "0 20px 40px rgba(11, 78, 130, 0.18)"
+    },
+    "dark": {
+      "background": "#08141f",
+      "surface": "rgba(15, 35, 50, 0.82)",
+      "text": "#e5f5ff",
+      "mutedText": "#9ec5db",
+      "primary": "#21a6ff",
+      "primaryText": "#001825",
+      "border": "rgba(83, 133, 163, 0.35)",
+      "chip": "rgba(24, 58, 80, 0.86)",
+      "shadow": "0 18px 38px rgba(0, 0, 0, 0.5)"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "cyberpunk-style",
+  "name": "Cyberpunk Style",
+  "description": "High-contrast neon inspired theme with futuristic visuals and motion.",
+  "layout": {
+    "style": "glass",
+    "containerMaxWidth": 620,
+    "avatarShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "spotlight",
+    "hoverEffect": "pulse"
+  },
+  "modes": {
+    "light": {
+      "background": "#fff4ff",
+      "surface": "#ffffff",
+      "text": "#2a1a38",
+      "mutedText": "#694d84",
+      "primary": "#ff3fd1",
+      "primaryText": "#ffffff",
+      "border": "#f2d3ff",
+      "chip": "#fdefff",
+      "shadow": "0 18px 34px rgba(150, 52, 160, 0.26)"
+    },
+    "dark": {
+      "background": "#090012",
+      "surface": "#16072a",
+      "text": "#ffe5ff",
+      "mutedText": "#dca9f2",
+      "primary": "#00f5ff",
+      "primaryText": "#062127",
+      "border": "#3d1f55",
+      "chip": "#220f39",
+      "shadow": "0 18px 36px rgba(0, 0, 0, 0.58)"
+    }
+  }
+}

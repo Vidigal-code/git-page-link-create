@@ -1,0 +1,38 @@
+{
+  "id": "space-style",
+  "name": "Space Style",
+  "description": "Spatial UI with deep gradients and smooth glow accents.",
+  "layout": {
+    "style": "grid",
+    "containerMaxWidth": 640,
+    "avatarShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "aurora",
+    "hoverEffect": "glow"
+  },
+  "modes": {
+    "light": {
+      "background": "#f3f7ff",
+      "surface": "#ffffff",
+      "text": "#1f2f53",
+      "mutedText": "#54648b",
+      "primary": "#3f66ff",
+      "primaryText": "#ffffff",
+      "border": "#d9e4ff",
+      "chip": "#ecf2ff",
+      "shadow": "0 20px 40px rgba(58, 88, 180, 0.18)"
+    },
+    "dark": {
+      "background": "#060c1d",
+      "surface": "#0f1a34",
+      "text": "#e7eeff",
+      "mutedText": "#9fb0da",
+      "primary": "#6ea5ff",
+      "primaryText": "#08142f",
+      "border": "#273b6a",
+      "chip": "#15254a",
+      "shadow": "0 22px 42px rgba(0, 0, 0, 0.52)"
+    }
+  }
+}

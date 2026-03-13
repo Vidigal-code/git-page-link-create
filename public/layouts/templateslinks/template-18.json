@@ -1,0 +1,38 @@
+{
+  "id": "skyline-blue",
+  "name": "Skyline Blue",
+  "description": "Balanced corporate blue design for professional pages.",
+  "layout": {
+    "style": "stacked",
+    "containerMaxWidth": 760,
+    "avatarShape": "rounded"
+  },
+  "effects": {
+    "backgroundEffect": "mesh",
+    "hoverEffect": "lift"
+  },
+  "modes": {
+    "light": {
+      "background": "#eef4ff",
+      "surface": "#ffffff",
+      "text": "#1d3352",
+      "mutedText": "#55719a",
+      "primary": "#2f66c4",
+      "primaryText": "#ffffff",
+      "border": "#d3e0f7",
+      "chip": "#e8effe",
+      "shadow": "0 16px 30px rgba(59,99,170,0.19)"
+    },
+    "dark": {
+      "background": "#0b1322",
+      "surface": "#15233c",
+      "text": "#e5eeff",
+      "mutedText": "#a8bedf",
+      "primary": "#6fa5ff",
+      "primaryText": "#0e2648",
+      "border": "#2b456f",
+      "chip": "#1d3457",
+      "shadow": "0 20px 38px rgba(0,0,0,0.56)"
+    }
+  }
+}

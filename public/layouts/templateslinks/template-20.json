@@ -1,0 +1,38 @@
+{
+  "id": "galaxy-arc",
+  "name": "Galaxy Arc",
+  "description": "Bold cosmic design with expansive animated backgrounds.",
+  "layout": {
+    "style": "grid",
+    "containerMaxWidth": 820,
+    "avatarShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "aurora",
+    "hoverEffect": "glow"
+  },
+  "modes": {
+    "light": {
+      "background": "#f2f5ff",
+      "surface": "#ffffff",
+      "text": "#23325f",
+      "mutedText": "#5f73ab",
+      "primary": "#4d6df5",
+      "primaryText": "#ffffff",
+      "border": "#d6dffb",
+      "chip": "#e8edff",
+      "shadow": "0 18px 36px rgba(81,101,182,0.2)"
+    },
+    "dark": {
+      "background": "#090e23",
+      "surface": "#141d45",
+      "text": "#e6ecff",
+      "mutedText": "#a8b6e6",
+      "primary": "#8ba5ff",
+      "primaryText": "#10204f",
+      "border": "#2f3f78",
+      "chip": "#1f2e62",
+      "shadow": "0 24px 44px rgba(0,0,0,0.6)"
+    }
+  }
+}
