@@ -19,7 +19,11 @@ export const Select: React.FC<SelectProps> = ({ options, label, configKey, ...pr
             <SelectWrapper>
                 <StyledSelect $configKey={configKey} {...props}>
                     {options.map((option) => (
-                        <option key={option.value} value={option.value}>
+                        <option
+                            key={option.value}
+                            value={option.value}
+                            hidden={option.value.startsWith('__')}
+                        >
                             {option.label}
                         </option>
                     ))}

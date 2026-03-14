@@ -60,6 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
                             : '__create-menu__'
     );
     const createDropdownOptions = [
+        { value: '__create-menu__', label: tlOr('create.navTitle', 'Create') },
         { value: '/create', label: tlOr('headerDropdown.createPage', 'Create Content') },
         { value: '/shorturl-create', label: tlOr('headerDropdown.shortUrlPage', 'Create Short URL') },
         { value: '/create-links', label: tlOr('headerDropdown.createLinksPage', 'Create Links') },
