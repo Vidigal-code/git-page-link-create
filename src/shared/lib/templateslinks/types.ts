@@ -59,6 +59,7 @@ export interface TemplateLinksFormData {
     locale?: 'pt' | 'en' | 'es';
     profileName: string;
     profileBio: string;
+    bioFonts?: string[];
     avatarUrl: string;
     websiteUrl: string;
     websiteLabel: string;

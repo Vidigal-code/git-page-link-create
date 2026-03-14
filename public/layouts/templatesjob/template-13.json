@@ -1,0 +1,38 @@
+{
+  "id": "job-violet-haze",
+  "name": "Violet Haze",
+  "description": "Purple atmospheric style for product and design roles.",
+  "layout": {
+    "style": "grid",
+    "containerMaxWidth": 960,
+    "imageShape": "rounded"
+  },
+  "effects": {
+    "backgroundEffect": "mesh",
+    "hoverEffect": "glow"
+  },
+  "modes": {
+    "light": {
+      "background": "#f6f1ff",
+      "surface": "#ffffff",
+      "text": "#35215a",
+      "mutedText": "#6f58a0",
+      "primary": "#7a49e8",
+      "primaryText": "#ffffff",
+      "border": "#dfd3ff",
+      "chip": "#f0e9ff",
+      "shadow": "0 18px 34px rgba(108,77,170,0.2)"
+    },
+    "dark": {
+      "background": "#140a24",
+      "surface": "#211138",
+      "text": "#f1e8ff",
+      "mutedText": "#c6b0e6",
+      "primary": "#b18bff",
+      "primaryText": "#261642",
+      "border": "#473066",
+      "chip": "#2f1d4d",
+      "shadow": "0 20px 38px rgba(0,0,0,0.58)"
+    }
+  }
+}

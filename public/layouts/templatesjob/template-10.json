@@ -1,0 +1,38 @@
+{
+  "id": "job-midnight-neon",
+  "name": "Midnight Neon",
+  "description": "Dark neon style for high-impact tech hiring campaigns.",
+  "layout": {
+    "style": "glass",
+    "containerMaxWidth": 940,
+    "imageShape": "square"
+  },
+  "effects": {
+    "backgroundEffect": "grid",
+    "hoverEffect": "pulse"
+  },
+  "modes": {
+    "light": {
+      "background": "#f7f6ff",
+      "surface": "#ffffff",
+      "text": "#2b2045",
+      "mutedText": "#625382",
+      "primary": "#7a4dff",
+      "primaryText": "#ffffff",
+      "border": "#dfd6ff",
+      "chip": "#f0ebff",
+      "shadow": "0 18px 35px rgba(111,87,190,0.22)"
+    },
+    "dark": {
+      "background": "#0b0620",
+      "surface": "#150d33",
+      "text": "#eee8ff",
+      "mutedText": "#b8a9e6",
+      "primary": "#9b7bff",
+      "primaryText": "#1b103e",
+      "border": "#392c6e",
+      "chip": "#23174b",
+      "shadow": "0 20px 40px rgba(0,0,0,0.58)"
+    }
+  }
+}

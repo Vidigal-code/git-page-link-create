@@ -1,0 +1,38 @@
+{
+  "id": "job-retro-wave",
+  "name": "Retro Wave",
+  "description": "Synthwave-inspired layout with vibrant hiring visuals.",
+  "layout": {
+    "style": "stacked",
+    "containerMaxWidth": 940,
+    "imageShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "aurora",
+    "hoverEffect": "pulse"
+  },
+  "modes": {
+    "light": {
+      "background": "#fff1fb",
+      "surface": "#ffffff",
+      "text": "#40224d",
+      "mutedText": "#86589a",
+      "primary": "#e64fcf",
+      "primaryText": "#ffffff",
+      "border": "#f3d1ee",
+      "chip": "#fdeafb",
+      "shadow": "0 20px 36px rgba(184,73,154,0.24)"
+    },
+    "dark": {
+      "background": "#180722",
+      "surface": "#281037",
+      "text": "#ffe8ff",
+      "mutedText": "#d5a6e2",
+      "primary": "#ff7cf0",
+      "primaryText": "#2a1035",
+      "border": "#4f2464",
+      "chip": "#37184a",
+      "shadow": "0 22px 42px rgba(0,0,0,0.58)"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "job-paper-clean",
+  "name": "Paper Clean",
+  "description": "Editorial clean style for formal corporate positions.",
+  "layout": {
+    "style": "minimal",
+    "containerMaxWidth": 960,
+    "imageShape": "square"
+  },
+  "effects": {
+    "backgroundEffect": "spotlight",
+    "hoverEffect": "outline"
+  },
+  "modes": {
+    "light": {
+      "background": "#f8f8f7",
+      "surface": "#ffffff",
+      "text": "#1e1f21",
+      "mutedText": "#5c6168",
+      "primary": "#2f3742",
+      "primaryText": "#ffffff",
+      "border": "#e2e5e9",
+      "chip": "#f0f2f5",
+      "shadow": "0 12px 24px rgba(24,32,44,0.11)"
+    },
+    "dark": {
+      "background": "#121315",
+      "surface": "#1a1d21",
+      "text": "#eceff3",
+      "mutedText": "#b0b7c0",
+      "primary": "#f2f5f9",
+      "primaryText": "#20262f",
+      "border": "#30353d",
+      "chip": "#262b32",
+      "shadow": "0 14px 28px rgba(0,0,0,0.52)"
+    }
+  }
+}

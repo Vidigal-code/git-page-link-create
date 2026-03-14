@@ -10,9 +10,9 @@
         "primary": "#7C3AED",
         "secondary": "#22D3EE",
         "text": "#E5E7EB",
-        "textSecondary": "#9CA3AF",
-        "cardBackground": "rgba(255, 255, 255, 0.04)",
-        "cardBorder": "rgba(148, 163, 184, 0.24)",
+        "textSecondary": "#B8C3D6",
+        "cardBackground": "#101726",
+        "cardBorder": "#334155",
         "error": "#FB7185",
         "success": "#34D399"
     },
@@ -29,13 +29,13 @@
     "components": {
         "header": {
             "height": "80px",
-            "backgroundColor": "rgba(7, 10, 20, 0.85)",
-            "borderBottom": "1px solid rgba(148, 163, 184, 0.18)"
+            "backgroundColor": "#0B1220",
+            "borderBottom": "1px solid #334155"
         },
         "footer": {
             "height": "60px",
-            "backgroundColor": "rgba(7, 10, 20, 0.85)",
-            "borderTop": "1px solid rgba(148, 163, 184, 0.18)"
+            "backgroundColor": "#0B1220",
+            "borderTop": "1px solid #334155"
         },
         "card": {
             "borderRadius": "16px",
@@ -45,14 +45,14 @@
         "button": {
             "borderRadius": "12px",
             "padding": "10px 18px",
-            "border": "1px solid rgba(148, 163, 184, 0.24)",
+            "border": "1px solid #334155",
             "hoverGlow": "0 0 0 3px rgba(124, 58, 237, 0.18)"
         },
         "select": {
             "borderRadius": "12px",
             "padding": "10px 40px 10px 16px",
-            "border": "1px solid rgba(148, 163, 184, 0.24)",
-            "backgroundColor": "rgba(255, 255, 255, 0.03)",
+            "border": "1px solid #334155",
+            "backgroundColor": "#0F172A",
             "textAlign": "center",
             "iconColor": "#22D3EE",
             "hoverBorderColor": "rgba(34, 211, 238, 0.7)",
@@ -63,7 +63,7 @@
             "width": "20px",
             "height": "20px",
             "accentColor": "#7C3AED",
-            "borderColor": "rgba(148, 163, 184, 0.35)",
+            "borderColor": "#475569",
             "hoverBorderColor": "rgba(34, 211, 238, 0.75)",
             "checkMarkColor": "#070A14",
             "borderRadius": "6px"
@@ -73,8 +73,8 @@
                 "height": "42px",
                 "padding": "0 16px",
                 "borderRadius": "12px",
-                "border": "1px solid rgba(148, 163, 184, 0.24)",
-                "backgroundColor": "rgba(255, 255, 255, 0.03)",
+                "border": "1px solid #334155",
+                "backgroundColor": "#0F172A",
                 "fontSize": "0.9rem",
                 "fontWeight": "600",
                 "hoverBorderColor": "rgba(34, 211, 238, 0.7)",

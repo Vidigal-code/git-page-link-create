@@ -10,8 +10,8 @@
         "primary": "#008f11",
         "secondary": "#00ff41",
         "text": "#0d0208",
-        "textSecondary": "#008f11",
-        "cardBackground": "rgba(0, 143, 17, 0.05)",
+        "textSecondary": "#1F6B2A",
+        "cardBackground": "#F4FBF4",
         "cardBorder": "#008f11",
         "error": "#cc0000",
         "success": "#008f11"
@@ -29,12 +29,12 @@
     "components": {
         "header": {
             "height": "80px",
-            "backgroundColor": "rgba(0, 143, 17, 0.1)",
+            "backgroundColor": "#EAF7EA",
             "borderBottom": "2px solid #008f11"
         },
         "footer": {
             "height": "60px",
-            "backgroundColor": "rgba(0, 143, 17, 0.05)",
+            "backgroundColor": "#F4FBF4",
             "borderTop": "1px solid #008f11"
         },
         "card": {
@@ -52,7 +52,7 @@
             "borderRadius": "6px",
             "padding": "10px 40px 10px 16px",
             "border": "2px solid #008f11",
-            "backgroundColor": "rgba(0, 143, 17, 0.08)",
+            "backgroundColor": "#EEF9EF",
             "textAlign": "center",
             "iconColor": "#008f11",
             "hoverBorderColor": "#00ff41",
@@ -74,7 +74,7 @@
                 "padding": "0 16px",
                 "borderRadius": "4px",
                 "border": "2px solid #008f11",
-                "backgroundColor": "rgba(0, 143, 17, 0.08)",
+                "backgroundColor": "#EEF9EF",
                 "fontSize": "0.9rem",
                 "fontWeight": "600",
                 "hoverBorderColor": "#00ff41",

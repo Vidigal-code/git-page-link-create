@@ -10,8 +10,8 @@
         "primary": "#00ff41",
         "secondary": "#008f11",
         "text": "#00ff41",
-        "textSecondary": "#008f11",
-        "cardBackground": "rgba(0, 255, 65, 0.05)",
+        "textSecondary": "#7EE787",
+        "cardBackground": "#10170F",
         "cardBorder": "#00ff41",
         "error": "#ff0000",
         "success": "#00ff41"
@@ -29,35 +29,35 @@
     "components": {
         "header": {
             "height": "80px",
-            "backgroundColor": "rgba(0, 255, 65, 0.1)",
-            "borderBottom": "2px solid #00ff41"
+            "backgroundColor": "#0E160F",
+            "borderBottom": "2px solid #00D23A"
         },
         "footer": {
             "height": "60px",
-            "backgroundColor": "rgba(0, 255, 65, 0.05)",
-            "borderTop": "1px solid #00ff41"
+            "backgroundColor": "#0E160F",
+            "borderTop": "1px solid #00D23A"
         },
         "card": {
             "borderRadius": "8px",
             "padding": "24px",
-            "boxShadow": "0 0 20px rgba(0, 255, 65, 0.3)"
+            "boxShadow": "0 0 20px rgba(0, 210, 58, 0.26)"
         },
         "button": {
             "borderRadius": "4px",
             "padding": "12px 24px",
             "border": "2px solid #00ff41",
-            "hoverGlow": "0 0 10px #00ff41"
+            "hoverGlow": "0 0 10px rgba(0, 210, 58, 0.7)"
         },
         "select": {
             "borderRadius": "6px",
             "padding": "10px 40px 10px 16px",
             "border": "2px solid #008f11",
-            "backgroundColor": "rgba(0, 255, 65, 0.05)",
+            "backgroundColor": "#121D13",
             "textAlign": "center",
             "iconColor": "#00ff41",
             "hoverBorderColor": "#00ff41",
             "focusBorderColor": "#00ff41",
-            "focusGlow": "0 0 15px rgba(0, 255, 65, 0.5)"
+            "focusGlow": "0 0 15px rgba(0, 210, 58, 0.45)"
         },
         "checkbox": {
             "width": "20px",
@@ -74,7 +74,7 @@
                 "padding": "0 16px",
                 "borderRadius": "4px",
                 "border": "2px solid #00ff41",
-                "backgroundColor": "rgba(0, 255, 65, 0.05)",
+                "backgroundColor": "#121D13",
                 "fontSize": "0.9rem",
                 "fontWeight": "600",
                 "hoverBorderColor": "#00ff41",

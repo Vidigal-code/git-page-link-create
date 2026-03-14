@@ -1,0 +1,38 @@
+{
+  "id": "job-mono-terminal",
+  "name": "Mono Terminal",
+  "description": "Monochrome terminal-inspired recruiting layout.",
+  "layout": {
+    "style": "minimal",
+    "containerMaxWidth": 980,
+    "imageShape": "square"
+  },
+  "effects": {
+    "backgroundEffect": "stars",
+    "hoverEffect": "outline"
+  },
+  "modes": {
+    "light": {
+      "background": "#f4f4f4",
+      "surface": "#ffffff",
+      "text": "#141414",
+      "mutedText": "#4f4f4f",
+      "primary": "#1f1f1f",
+      "primaryText": "#ffffff",
+      "border": "#dcdcdc",
+      "chip": "#efefef",
+      "shadow": "0 12px 25px rgba(25,25,25,0.14)"
+    },
+    "dark": {
+      "background": "#0d0d0d",
+      "surface": "#151515",
+      "text": "#f1f1f1",
+      "mutedText": "#a9a9a9",
+      "primary": "#f7f7f7",
+      "primaryText": "#141414",
+      "border": "#303030",
+      "chip": "#202020",
+      "shadow": "0 14px 28px rgba(0,0,0,0.62)"
+    }
+  }
+}

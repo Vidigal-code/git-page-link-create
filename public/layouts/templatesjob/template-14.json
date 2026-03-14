@@ -1,0 +1,38 @@
+{
+  "id": "job-emerald-luxe",
+  "name": "Emerald Luxe",
+  "description": "Premium green style for leadership and executive jobs.",
+  "layout": {
+    "style": "glass",
+    "containerMaxWidth": 940,
+    "imageShape": "circle"
+  },
+  "effects": {
+    "backgroundEffect": "aurora",
+    "hoverEffect": "lift"
+  },
+  "modes": {
+    "light": {
+      "background": "#eefcf6",
+      "surface": "#ffffff",
+      "text": "#1f3d2f",
+      "mutedText": "#4e7a63",
+      "primary": "#1fa369",
+      "primaryText": "#ffffff",
+      "border": "#cceee0",
+      "chip": "#e2f7ed",
+      "shadow": "0 16px 30px rgba(39,129,91,0.2)"
+    },
+    "dark": {
+      "background": "#0a1d14",
+      "surface": "#123026",
+      "text": "#e6fff2",
+      "mutedText": "#a8d4be",
+      "primary": "#4dd896",
+      "primaryText": "#0d3323",
+      "border": "#27513f",
+      "chip": "#1a3f30",
+      "shadow": "0 18px 34px rgba(0,0,0,0.54)"
+    }
+  }
+}

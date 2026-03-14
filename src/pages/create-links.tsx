@@ -17,9 +17,13 @@ import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
 import { SocialLinksForm, TemplateLivePreview, TemplateSelector } from '@/shared/ui/templateslinks';
+import { RICH_TEXT_FONTS } from '@/shared/lib/richTextFormatting';
 import {
     Actions,
     ErrorText,
+    FontOptionButton,
+    FontOptionsGrid,
+    FontSelectorPanel,
     FormGrid,
     Grid,
     HelperText,
@@ -40,6 +44,7 @@ const createInitialLink = (): SocialLinkInput => ({
 const initialFormData: TemplateLinksFormData = {
     profileName: '',
     profileBio: '',
+    bioFonts: ['1'],
     avatarUrl: '',
     websiteUrl: '',
     websiteLabel: '',
@@ -56,6 +61,15 @@ export default function CreateLinksPage() {
     const [success, setSuccess] = useState('');
     const [finalHtml, setFinalHtml] = useState('');
     const [renderAllLink, setRenderAllLink] = useState('');
+
+    const toggleBioFont = (fontId: string) => {
+        setFormData((prev) => {
+            const current = prev.bioFonts || [];
+            const exists = current.includes(fontId);
+            const next = exists ? current.filter((id) => id !== fontId) : [...current, fontId];
+            return { ...prev, bioFonts: next };
+        });
+    };
 
     useEffect(() => {
         const load = async () => {
@@ -201,6 +215,24 @@ export default function CreateLinksPage() {
                                     placeholder={t('createLinks.profileBioPlaceholder')}
                                     rows={3}
                                 />
+                                <div>
+                                    <FontSelectorPanel>
+                                        <HelperText>{t('createLinks.richTextHelp')}</HelperText>
+                                        <HelperText>{t('createLinks.richTextFontsHelp')}</HelperText>
+                                        <FontOptionsGrid>
+                                        {RICH_TEXT_FONTS.map((font) => (
+                                            <FontOptionButton
+                                                key={font.id}
+                                                type="button"
+                                                $active={(formData.bioFonts || []).includes(font.id)}
+                                                onClick={() => toggleBioFont(font.id)}
+                                            >
+                                                {`${font.id} - ${font.label}`}
+                                            </FontOptionButton>
+                                        ))}
+                                        </FontOptionsGrid>
+                                    </FontSelectorPanel>
+                                </div>
                                 <Input
                                     label={t('createLinks.avatarUrl')}
                                     value={formData.avatarUrl}

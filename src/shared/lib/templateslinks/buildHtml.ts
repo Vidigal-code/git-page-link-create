@@ -1,5 +1,6 @@
 import { LinksTemplate, SocialLinkInput, TemplateLinksFormData, TemplateMode } from './types';
 import { getSocialPlatformLabel, isValidHttpUrl, normalizeSocialLink } from './socialPlatforms';
+import { buildRichTextFontsCss, formatRichTextHtml } from '@/shared/lib/richTextFormatting';
 
 function escapeHtml(value: string): string {
     return value
@@ -67,7 +68,7 @@ export function buildTemplateLinksHtml(
     const switchToLight = localeTexts.switchToLight || 'Switch to light mode';
     const switchToDark = localeTexts.switchToDark || 'Switch to dark mode';
     const name = escapeHtml(formData.profileName || 'Meu Link');
-    const bio = escapeHtml(formData.profileBio || '');
+    const bio = formatRichTextHtml(formData.profileBio || '', formData.bioFonts || []);
     const websiteLink = formData.websiteUrl
         ? normalizeSocialLink({ id: 'website', platform: 'website', url: formData.websiteUrl })
         : null;
@@ -127,6 +128,8 @@ body{
 .header-top{width:100%;display:flex;justify-content:flex-end}
 .title{margin:0 0 clamp(10px, 1.4vw, 16px);font-size:clamp(1.65rem, 2.8vw, 2.4rem);line-height:1.15}
 .bio{margin:0;color:var(--muted);font-size:clamp(1rem, 1.35vw, 1.24rem);line-height:1.45;max-width:82ch}
+.bio strong{font-weight:800}
+.bio em{font-style:italic}
 .website-link{
   display:inline-flex;max-width:100%;overflow-wrap:anywhere;word-break:break-word;color:var(--primary);
   text-decoration:none;font-size:clamp(0.95rem, 1.2vw, 1.08rem);padding:clamp(8px, 1.2vw, 12px) clamp(12px, 1.8vw, 18px);background:var(--chip);border-radius:999px;
@@ -257,6 +260,7 @@ body{
   .wrap{padding:28px}
   .content-shell{width:min(96vw, 1180px)}
 }
+${buildRichTextFontsCss()}
 </style>
 </head>
 <body>
