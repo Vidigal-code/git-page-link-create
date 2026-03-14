@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-ocean-depth",
+  "name": "Ocean Depth",
+  "description": "Deep blue professional portfolio style.",
+  "layout": { "style": "grid", "containerMaxWidth": 1100, "imageShape": "circle" },
+  "effects": { "backgroundEffect": "waves", "hoverEffect": "glow" },
+  "modes": {
+    "light": { "background": "#eaf6ff", "surface": "#ffffff", "text": "#163755", "mutedText": "#4e7394", "primary": "#1683d4", "primaryText": "#ffffff", "border": "#d0e7f7", "chip": "#e6f3fd", "shadow": "0 18px 34px rgba(30,110,170,0.17)" },
+    "dark": { "background": "#071726", "surface": "#0f2436", "text": "#e2f2ff", "mutedText": "#9ec2de", "primary": "#42b3ff", "primaryText": "#042036", "border": "#244760", "chip": "#173248", "shadow": "0 20px 40px rgba(0,0,0,0.55)" }
+  }
+}

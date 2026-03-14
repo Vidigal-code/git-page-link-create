@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-space-grid",
+  "name": "Space Grid",
+  "description": "Spatial style with stars and strong readability.",
+  "layout": { "style": "grid", "containerMaxWidth": 1080, "imageShape": "circle" },
+  "effects": { "backgroundEffect": "stars", "hoverEffect": "pulse" },
+  "modes": {
+    "light": { "background": "#f3f6ff", "surface": "#ffffff", "text": "#203262", "mutedText": "#5d73ad", "primary": "#4a68ee", "primaryText": "#ffffff", "border": "#d6def9", "chip": "#eaf0ff", "shadow": "0 18px 36px rgba(74,104,184,0.2)" },
+    "dark": { "background": "#070d1f", "surface": "#111c3e", "text": "#e8eeff", "mutedText": "#afbbe7", "primary": "#8ea8ff", "primaryText": "#12234d", "border": "#2f4179", "chip": "#1d2f63", "shadow": "0 22px 40px rgba(0,0,0,0.6)" }
+  }
+}

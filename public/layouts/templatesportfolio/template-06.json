@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-nordic-frost",
+  "name": "Nordic Frost",
+  "description": "Elegant frozen palette for professional portfolios.",
+  "layout": { "style": "glass", "containerMaxWidth": 1040, "imageShape": "rounded" },
+  "effects": { "backgroundEffect": "waves", "hoverEffect": "glow" },
+  "modes": {
+    "light": { "background": "#eef5fb", "surface": "rgba(255,255,255,0.9)", "text": "#1c3247", "mutedText": "#53718c", "primary": "#2f7abf", "primaryText": "#ffffff", "border": "rgba(186,209,229,0.82)", "chip": "rgba(229,240,249,0.9)", "shadow": "0 18px 34px rgba(55,102,138,0.18)" },
+    "dark": { "background": "#0d1a28", "surface": "rgba(18,34,50,0.88)", "text": "#e5f0fa", "mutedText": "#9bb5cd", "primary": "#6db1ff", "primaryText": "#0f2538", "border": "rgba(74,106,135,0.5)", "chip": "rgba(26,49,73,0.9)", "shadow": "0 20px 38px rgba(0,0,0,0.5)" }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-minimal-pro",
+  "name": "Minimal Pro",
+  "description": "Minimal clean portfolio with focus on content.",
+  "layout": { "style": "minimal", "containerMaxWidth": 1020, "imageShape": "rounded" },
+  "effects": { "backgroundEffect": "waves", "hoverEffect": "outline" },
+  "modes": {
+    "light": { "background": "#f8f9fb", "surface": "#ffffff", "text": "#1f2329", "mutedText": "#616875", "primary": "#232b36", "primaryText": "#ffffff", "border": "#dde2e9", "chip": "#f1f4f8", "shadow": "0 12px 26px rgba(23,29,37,0.12)" },
+    "dark": { "background": "#111317", "surface": "#1a1f26", "text": "#edf1f5", "mutedText": "#a9b3bf", "primary": "#f3f6fa", "primaryText": "#1c232d", "border": "#313844", "chip": "#242b35", "shadow": "0 16px 32px rgba(0,0,0,0.58)" }
+  }
+}

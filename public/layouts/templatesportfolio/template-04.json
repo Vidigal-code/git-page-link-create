@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-cyberpunk",
+  "name": "Cyberpunk Neon",
+  "description": "Neon cyberpunk portfolio with bold visuals.",
+  "layout": { "style": "glass", "containerMaxWidth": 1040, "imageShape": "square" },
+  "effects": { "backgroundEffect": "spotlight", "hoverEffect": "pulse" },
+  "modes": {
+    "light": { "background": "#fff3fe", "surface": "#ffffff", "text": "#321d47", "mutedText": "#734b94", "primary": "#e83fce", "primaryText": "#ffffff", "border": "#f0d0f8", "chip": "#fcecff", "shadow": "0 20px 36px rgba(166,64,168,0.25)" },
+    "dark": { "background": "#10031d", "surface": "#1f0b33", "text": "#ffe7ff", "mutedText": "#d2a9eb", "primary": "#00e8ff", "primaryText": "#062029", "border": "#43245d", "chip": "#2d1247", "shadow": "0 24px 44px rgba(0,0,0,0.62)" }
+  }
+}

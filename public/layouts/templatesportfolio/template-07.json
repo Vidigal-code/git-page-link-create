@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-solar-flare",
+  "name": "Solar Flare",
+  "description": "Warm energetic design for creative portfolio sites.",
+  "layout": { "style": "stacked", "containerMaxWidth": 1040, "imageShape": "circle" },
+  "effects": { "backgroundEffect": "spotlight", "hoverEffect": "lift" },
+  "modes": {
+    "light": { "background": "#fff4ea", "surface": "#ffffff", "text": "#4b2713", "mutedText": "#87553a", "primary": "#ff6a2f", "primaryText": "#ffffff", "border": "#ffd9c4", "chip": "#fff0e6", "shadow": "0 16px 32px rgba(194,99,52,0.2)" },
+    "dark": { "background": "#1d120c", "surface": "#2a1911", "text": "#ffe9dc", "mutedText": "#e2b8a2", "primary": "#ff914d", "primaryText": "#2c160d", "border": "#523224", "chip": "#382217", "shadow": "0 20px 36px rgba(0,0,0,0.52)" }
+  }
+}

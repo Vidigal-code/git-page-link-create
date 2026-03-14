@@ -53,6 +53,8 @@ export const Header: React.FC<HeaderProps> = ({
                 ? '/create-links'
                 : router.pathname === '/create-jobs'
                     ? '/create-jobs'
+                    : router.pathname === '/create-portfolio'
+                        ? '/create-portfolio'
                 : '/create'
     );
     const createDropdownOptions = [
@@ -60,6 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
         { value: '/shorturl-create', label: tlOr('headerDropdown.shortUrlPage', 'Create Short URL') },
         { value: '/create-links', label: tlOr('headerDropdown.createLinksPage', 'Create Links') },
         { value: '/create-jobs', label: tlOr('headerDropdown.createJobsPage', 'Create Jobs') },
+        { value: '/create-portfolio', label: tlOr('headerDropdown.createPortfolioPage', 'Create Portfolio') },
     ];
 
     const toggleMobileMenu = () => {

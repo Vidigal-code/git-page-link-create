@@ -1,0 +1,11 @@
+{
+  "id": "portfolio-amber-sand",
+  "name": "Amber Sand",
+  "description": "Warm neutral portfolio style for all professions.",
+  "layout": { "style": "minimal", "containerMaxWidth": 1040, "imageShape": "square" },
+  "effects": { "backgroundEffect": "waves", "hoverEffect": "outline" },
+  "modes": {
+    "light": { "background": "#fff8ef", "surface": "#ffffff", "text": "#4a331f", "mutedText": "#88684a", "primary": "#c6883a", "primaryText": "#ffffff", "border": "#f1dfc5", "chip": "#fbf0e1", "shadow": "0 15px 30px rgba(154,112,57,0.18)" },
+    "dark": { "background": "#1f160d", "surface": "#2d2115", "text": "#ffefdf", "mutedText": "#d3b89b", "primary": "#e8b56e", "primaryText": "#362312", "border": "#55402a", "chip": "#3d2d1d", "shadow": "0 18px 34px rgba(0,0,0,0.55)" }
+  }
+}
