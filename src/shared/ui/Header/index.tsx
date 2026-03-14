@@ -55,9 +55,12 @@ export const Header: React.FC<HeaderProps> = ({
                     ? '/create-jobs'
                     : router.pathname === '/create-portfolio'
                         ? '/create-portfolio'
-                : '/create'
+                        : router.pathname === '/create'
+                            ? '/create'
+                            : '__create-menu__'
     );
     const createDropdownOptions = [
+        { value: '__create-menu__', label: tlOr('create.navTitle', 'Create') },
         { value: '/create', label: tlOr('headerDropdown.createPage', 'Create Content') },
         { value: '/shorturl-create', label: tlOr('headerDropdown.shortUrlPage', 'Create Short URL') },
         { value: '/create-links', label: tlOr('headerDropdown.createLinksPage', 'Create Links') },
@@ -86,7 +89,10 @@ export const Header: React.FC<HeaderProps> = ({
 
                     <Select
                         value={createDropdownValue}
-                        onChange={(e) => { void router.push(e.target.value); }}
+                        onChange={(e) => {
+                            if (e.target.value === '__create-menu__') return;
+                            void router.push(e.target.value);
+                        }}
                         options={createDropdownOptions}
                         aria-label={tlOr('headerDropdown.createAria', 'Create dropdown')}
                     />
@@ -148,6 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Select
                         value={createDropdownValue}
                         onChange={(e) => {
+                            if (e.target.value === '__create-menu__') return;
                             closeMobileMenu();
                             void router.push(e.target.value);
                         }}
