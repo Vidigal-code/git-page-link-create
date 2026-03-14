@@ -90,6 +90,28 @@ export const OutputBlock = styled.div`
   gap: 10px;
 `;
 
+export const ProgressTrack = styled.div`
+  margin-top: 10px;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.cardBorder};
+  overflow: hidden;
+`;
+
+export const ProgressFill = styled.div<{ $width: number }>`
+  width: ${({ $width }) => `${$width}%`};
+  height: 100%;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.primary};
+  transition: width .25s ease;
+`;
+
+export const ProgressDivider = styled.div`
+  margin: 12px 0;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.cardBorder};
+`;
+
 export const FontSelectorPanel = styled.div`
   display: grid;
   gap: 8px;

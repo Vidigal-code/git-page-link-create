@@ -20,6 +20,9 @@ import {
     MessageStack,
     OutputBlock,
     PageContainer,
+    ProgressDivider,
+    ProgressFill,
+    ProgressTrack,
     ResultStack,
     RightColumn,
 } from '@/shared/styles/pages/create-links.styles';
@@ -223,9 +226,10 @@ export default function CreatePortfolioPage() {
                     <LeftColumn>
                         <Card title={t('createPortfolio.progressTitle')}>
                             <HelperText>{`${t('createPortfolio.stepLabel')} ${stepIndex + 1}/${STEPS.length}`}</HelperText>
-                            <div style={{ marginTop: '10px', width: '100%', height: '10px', borderRadius: '999px', background: '#d1d5db33' }}>
-                                <div style={{ width: `${progress}%`, height: '100%', borderRadius: '999px', background: 'var(--primary, #2563eb)', transition: 'width .25s ease' }} />
-                            </div>
+                            <ProgressTrack>
+                                <ProgressFill $width={progress} />
+                            </ProgressTrack>
+                            <ProgressDivider />
                             <Actions>
                                 <Button type="button" variant="secondary" onClick={() => setStepIndex((prev) => Math.max(0, prev - 1))} disabled={stepIndex === 0}>
                                     {t('createPortfolio.backButton')}
