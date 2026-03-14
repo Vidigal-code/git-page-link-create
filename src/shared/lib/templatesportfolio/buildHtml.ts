@@ -116,6 +116,7 @@ export function buildPortfolioTemplateHtml(
         }))
         .filter((item) => item.title || item.institution || item.period || item.description || item.imageUrl);
     const educationPages = paginate(educationItems, 1);
+    const hasEducation = educationItems.length > 0;
     const educationHtml = educationPages
         .map((pageItems, pageIndex) => `
           <div class="page-item" data-page="${pageIndex + 1}">
@@ -144,6 +145,7 @@ export function buildPortfolioTemplateHtml(
         }))
         .filter((item) => item.role || item.company || item.period || item.description);
     const experiencePages = paginate(experienceItems, 1);
+    const hasExperience = experienceItems.length > 0;
     const experienceHtml = experiencePages
         .map((pageItems, pageIndex) => {
             const item = pageItems[0];
@@ -164,6 +166,7 @@ export function buildPortfolioTemplateHtml(
         .map((skill) => skill.trim())
         .filter(Boolean);
     const skillsPages = paginate(skills, 12);
+    const hasSkills = skills.length > 0;
     const skillsHtml = skillsPages
         .map((pageItems, pageIndex) => {
             const searchSource = pageItems.join(' ').toLowerCase();
@@ -188,6 +191,8 @@ export function buildPortfolioTemplateHtml(
         contactLocation ? `<p><strong>Location:</strong> ${escapeHtml(contactLocation)}</p>` : '',
         isValidHttpUrl(contactWebsite) ? `<p><strong>Website:</strong> <a href="${escapeHtml(contactWebsite)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteDisplayText)}</a></p>` : '',
     ].filter(Boolean).join('');
+    const hasContact = Boolean(contactHtml);
+    const hasAbout = Boolean(about || socialHtml);
 
     const hasEducationPagination = educationPages.length > 1;
     const hasSkillsPagination = skillsPages.length > 1;
@@ -293,13 +298,13 @@ h1{margin:0;font-size:clamp(1.8rem,3vw,2.6rem)}
       <section class="hero">
         ${imageHtml}
         <div>
-          <h2>${sectionAbout}</h2>
+          ${hasAbout ? `<h2>${sectionAbout}</h2>` : ''}
           ${about ? `<p class="about">${about}</p>` : ''}
           ${socialHtml ? `<div class="social">${socialHtml}</div>` : ''}
         </div>
       </section>
       <section class="sections">
-        <article class="section pager-section" data-section="education">
+        ${hasEducation ? `<article class="section pager-section" data-section="education">
           <h2>${sectionEducation}</h2>
           ${hasEducationPagination ? `<div class="filter-row">
             <label for="education-search">${educationFilterLabel}</label>
@@ -307,15 +312,14 @@ h1{margin:0;font-size:clamp(1.8rem,3vw,2.6rem)}
           </div>` : ''}
           <div class="pager-body">
             ${educationHtml}
-            <p class="page-empty">-</p>
           </div>
           ${hasEducationPagination ? `<div class="pager-controls">
             <button type="button" class="pager-button" data-prev>${previousLabel}</button>
             <span class="page-indicator-wrap">${pageLabel}: <span class="page-indicator"></span></span>
             <button type="button" class="pager-button" data-next>${nextLabel}</button>
           </div>` : ''}
-        </article>
-        <article class="section pager-section" data-section="skills">
+        </article>` : ''}
+        ${hasSkills ? `<article class="section pager-section" data-section="skills">
           <h2>${sectionSkills}</h2>
           ${hasSkillsPagination ? `<div class="filter-row">
             <label for="skills-search">${skillsFilterLabel}</label>
@@ -323,15 +327,14 @@ h1{margin:0;font-size:clamp(1.8rem,3vw,2.6rem)}
           </div>` : ''}
           <div class="pager-body">
             ${skillsHtml}
-            <p class="page-empty">${emptySkills}</p>
           </div>
           ${hasSkillsPagination ? `<div class="pager-controls">
             <button type="button" class="pager-button" data-prev>${previousLabel}</button>
             <span class="page-indicator-wrap">${pageLabel}: <span class="page-indicator"></span></span>
             <button type="button" class="pager-button" data-next>${nextLabel}</button>
           </div>` : ''}
-        </article>
-        <article class="section pager-section" data-section="experience">
+        </article>` : ''}
+        ${hasExperience ? `<article class="section pager-section" data-section="experience">
           <h2>${sectionExperience}</h2>
           ${hasExperiencePagination ? `<div class="filter-row">
             <label for="experience-search">${experienceFilterLabel}</label>
@@ -339,18 +342,17 @@ h1{margin:0;font-size:clamp(1.8rem,3vw,2.6rem)}
           </div>` : ''}
           <div class="pager-body">
             ${experienceHtml}
-            <p class="page-empty">-</p>
           </div>
           ${hasExperiencePagination ? `<div class="pager-controls">
             <button type="button" class="pager-button" data-prev>${previousLabel}</button>
             <span class="page-indicator-wrap">${pageLabel}: <span class="page-indicator"></span></span>
             <button type="button" class="pager-button" data-next>${nextLabel}</button>
           </div>` : ''}
-        </article>
-        <article class="section">
+        </article>` : ''}
+        ${hasContact ? `<article class="section">
           <h2>${sectionContact}</h2>
-          ${contactHtml || '<p class="item-period">-</p>'}
-        </article>
+          ${contactHtml}
+        </article>` : ''}
       </section>
       <footer class="footer">${footer}</footer>
     </section>
