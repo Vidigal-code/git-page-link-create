@@ -55,6 +55,54 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/faq.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/faq.md"
       }
+    },
+    {
+      "id": 7,
+      "path": {
+        "pt": "gitpagedocs/docs/versions/1.0.0/pt/functions-create.md",
+        "en": "gitpagedocs/docs/versions/1.0.0/en/functions-create.md",
+        "es": "gitpagedocs/docs/versions/1.0.0/es/functions-create.md"
+      }
+    },
+    {
+      "id": 8,
+      "path": {
+        "pt": "gitpagedocs/docs/versions/1.0.0/pt/functions-render.md",
+        "en": "gitpagedocs/docs/versions/1.0.0/en/functions-render.md",
+        "es": "gitpagedocs/docs/versions/1.0.0/es/functions-render.md"
+      }
+    },
+    {
+      "id": 9,
+      "path": {
+        "pt": "gitpagedocs/docs/versions/1.0.0/pt/functions-shorturl.md",
+        "en": "gitpagedocs/docs/versions/1.0.0/en/functions-shorturl.md",
+        "es": "gitpagedocs/docs/versions/1.0.0/es/functions-shorturl.md"
+      }
+    },
+    {
+      "id": 10,
+      "path": {
+        "pt": "gitpagedocs/docs/versions/1.0.0/pt/functions-chat-link.md",
+        "en": "gitpagedocs/docs/versions/1.0.0/en/functions-chat-link.md",
+        "es": "gitpagedocs/docs/versions/1.0.0/es/functions-chat-link.md"
+      }
+    },
+    {
+      "id": 11,
+      "path": {
+        "pt": "gitpagedocs/docs/versions/1.0.0/pt/functions-qr.md",
+        "en": "gitpagedocs/docs/versions/1.0.0/en/functions-qr.md",
+        "es": "gitpagedocs/docs/versions/1.0.0/es/functions-qr.md"
+      }
+    },
+    {
+      "id": 12,
+      "path": {
+        "pt": "gitpagedocs/docs/versions/1.0.0/pt/functions-recovery.md",
+        "en": "gitpagedocs/docs/versions/1.0.0/en/functions-recovery.md",
+        "es": "gitpagedocs/docs/versions/1.0.0/es/functions-recovery.md"
+      }
     }
   ],
   "menus-header": [
@@ -147,6 +195,99 @@
     },
     {
       "id": 3,
+      "pt": {
+        "title": "Funcoes do app",
+        "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-create.md",
+        "submenus": [
+          {
+            "title": "Create",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-create.md"
+          },
+          {
+            "title": "Render",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-render.md"
+          },
+          {
+            "title": "Short URL",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-shorturl.md"
+          },
+          {
+            "title": "Chat Link",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-chat-link.md"
+          },
+          {
+            "title": "QR",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-qr.md"
+          },
+          {
+            "title": "Recovery",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/pt/functions-recovery.md"
+          }
+        ]
+      },
+      "en": {
+        "title": "App Functions",
+        "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-create.md",
+        "submenus": [
+          {
+            "title": "Create",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-create.md"
+          },
+          {
+            "title": "Render",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-render.md"
+          },
+          {
+            "title": "Short URL",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-shorturl.md"
+          },
+          {
+            "title": "Chat Link",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-chat-link.md"
+          },
+          {
+            "title": "QR",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-qr.md"
+          },
+          {
+            "title": "Recovery",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/en/functions-recovery.md"
+          }
+        ]
+      },
+      "es": {
+        "title": "Funciones de la app",
+        "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-create.md",
+        "submenus": [
+          {
+            "title": "Create",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-create.md"
+          },
+          {
+            "title": "Render",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-render.md"
+          },
+          {
+            "title": "Short URL",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-shorturl.md"
+          },
+          {
+            "title": "Chat Link",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-chat-link.md"
+          },
+          {
+            "title": "QR",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-qr.md"
+          },
+          {
+            "title": "Recovery",
+            "path-click": "gitpagedocs/docs/versions/1.0.0/es/functions-recovery.md"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
       "pt": {
         "title": "Publicacao",
         "path-click": "gitpagedocs/docs/versions/1.0.0/pt/deployment.md"
