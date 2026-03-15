@@ -30,7 +30,8 @@ function escapeHtml(value: string): string {
 
 function applyInlineStyles(escapedValue: string): string {
     const withBold = escapedValue.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
-    const withItalic = withBold.replace(/\/\*([\s\S]+?)\*\//g, '<em>$1</em>');
+    // Keep font markers like /*1*text*/ literal when not in multi-font mode.
+    const withItalic = withBold.replace(/\/\*(?!(?:1[0-2]|[1-9])\*)([\s\S]+?)\*\//g, '<em>$1</em>');
     return withItalic.replace(/\n/g, '<br />');
 }
 
@@ -47,6 +48,18 @@ export function buildRichTextFontsCss(): string {
 export function formatRichTextHtml(rawValue: string, selectedFontIds: string[] = []): string {
     const value = rawValue || '';
     const normalizedSelectedFonts = ensureUniqueFontIds(selectedFontIds);
+
+    // Single selected font: apply to whole content and treat font markers as plain text.
+    if (normalizedSelectedFonts.length === 1) {
+        const html = applyInlineStyles(escapeHtml(value));
+        return `<span class="rt-font-${normalizedSelectedFonts[0]}">${html}</span>`;
+    }
+
+    // Font markers only work when user selected multiple fonts.
+    if (normalizedSelectedFonts.length < 2) {
+        return applyInlineStyles(escapeHtml(value));
+    }
+
     const fontMarkerRegex = /\/\*(1[0-2]|[1-9])\*([\s\S]*?)\*\//g;
 
     const chunks: string[] = [];
@@ -70,10 +83,6 @@ export function formatRichTextHtml(rawValue: string, selectedFontIds: string[] =
         chunks.push(applyInlineStyles(escapeHtml(remaining)));
     }
 
-    const html = chunks.join('');
-    if (normalizedSelectedFonts.length === 1) {
-        return `<span class="rt-font-${normalizedSelectedFonts[0]}">${html}</span>`;
-    }
-    return html;
+    return chunks.join('');
 }
 
