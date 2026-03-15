@@ -5,26 +5,20 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
-import { Select } from '@/shared/ui/Select';
 import { useI18n } from '@/shared/lib/i18n';
 import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
 import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } from '@/shared/lib/download';
 import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import { parseRecoveryInput } from '@/shared/lib/recovery';
-import { uint8ArrayToBase64 } from '@/shared/lib/base64';
 import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import { prepareHtmlForIframe } from '@/shared/lib/html';
 import {
     getMaxAudioUrlLength,
-    getMaxCsvUrlLength,
-    getMaxHtmlUrlLength,
     getMaxImageUrlLength,
-    getMaxMarkdownUrlLength,
     getMaxOfficeUrlLength,
     getMaxPdfUrlLength,
     getMaxUrlLength,
     getMaxVideoUrlLength,
-    getMaxXlsxUrlLength,
     loadAvailableThemes,
 } from '@/shared/lib/theme';
 import { withBasePath } from '@/shared/lib/basePath';
@@ -36,6 +30,20 @@ import { compressVideoFile, encodeVideoDataUrl } from '@/shared/lib/video';
 import { compressAudioFile, encodeAudioDataUrl, getSupportedAudioMimeType } from '@/shared/lib/audio';
 import { getOfficeViewerUrl } from '@/shared/lib/office';
 import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
+import type { ContentType, ToolType } from '@/entities/content/model/types';
+import {
+    generateContentHashLink,
+    generateContentSourceLink,
+    getMaxLengthForContentType,
+    isValidHttpUrl as isValidSourceUrl,
+    mapContentTypeToTool,
+} from '@/entities/content/lib/contracts';
+import { extractOfficeUrlFromCode, resolveOfficeSource } from '@/features/create/lib/office';
+import {
+    getExtensionFromMimeType,
+    resolveDataUrlForEncoding,
+    uint8ArrayToDataUrl,
+} from '@/features/create/lib/dataUrl';
 import {
     AudioToolCard,
     ContentToolCard,
@@ -47,26 +55,18 @@ import {
     VideoToolCard,
 } from '@/shared/ui/create-tools';
 import {
-    ButtonGroup,
     Container,
-    EditorColumn,
+    ButtonGroup,
     ErrorDescription,
     ErrorHint,
     ErrorPageContainer,
     ErrorTitle,
-    LinkDisplay,
     MarkdownPreview,
-    PreviewColumn,
     PreviewContent,
     PreviewFrame,
-    ResultSection,
-    SplitView,
     TablePreview,
 } from '@/shared/styles/pages/create.styles';
-
-type ContentType = 'html' | 'md' | 'csv' | 'txt' | 'xlsx' | 'xls' | 'docx' | 'pptx' | 'doc' | 'ppt' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'recovery' | 'qr';
-type ToolType = 'create' | 'recovery' | 'image' | 'pdf' | 'video' | 'audio' | 'office' | 'qr';
-type RecoverableContentType = Exclude<ContentType, 'recovery' | 'qr' | 'office'>;
+import { CreatePageLayout } from '@/widgets/create-page/ui/CreatePageLayout';
 
 export default function Create() {
     const { t } = useI18n();
@@ -346,54 +346,6 @@ export default function Create() {
         ? content
         : t('create.binaryContentPlaceholder');
 
-    const uint8ArrayToDataUrl = (bytes: Uint8Array, mimeType: string) => (
-        `data:${mimeType};base64,${uint8ArrayToBase64(bytes)}`
-    );
-
-    const blobUrlToDataUrl = async (blobUrl: string): Promise<string> => {
-        const res = await fetch(blobUrl);
-        if (!res.ok) throw new Error('blob_fetch_failed');
-        const blob = await res.blob();
-        return await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onerror = () => reject(new Error('blob_read_failed'));
-            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-            reader.readAsDataURL(blob);
-        });
-    };
-
-    const resolveDataUrlForEncoding = async (value: string): Promise<string> => {
-        const v = (value || '').trim();
-        if (!v) return '';
-        if (v.startsWith('blob:')) {
-            const dataUrl = await blobUrlToDataUrl(v);
-            return dataUrl || '';
-        }
-        return v;
-    };
-
-    const getExtensionFromMimeType = (mimeType: string): string => {
-        const m = (mimeType || '').toLowerCase().trim();
-        if (!m) return '';
-        if (m === 'application/pdf') return '.pdf';
-        if (m === 'image/jpeg') return '.jpg';
-        if (m === 'image/jpg') return '.jpg';
-        if (m === 'image/png') return '.png';
-        if (m === 'image/gif') return '.gif';
-        if (m === 'image/webp') return '.webp';
-        if (m === 'image/svg+xml') return '.svg';
-        if (m === 'video/webm') return '.webm';
-        if (m === 'video/mp4') return '.mp4';
-        if (m === 'audio/ogg') return '.ogg';
-        if (m === 'audio/wav') return '.wav';
-        if (m === 'audio/mpeg') return '.mp3';
-        if (m === 'text/html') return '.html';
-        if (m === 'text/markdown') return '.md';
-        if (m === 'text/csv') return '.csv';
-        if (m === 'text/plain') return '.txt';
-        return '';
-    };
-
     useEffect(() => {
         if (!recoveredObjectUrl || typeof window === 'undefined') return;
         return () => {
@@ -463,46 +415,7 @@ export default function Create() {
         setContent(value);
     };
 
-    const getMaxLengthForContentType = (type: ContentType) => {
-        switch (type) {
-            case 'html':
-                return getMaxHtmlUrlLength();
-            case 'md':
-                return getMaxMarkdownUrlLength();
-            case 'csv':
-                return getMaxCsvUrlLength();
-            case 'xlsx':
-                return getMaxXlsxUrlLength();
-            default:
-                return getMaxUrlLength();
-        }
-    };
-
-    const isValidUrl = (value: string) => {
-        if (!value) return false;
-        try {
-            const parsed = new URL(value);
-            return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-        } catch {
-            return false;
-        }
-    };
-
-    const extractOfficeUrlFromCode = (value: string) => {
-        const match = value.match(/https?:\/\/[^\s"'<>]+/i);
-        return match?.[0] || '';
-    };
-
-    const resolveOfficeSource = () => {
-        const urlValue = officeSourceUrl.trim();
-        if (urlValue) return urlValue;
-
-        const codeValue = officeCode.trim();
-        if (!codeValue) return '';
-
-        const extracted = extractOfficeUrlFromCode(codeValue);
-        return extracted || codeValue;
-    };
+    const resolveOfficeSourceValue = () => resolveOfficeSource({ officeSourceUrl, officeCode });
 
     const hasOfficeSource = () => Boolean(officeSourceUrl.trim() || officeCode.trim() || officeFile);
 
@@ -523,28 +436,7 @@ export default function Create() {
             fileInputRef.current.value = '';
         }
 
-        // Mapping ContentType to ToolType
-        const contentTypeToTool: Record<ContentType, ToolType> = {
-            'pdf': 'pdf',
-            'image': 'image',
-            'video': 'video',
-            'audio': 'audio',
-            'docx': 'office',
-            'pptx': 'office',
-            'doc': 'office',
-            'ppt': 'office',
-            'xls': 'office',
-            'xlsx': 'office',
-            'qr': 'qr',
-            'recovery': 'recovery',
-            'html': 'create',
-            'md': 'create',
-            'csv': 'create',
-            'txt': 'create',
-            'office': 'office',
-        };
-
-        setSelectedTool(contentTypeToTool[newType] || 'create');
+        setSelectedTool(mapContentTypeToTool(newType));
     };
 
     const handleClearContent = () => {
@@ -590,19 +482,6 @@ export default function Create() {
         }
     };
 
-    const generateHashLink = (targetContent: string | Uint8Array, type: ContentType, fullScreen = false) => {
-        const compressed = typeof targetContent === 'string'
-            ? compress(targetContent)
-            : compressBytes(targetContent);
-
-        if (typeof window === 'undefined') return '';
-
-        const baseUrl = window.location.origin;
-        // Shortest aliases + trailingSlash-safe path
-        const fullPath = withBasePath(fullScreen ? '/ra/' : '/r/');
-        return `${baseUrl}${fullPath}#d=${encodePlatformType(type)}-${compressed}`;
-    };
-
     const handleGenerateLink = async () => {
         if (content.length === 0) {
             setError(t('create.emptyContent'));
@@ -614,7 +493,12 @@ export default function Create() {
         setGeneratedLink('');
 
         try {
-            const link = generateHashLink(content, contentType, isFullScreen);
+            const link = generateContentHashLink({
+                origin: window.location.origin,
+                content,
+                type: contentType,
+                fullScreen: isFullScreen,
+            });
             const maxLimit = getMaxLengthForContentType(contentType);
 
             if (link.length > maxLimit) {
@@ -634,16 +518,18 @@ export default function Create() {
 
     const handleGenerateContentSourceLink = () => {
         if (!contentSourceUrl) return;
-        if (!isValidUrl(contentSourceUrl)) {
+        if (!isValidSourceUrl(contentSourceUrl)) {
             setContentSourceError(t('create.sourceUrlInvalid'));
             return;
         }
 
         if (typeof window === 'undefined') return;
 
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`/r/?source=${encodeURIComponent(contentSourceUrl)}&type=${contentType}`);
-        const link = `${baseUrl}${fullPath}`;
+        const link = generateContentSourceLink({
+            origin: window.location.origin,
+            sourceUrl: contentSourceUrl,
+            type: contentType,
+        });
         const maxLimit = getMaxUrlLength();
 
         if (link.length > maxLimit) {
@@ -1073,7 +959,7 @@ export default function Create() {
 
     const handleGenerateImageSourceLink = () => {
         if (!imageSourceUrl) return;
-        if (!isValidUrl(imageSourceUrl)) {
+        if (!isValidSourceUrl(imageSourceUrl)) {
             setImageError(t('create.imageUrlInvalid'));
             return;
         }
@@ -1277,7 +1163,7 @@ export default function Create() {
 
     const handleGenerateVideoSourceLink = () => {
         if (!videoSourceUrl) return;
-        if (!isValidUrl(videoSourceUrl)) {
+        if (!isValidSourceUrl(videoSourceUrl)) {
             setVideoError(t('create.videoUrlInvalid'));
             return;
         }
@@ -1405,7 +1291,7 @@ export default function Create() {
 
     const handleGenerateAudioSourceLink = () => {
         if (!audioSourceUrl) return;
-        if (!isValidUrl(audioSourceUrl)) {
+        if (!isValidSourceUrl(audioSourceUrl)) {
             setAudioError(t('create.audioUrlInvalid'));
             return;
         }
@@ -1462,7 +1348,7 @@ export default function Create() {
     };
 
     const handleGenerateOfficeLink = () => {
-        const sourceValue = resolveOfficeSource();
+        const sourceValue = resolveOfficeSourceValue();
         if (!sourceValue) return;
 
         setOfficeError('');
@@ -1501,7 +1387,7 @@ export default function Create() {
             }
         }
 
-        if (!isValidUrl(sourceValue)) {
+        if (!isValidSourceUrl(sourceValue)) {
             setOfficeError(t('create.officeUrlInvalid'));
             return;
         }
@@ -1520,7 +1406,7 @@ export default function Create() {
     };
 
     const handleGenerateOfficeRenderAllLink = () => {
-        const sourceValue = resolveOfficeSource();
+        const sourceValue = resolveOfficeSourceValue();
         if (!sourceValue) return;
 
         setOfficeError('');
@@ -1558,7 +1444,7 @@ export default function Create() {
             }
         }
 
-        if (!isValidUrl(sourceValue)) {
+        if (!isValidSourceUrl(sourceValue)) {
             setOfficeError(t('create.officeUrlInvalid'));
             return;
         }
@@ -1971,7 +1857,7 @@ export default function Create() {
                         onClear={handleClearOffice}
                         onCopyLink={handleCopyLink}
                         getViewerUrl={getOfficeViewerUrl}
-                        isValidUrl={isValidUrl}
+                        isValidUrl={isValidSourceUrl}
                         officeFile={officeFile}
                     />
                 );
@@ -2064,54 +1950,27 @@ export default function Create() {
                 <meta name="robots" content="index, follow" />
             </Head>
 
-            <Container>
-                <SplitView>
-                    <EditorColumn $showPreview={showPreview && selectedTool === 'create'}>
-                        <Select
-                            label={t('create.selectType')}
-                            value={contentType}
-                            options={contentTypeOptions}
-                            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => handleContentTypeChange(event.target.value as ContentType)}
-                        />
-
-                        {renderSelectedTool()}
-
-                        {selectedTool === 'create' && generatedLink && (
-                            <ResultSection>
-                                <Card title={t('create.generatedLink')}>
-                                    <p><strong>{isFullScreen ? t('create.fullScreenOption') : t('create.generatedLink')}:</strong></p>
-                                    <LinkDisplay>{generatedLink}</LinkDisplay>
-                                    <ButtonGroup style={{ marginBottom: '20px' }}>
-                                        <Button onClick={() => handleCopyLink(generatedLink)}>
-                                            {t('create.copyLink')}
-                                        </Button>
-                                        <Button
-                                            onClick={() => safeOpenUrl(generatedLink, '_blank')}
-                                            variant="secondary"
-                                        >
-                                            {t('create.openLink')}
-                                        </Button>
-                                    </ButtonGroup>
-
-                                    <ButtonGroup>
-                                        <Button variant="secondary" onClick={handleDownloadOriginal}>
-                                            {t('create.downloadOriginal')}
-                                        </Button>
-                                    </ButtonGroup>
-                                </Card>
-                            </ResultSection>
-                        )}
-                    </EditorColumn>
-
-                    {showPreview && selectedTool === 'create' && (
-                        <PreviewColumn>
-                            <Card title={t('create.preview')}>
-                                {renderPreview()}
-                            </Card>
-                        </PreviewColumn>
-                    )}
-                </SplitView>
-            </Container>
+            <CreatePageLayout
+                selectLabel={t('create.selectType')}
+                previewTitle={t('create.preview')}
+                generatedTitle={t('create.generatedLink')}
+                generatedLabel={t('create.generatedLink')}
+                fullScreenLabel={t('create.fullScreenOption')}
+                copyLabel={t('create.copyLink')}
+                openLabel={t('create.openLink')}
+                downloadOriginalLabel={t('create.downloadOriginal')}
+                contentType={contentType}
+                options={contentTypeOptions}
+                onChangeType={(value) => handleContentTypeChange(value as ContentType)}
+                showPreview={showPreview}
+                isCreateTool={selectedTool === 'create'}
+                generatedLink={generatedLink}
+                isFullScreen={isFullScreen}
+                onCopyGenerated={() => handleCopyLink(generatedLink)}
+                onDownloadOriginal={handleDownloadOriginal}
+                toolNode={renderSelectedTool()}
+                previewNode={renderPreview()}
+            />
         </>
     );
 }

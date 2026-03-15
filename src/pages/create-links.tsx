@@ -11,11 +11,9 @@ import {
     SocialLinkInput,
     TemplateLinksFormData,
 } from '@/shared/lib/templateslinks';
-import { compress } from '@/shared/lib/compression';
-import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
 import { useI18n } from '@/shared/lib/i18n';
-import { withBasePath } from '@/shared/lib/basePath';
+import { generateHtmlRenderAllLink } from '@/features/render-all/lib/generateHtmlRenderAllLink';
 import { SocialLinksForm, TemplateLivePreview, TemplateSelector } from '@/shared/ui/templateslinks';
 import { RICH_TEXT_FONTS } from '@/shared/lib/richTextFormatting';
 import {
@@ -148,9 +146,7 @@ export default function CreateLinksPage() {
     const handleGenerateRenderAllLink = async () => {
         if (!finalHtml) return;
         if (typeof window === 'undefined') return;
-        const compressed = compress(finalHtml);
-        const fullPath = withBasePath('/ra/');
-        const link = `${window.location.origin}${fullPath}#d=${encodePlatformType('html')}-${compressed}`;
+        const link = generateHtmlRenderAllLink(window.location.origin, finalHtml);
         setRenderAllLink(link);
         setSuccess(t('createLinks.renderAllGenerated'));
     };

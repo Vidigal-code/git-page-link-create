@@ -1,18 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { useI18n } from '@/shared/lib/i18n';
-import { withBasePath } from '@/shared/lib/basePath';
 import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
 import {
     decodeRefCode,
     decodeShortUrlToken,
-    encodeRefCode,
-    encodeShortUrlToken, formatBytes, getUtf8ByteLength,
-    isValidHttpUrl
+    formatBytes,
+    getUtf8ByteLength,
 } from '@/shared/lib/shorturl';
+import { useShortUrlCreate } from '@/features/shorturl/model/useShortUrlCreate';
 import {
     ButtonGroup,
     CheckboxContainer,
@@ -34,8 +33,11 @@ export default function ShortUrlCreatePage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [instantRenderer, setInstantRenderer] = useState(true);
-
-    const silentFlagSuffix = useMemo(() => (instantRenderer ? '?z=1' : '?z=0'), [instantRenderer]);
+    const { buildCandidates, isValidHttpUrl, roundTripOk, silentFlagSuffix } = useShortUrlCreate({
+        inputUrl: longUrl,
+        token,
+        instantRenderer,
+    });
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -63,46 +65,6 @@ export default function ShortUrlCreatePage() {
         }
     }, [instantRenderer]);
 
-    const normalizeComparableUrl = (value: string): string => {
-        const trimmed = value.trim();
-        if (!trimmed) return '';
-        try {
-            const u = new URL(trimmed);
-            const path = `${u.pathname}${u.search}${u.hash}`;
-            return path
-                .replace(/\/([?#])/g, '$1') // remove slash before ?/#
-                .replace('/render-all', '/ra')
-                .replace('/render', '/r')
-                .replace('#data=', '#d=')
-                .replace('?data=', '?d=');
-        } catch {
-            return trimmed
-                .replace(/\/([?#])/g, '$1')
-                .replace('/render-all', '/ra')
-                .replace('/render', '/r')
-                .replace('#data=', '#d=')
-                .replace('?data=', '?d=');
-        }
-    };
-
-    const roundTripOk = useMemo(() => {
-        if (!token || !longUrl) return false;
-        try {
-            const input = longUrl.trim();
-            if (token.trim().toUpperCase().startsWith('AT')) {
-                return decodeShortUrlToken(token) === input;
-            }
-            const decoded = decodeRefCode(token);
-            if (!decoded) return false;
-            const decodedUrl = decoded.kind === 'absolute'
-                ? decoded.url
-                : `${window.location.origin}${decoded.path}`;
-            return normalizeComparableUrl(decodedUrl) === normalizeComparableUrl(input);
-        } catch {
-            return false;
-        }
-    }, [token, longUrl]);
-
     const handleGenerate = () => {
         const input = longUrl.trim();
         setError('');
@@ -120,73 +82,17 @@ export default function ShortUrlCreatePage() {
         if (typeof window === 'undefined') return;
 
         try {
-            // Build candidates independently so one failing codec (e.g. AT2 on huge URLs)
-            // does not prevent other shorteners (e.g. RefCodes) from working.
-            const candidates: Array<{ t: string; link: string }> = [];
-            const maxSafeCodeLenForPath = 1500;
-            const canUsePathTransport = (code: string) => code.length <= maxSafeCodeLenForPath;
-
-            // Option A: compact AT2 token (may fail on extremely large URLs)
-            try {
-                const generatedToken = encodeShortUrlToken(input, { mode: 'compact' });
-                if (canUsePathTransport(generatedToken)) {
-                    const atPathShort = withBasePath(`/s/${generatedToken}`);
-                    const atFullShort = `${window.location.origin}${atPathShort}${silentFlagSuffix}`;
-                    const atPathLong = withBasePath(`/shorturl/${generatedToken}`);
-                    const atFullLong = `${window.location.origin}${atPathLong}${silentFlagSuffix}`;
-                    candidates.push({ t: generatedToken, link: atFullShort });
-                    candidates.push({ t: generatedToken, link: atFullLong });
-                }
-
-                // Hash-transport: avoids server/request URI limits for very large codes
-                const atHashPath = withBasePath(`/shorturl/${silentFlagSuffix}#c=${generatedToken}`);
-                candidates.push({ t: generatedToken, link: `${window.location.origin}${atHashPath}` });
-            } catch {
-                // ignore AT failures; we can still shorten via refcodes
-            }
-
-            // Option B: reference code (vh-/vp-/yt-/...) when possible (safe)
-            const ref = encodeRefCode(input);
-            if (ref) {
-                if (canUsePathTransport(ref)) {
-                    const refPathShort = withBasePath(`/s/${ref}`);
-                    const refFullShort = `${window.location.origin}${refPathShort}${silentFlagSuffix}`;
-                    const refPathLong = withBasePath(`/shorturl/${ref}`);
-                    const refFullLong = `${window.location.origin}${refPathLong}${silentFlagSuffix}`;
-                    candidates.push({ t: ref, link: refFullShort });
-                    candidates.push({ t: ref, link: refFullLong });
-                }
-
-                // Hash-transport: avoids server/request URI limits for very large codes
-                const refHashPath = withBasePath(`/shorturl/${silentFlagSuffix}#c=${ref}`);
-                candidates.push({ t: ref, link: `${window.location.origin}${refHashPath}` });
-
-                // Option C: direct internal renderer link (silent + instant) when possible
-                if (instantRenderer) {
-                    const decoded = decodeRefCode(ref);
-                    if (decoded && decoded.kind === 'path') {
-                        candidates.push({ t: ref, link: `${window.location.origin}${decoded.path}` });
-                    }
-                }
-            }
-
+            const candidates = buildCandidates(window.location.origin);
             if (candidates.length === 0) {
                 throw new Error(t('shorturlCreate.error'));
             }
+            const best = candidates[0]!;
+            const second = candidates[1] || null;
 
-            // Remove duplicates
-            const uniq = new Map<string, { t: string; link: string }>();
-            for (const c of candidates) {
-                uniq.set(c.link, c);
-            }
-            const finalCandidates = Array.from(uniq.values()).sort((a, b) => a.link.length - b.link.length);
-            const best = finalCandidates[0]!;
-            const second = finalCandidates[1] || null;
-
-            setToken(best.t);
+            setToken(best.token);
             setShortLink(best.link);
             if (second) {
-                setAltToken(second.t);
+                setAltToken(second.token);
                 setAltShortLink(second.link);
             }
             setSuccess(t('shorturlCreate.generated'));

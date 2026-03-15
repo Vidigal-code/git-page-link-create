@@ -7,9 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
-import { withBasePath } from '@/shared/lib/basePath';
-import { compress } from '@/shared/lib/compression';
-import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { generateHtmlRenderAllLink } from '@/features/render-all/lib/generateHtmlRenderAllLink';
 import {
     Actions,
     ErrorText,
@@ -175,9 +173,7 @@ export default function CreateJobsPage() {
 
     const handleGenerateRenderAllLink = () => {
         if (!finalHtml || typeof window === 'undefined') return;
-        const compressed = compress(finalHtml);
-        const fullPath = withBasePath('/ra/');
-        const link = `${window.location.origin}${fullPath}#d=${encodePlatformType('html')}-${compressed}`;
+        const link = generateHtmlRenderAllLink(window.location.origin, finalHtml);
         setRenderAllLink(link);
         setSuccess(t('createJobs.renderAllGenerated'));
     };

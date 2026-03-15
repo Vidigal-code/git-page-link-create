@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -8,9 +8,7 @@ import { Input } from '@/shared/ui/Input';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { withBasePath } from '@/shared/lib/basePath';
-import { decodeRefCode, decodeShortUrlToken } from '@/shared/lib/shorturl';
-import { getShortUrlRedirectDelaySeconds } from '@/shared/lib/theme';
-import { copyTextToClipboard, getSiteOrigin, safeLocationReplace, safeOpenUrl } from '@/shared/lib/browser';
+import { copyTextToClipboard, safeLocationReplace, safeOpenUrl } from '@/shared/lib/browser';
 import {
     RenderContainer,
     ErrorContainer,
@@ -24,21 +22,15 @@ import {
     ErrorMessage,
     SuccessMessage,
 } from '@/shared/styles/pages/create.styles';
-
-import {extractCodeFromLocation, extractTokenFromUserInput} from "@/shared/lib/shorturl";
+import { extractCodeFromLocation, extractTokenFromUserInput } from '@/shared/lib/shorturl';
+import { resolveShortUrlTarget } from '@/features/shorturl/model/resolveTargetUrl';
+import { useShortUrlRedirect } from '@/features/shorturl/model/useShortUrlRedirect';
 
 export default function ShortUrlRedirectPage() {
     const router = useRouter();
     const { t } = useI18n();
-    const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
     const [manualTokenInput, setManualTokenInput] = useState('');
-    const [decodedUrl, setDecodedUrl] = useState('');
-    const delaySeconds = useMemo(() => {
-        const d = getShortUrlRedirectDelaySeconds();
-        return Number.isFinite(d) ? Math.max(0, Math.min(60, Math.floor(d))) : 5;
-    }, []);
-    const [countdownSec, setCountdownSec] = useState<number>(delaySeconds);
     const [silentRedirect] = useState(() => {
         if (typeof window === 'undefined') return true;
         try {
@@ -58,55 +50,13 @@ export default function ShortUrlRedirectPage() {
         if (typeof q === 'string') return q;
         return extractCodeFromLocation();
     }, [router.query.c, router.query.code]);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        if (!code) return;
-
-        setError('');
-        setSuccess('');
-        setDecodedUrl('');
-        setCountdownSec(delaySeconds);
-
-        try {
-            const targetUrl = (() => {
-                // 1) AT* tokens (legacy digits-only + new compact v2)
-                if (code.trim().toUpperCase().startsWith('AT')) {
-                    return decodeShortUrlToken(code);
-                }
-
-                // 2) Reference codes (vh-/vp-/yt-/...)
-                const decoded = decodeRefCode(code);
-                if (!decoded) throw new Error('Invalid shorturl token');
-                if (decoded.kind === 'absolute') return decoded.url;
-                return `${getSiteOrigin()}${decoded.path}`;
-            })();
-
-            // Silent: redirect immediately and render nothing
-            if (silentRedirect) {
-                safeLocationReplace(targetUrl);
-                return;
-            }
-
-            // Non-silent: show the decoded target and wait a bit (natural delay)
-            setDecodedUrl(targetUrl);
-
-            const timeout = window.setTimeout(() => {
-                safeLocationReplace(targetUrl);
-            }, delaySeconds * 1000);
-
-            const interval = window.setInterval(() => {
-                setCountdownSec((prev) => (prev > 0 ? prev - 1 : 0));
-            }, 1000);
-
-            return () => {
-                window.clearTimeout(timeout);
-                window.clearInterval(interval);
-            };
-        } catch (e) {
-            setError(e instanceof Error ? e.message : 'Invalid shorturl token');
-        }
-    }, [code, silentRedirect, delaySeconds]);
+    const {
+        error,
+        setError,
+        decodedUrl,
+        setDecodedUrl,
+        countdownSec,
+    } = useShortUrlRedirect(code, silentRedirect);
 
     const handleDecode = () => {
         setError('');
@@ -120,18 +70,8 @@ export default function ShortUrlRedirectPage() {
         }
 
         try {
-            if (token.trim().toUpperCase().startsWith('AT')) {
-                const url = decodeShortUrlToken(token);
-                setDecodedUrl(url);
-            } else {
-                const decoded = decodeRefCode(token);
-                if (!decoded) throw new Error(t('shorturlDecoder.invalidToken'));
-                if (decoded.kind === 'absolute') {
-                    setDecodedUrl(decoded.url);
-                } else {
-                    setDecodedUrl(`${getSiteOrigin()}${decoded.path}`);
-                }
-            }
+            const url = resolveShortUrlTarget(token);
+            setDecodedUrl(url);
             setSuccess(t('shorturlDecoder.decoded'));
         } catch (e) {
             setError(e instanceof Error ? e.message : t('shorturlDecoder.invalidToken'));

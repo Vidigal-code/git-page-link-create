@@ -10,8 +10,9 @@
     "export": "next export",
     "deploy": "next build && next export",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "type-check": "tsc --noEmit"
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "jszip": "^3.10.1",
@@ -37,6 +38,7 @@
     "babel-plugin-styled-components": "^2.1.4",
     "eslint": "^9.20.1",
     "eslint-config-next": "^15.1.7",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.3"
   }
 }

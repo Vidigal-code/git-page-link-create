@@ -7,9 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { ReadOnlyTextarea } from '@/shared/ui/ReadOnlyTextarea';
 import { useI18n } from '@/shared/lib/i18n';
 import { copyTextToClipboard, safeOpenUrl } from '@/shared/lib/browser';
-import { withBasePath } from '@/shared/lib/basePath';
-import { compress } from '@/shared/lib/compression';
-import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { generateHtmlRenderAllLink } from '@/features/render-all/lib/generateHtmlRenderAllLink';
 import {
     Actions,
     ErrorText,
@@ -186,9 +184,7 @@ export default function CreatePortfolioPage() {
 
     const handleGenerateRenderAllLink = () => {
         if (!finalHtml || typeof window === 'undefined') return;
-        const compressed = compress(finalHtml);
-        const fullPath = withBasePath('/ra/');
-        const link = `${window.location.origin}${fullPath}#d=${encodePlatformType('html')}-${compressed}`;
+        const link = generateHtmlRenderAllLink(window.location.origin, finalHtml);
         setRenderAllLink(link);
         setSuccess(t('createPortfolio.renderAllGenerated'));
     };
@@ -276,7 +272,17 @@ export default function CreatePortfolioPage() {
                                                 <Input label={t('createPortfolio.socialLabel')} value={item.label} onChange={(event) => updateSocial(item.id, 'label', event.target.value)} placeholder={t('createPortfolio.socialLabelPlaceholder')} />
                                                 <Input label={t('createPortfolio.socialUrl')} value={item.url} onChange={(event) => updateSocial(item.id, 'url', event.target.value)} placeholder="https://" />
                                                 <Actions>
-                                                    <Button type="button" variant="secondary" onClick={() => setFormData((prev) => ({ ...prev, socialLinks: prev.socialLinks.filter((s) => s.id !== item.id) || [createSocial()] }))}>
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        onClick={() => setFormData((prev) => {
+                                                            const nextSocialLinks = prev.socialLinks.filter((s) => s.id !== item.id);
+                                                            return {
+                                                                ...prev,
+                                                                socialLinks: nextSocialLinks.length > 0 ? nextSocialLinks : [createSocial()],
+                                                            };
+                                                        })}
+                                                    >
                                                         {t('createPortfolio.removeItem')}
                                                     </Button>
                                                 </Actions>
@@ -298,7 +304,21 @@ export default function CreatePortfolioPage() {
                                             <Input label={t('createPortfolio.educationPeriod')} value={item.period} onChange={(event) => updateEducation(item.id, 'period', event.target.value)} placeholder={t('createPortfolio.educationPeriodPlaceholder')} />
                                             <Input label={t('createPortfolio.educationImage')} value={item.imageUrl} onChange={(event) => updateEducation(item.id, 'imageUrl', event.target.value)} placeholder="https://" />
                                             <TextArea label={t('createPortfolio.educationDescription')} value={item.description} onChange={(event) => updateEducation(item.id, 'description', event.target.value)} placeholder={t('createPortfolio.educationDescriptionPlaceholder')} rows={3} />
-                                            <Actions><Button type="button" variant="secondary" onClick={() => setFormData((prev) => ({ ...prev, educationItems: prev.educationItems.filter((e) => e.id !== item.id) || [createEducation()] }))}>{t('createPortfolio.removeItem')}</Button></Actions>
+                                            <Actions>
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    onClick={() => setFormData((prev) => {
+                                                        const nextEducation = prev.educationItems.filter((e) => e.id !== item.id);
+                                                        return {
+                                                            ...prev,
+                                                            educationItems: nextEducation.length > 0 ? nextEducation : [createEducation()],
+                                                        };
+                                                    })}
+                                                >
+                                                    {t('createPortfolio.removeItem')}
+                                                </Button>
+                                            </Actions>
                                         </div>
                                     ))}
                                     <Actions><Button type="button" onClick={() => setFormData((prev) => ({ ...prev, educationItems: [...prev.educationItems, createEducation()] }))}>{t('createPortfolio.addEducation')}</Button></Actions>
@@ -335,7 +355,21 @@ export default function CreatePortfolioPage() {
                                                 <input type="checkbox" checked={item.current} onChange={(event) => updateExperience(item.id, 'current', event.target.checked)} />
                                                 <span>{t('createPortfolio.currentJob')}</span>
                                             </label>
-                                            <Actions><Button type="button" variant="secondary" onClick={() => setFormData((prev) => ({ ...prev, experienceItems: prev.experienceItems.filter((e) => e.id !== item.id) || [createExperience()] }))}>{t('createPortfolio.removeItem')}</Button></Actions>
+                                            <Actions>
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    onClick={() => setFormData((prev) => {
+                                                        const nextExperience = prev.experienceItems.filter((e) => e.id !== item.id);
+                                                        return {
+                                                            ...prev,
+                                                            experienceItems: nextExperience.length > 0 ? nextExperience : [createExperience()],
+                                                        };
+                                                    })}
+                                                >
+                                                    {t('createPortfolio.removeItem')}
+                                                </Button>
+                                            </Actions>
                                         </div>
                                     ))}
                                     <Actions><Button type="button" onClick={() => setFormData((prev) => ({ ...prev, experienceItems: [...prev.experienceItems, createExperience()] }))}>{t('createPortfolio.addExperience')}</Button></Actions>
