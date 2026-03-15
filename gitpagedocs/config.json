@@ -28,20 +28,6 @@
     "layoutsConfigPathOficial": true,
     "layoutsConfigPathTemplatesOficial": "https://github.com/Vidigal-code/git-page-docs/blob/main/gitpagedocs/layouts/templates",
     "layoutsConfigPathOficialUrl": "https://github.com/Vidigal-code/git-page-docs/blob/main/gitpagedocs/layouts/layoutsConfig.json",
-    "preRenderRepositories": [
-      {
-        "owner": "Vidigal-code",
-        "repo": "git-page-docs"
-      },
-      {
-        "owner": "Vidigal-code",
-        "repo": "git-page-link-create"
-      },
-      {
-        "owner": "Vidigal-code",
-        "repo": "git-page-docs-example"
-      }
-    ],
     "rendering": "https://vidigal-code.github.io/git-page-docs/",
     "langmenu": {
       "pt": {
