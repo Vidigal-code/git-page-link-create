@@ -33,22 +33,18 @@ export default function RenderAll() {
     const [contentType, setContentType] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
-    const [htmlBlobUrl, setHtmlBlobUrl] = useState('');
+    const [htmlDoc, setHtmlDoc] = useState('');
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
         if (contentType !== 'html') {
-            setHtmlBlobUrl('');
+            setHtmlDoc('');
             return;
         }
 
         const strContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
         const safeHtml = prepareHtmlForIframe(strContent);
-        const blob = new Blob([safeHtml], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        setHtmlBlobUrl(url);
-
-        return () => URL.revokeObjectURL(url);
+        setHtmlDoc(safeHtml);
     }, [content, contentType]);
 
     useEffect(() => {
@@ -164,8 +160,8 @@ export default function RenderAll() {
                     <title>Rendered HTML</title>
                 </Head>
                 <FullScreenIframe
-                    src={htmlBlobUrl || undefined}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                    srcDoc={htmlDoc || undefined}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads"
                     title="Rendered Content"
                 />
             </>
