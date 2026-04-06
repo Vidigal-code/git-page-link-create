@@ -1,39 +1,18 @@
-# Arquitectura
+# Arquitectura e Ingeniería de software
 
-La aplicacion esta orientada a rutas y organizada en create, render, short URL y utilidades compartidas.
+El ecosistema de **GitPageLinkCreate** ha sido estructurado desde su primer día para resistir tolerancias extremas de carga alta (High-Load) al repasar sus operaciones reactivas a procesos limpios orientados al Cliente (Navegador). El único servidor actuante existe únicamente para proveer de componentes estáticos inmutables.
 
-## Carpetas principales
+## Diseño Orientado por Componentes y Lógicas (FSD)
+Fundamentalmente, esquivamos los caóticos flujos desordenados de carpetas estructurales. El árbol dentro del subapartado `src/` opera estrictamente sobre FSD (Feature-Sliced Design):
+1. **`app/` o `pages/`:** Contenedores universales donde la inicialización e hidratación arranca. Mantiene la comunicación estática de Rutas y Páginas.
+2. **`widgets/`:** Elementos pesados de ensamble unificando diversas rutinas (ej: Navegaciones Globales Inferiores o Menús).
+3. **`features/`:** Lógicas atomizadas aisladas. Por ejemplo, el despachador de URLs recortadas opera internamente protegido vía flujos Redux/Context y controladores estancos independientes en `features/shorturl`.
+4. **`entities/`:** Modelos teóricos del dominio, guardando Interfaces rígidas en TypeScript sobre "Usuarios", "Documentación".
+5. **`shared/`:** Utilidades genéricas (Botones atómicos sin intelecto semántico) o manejadores matemáticos globales de aplicación (Libs).
 
-- `src/pages` - rutas Next.js (`create`, `render`, `shorturl`, `chat-link`, alias)
-- `src/shared/lib` - encoding, compresion, helpers media, short URL, i18n
-- `src/shared/ui` - componentes reutilizables y tarjetas por feature
-- `src/shared/styles` - tema styled-components y estilos de pagina
-- `public/layouts` - templates y catalogo de temas
-- `public/locales` - traducciones (`en`, `pt`, `es`)
+## Empaquetamiento Persistente en URL
+El arma secreta arquitectónica evadiendo sobrecostos infraestructurales radica en codificar y encapsular inmensas cantidades JSON en algoritmos directos embebidos en el segmento URL.
+A través de sistemas matemáticos propuestos por _Pako_ logramos un _Deflate_ masivo. Esta cadena criptográfica codificada a _Base64_, termina componiendo la totalidad de un Link largo de proyecto, omitiendo llamadas engorrosas a la base de datos para cargar un portafolio o datos personales de contratación.
 
-## Grupos de rutas
-
-- Creacion:
-  - `/create`, `/create-links`, `/create-jobs`, `/create-portfolio`
-- Renderizado:
-  - `/render`, `/render-all`, `/r`, `/ra`
-  - `/render/image`, `/render/pdf`, `/render/video`, `/render/audio`, `/render/office`
-- Short URLs:
-  - `/shorturl-create`, `/shorturl`, `/s/v`, `/s/<code>`
-- Chat:
-  - `/chat-link/`
-
-## Flujo de datos de extremo a extremo
-
-1. Usuario pega contenido o sube archivo en `/create`
-2. Contenido se comprime y se marca con codigo de tipo
-3. App genera enlaces hash/query para `/r`, `/ra` o `/render/*`
-4. Ruta destino decodifica payload y renderiza en visor correcto
-5. Short URL opcional acorta enlaces largos para compartir
-
-## Confiabilidad en hosting estatico
-
-- `404.tsx` recupera deep links y redirige a rutas validas
-- Alias compactos reducen longitud de URL
-- Herramienta recovery restaura payloads anteriores
-- Limites de tamaño evitan generar enlaces fuera del rango seguro
+## Desmarque Integral con Styled-Components
+Asumiendo un pre-compilado aislado inyectado al servidor vía utilidades como Tailwind o nativamente en JS (CSS-in-JS), blindamos la experiencia eliminando desbordes cruzados de estilos sobre renderizados anómalos, independientemente del contenido crudo que estemos visualizando nativamente en cabeceras superpuestas o tablas ajenas.
