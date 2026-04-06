@@ -9,7 +9,11 @@ const OPEN_EXTERNAL_LINKS_SCRIPT = [
     "      var href = (a.getAttribute('href') || '').trim();",
     '      if(!href) return;',
     // Only intercept external-ish links. Keep hash/relative navigation untouched.
-    "      if(!/^(https?:\\/\\/|mailto:|tel:)/i.test(href)) return;",
+    "      if(!/^(https?:\\/\\/|mailto:|tel:)/i.test(href)) {",
+    "         var isHash = href.startsWith('#');",
+    "         if (!isHash) { e.preventDefault(); }", // Prevent relative links from trying to redirect a blob URL
+    "         return;",
+    "      }",
     '      e.preventDefault();',
     "      window.open(href, '_blank', 'noopener,noreferrer');",
     '    } catch (_) {',
@@ -20,27 +24,31 @@ const OPEN_EXTERNAL_LINKS_SCRIPT = [
     '</script>',
 ].join('');
 
-function ensureBaseTargetBlank(html: string): string {
-    // If there is already a <base>, make sure it has a target.
-    if (/<base\b/i.test(html)) {
-        return html.replace(/<base\b([^>]*)>/i, (m, attrs) => {
-            if (/\btarget\s*=/.test(attrs)) return m;
-            return `<base${attrs} target="_blank">`;
-        });
-    }
+const MOBILE_SCROLL_STYLE = [
+    '<style>',
+    '  html, body {',
+    '      overflow-y: auto !important;',
+    '      -webkit-overflow-scrolling: touch !important;',
+    '  }',
+    '</style>',
+].join('');
+
+function ensureViewportAndScroll(html: string): string {
+    const viewportMeta = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">';
+    const injections = `${viewportMeta}${MOBILE_SCROLL_STYLE}`;
 
     // Prefer injecting into <head> if available.
     if (/<head\b[^>]*>/i.test(html)) {
-        return html.replace(/<head\b([^>]*)>/i, (m) => `${m}<base target="_blank">`);
+        return html.replace(/<head\b([^>]*)>/i, (m) => `${m}${injections}`);
     }
 
     // If HTML tag exists but no head, create one after <html>.
     if (/<html\b[^>]*>/i.test(html)) {
-        return html.replace(/<html\b[^>]*>/i, (m) => `${m}<head><base target="_blank"></head>`);
+        return html.replace(/<html\b[^>]*>/i, (m) => `${m}<head>${injections}</head>`);
     }
 
     // Fallback: wrap as a full HTML doc.
-    return `<!doctype html><html><head><meta charset="utf-8" /><base target="_blank"></head><body>${html}</body></html>`;
+    return `<!doctype html><html><head><meta charset="utf-8" />${injections}</head><body>${html}</body></html>`;
 }
 
 function ensureOpenLinksScript(html: string): string {
@@ -55,12 +63,10 @@ function ensureOpenLinksScript(html: string): string {
 
 /**
  * Prepares HTML to be rendered inside a sandboxed iframe:
- * - Make default link target `_blank` to avoid X-Frame-Options / CSP framing issues.
- * - Intercept external link clicks and open them in a new tab.
+ * - Make mobile scrolling work perfectly.
+ * - Intercept external link clicks and open them in a new tab safely.
  */
 export function prepareHtmlForIframe(html: string): string {
-    const withBase = ensureBaseTargetBlank(html || '');
-    return ensureOpenLinksScript(withBase);
+    const withScroll = ensureViewportAndScroll(html || '');
+    return ensureOpenLinksScript(withScroll);
 }
-
-
