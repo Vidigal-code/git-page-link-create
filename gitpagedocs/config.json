@@ -7,8 +7,8 @@
       "pt",
       "es"
     ],
-    "HideThemeSelector": false,
-    "ThemeDefault": "aurora-dark",
+    "HideThemeSelector": true,
+    "ThemeDefault": "violet-dark",
     "ThemeModeDefault": "dark",
     "ActiveNavigation": true,
     "FocusMode": true,
@@ -345,7 +345,7 @@
       {
         "id": "1.0.0",
         "path": "gitpagedocs/docs/versions/1.0.0/config.json",
-        "ProjectLink": "https://github.com/Vidigal-code/git-page-docs",
+        "ProjectLink": "https://github.com/Vidigal-code/git-page-link-create",
         "PathConfig": "gitpagedocs/docs/versions/1.0.0/config.json",
         "PreviewProject": "",
         "UpdateDate": "",
@@ -356,7 +356,7 @@
       {
         "id": "1.1.0",
         "path": "gitpagedocs/docs/versions/1.1.0/config.json",
-        "ProjectLink": "https://github.com/Vidigal-code/git-page-docs",
+        "ProjectLink": "https://github.com/Vidigal-code/git-page-link-create",
         "PathConfig": "gitpagedocs/docs/versions/1.1.0/config.json",
         "PreviewProject": "",
         "UpdateDate": "",
@@ -367,7 +367,7 @@
       {
         "id": "1.1.1",
         "path": "gitpagedocs/docs/versions/1.1.1/config.json",
-        "ProjectLink": "https://github.com/Vidigal-code/git-page-docs",
+        "ProjectLink": "https://github.com/Vidigal-code/git-page-link-create",
         "PathConfig": "gitpagedocs/docs/versions/1.1.1/config.json",
         "PreviewProject": "",
         "UpdateDate": "",
