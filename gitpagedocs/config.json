@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "Git Pages Docs",
+    "name": "Git Page Link Create",
     "defaultLanguage": "en",
     "supportedLanguages": [
       "en",
@@ -13,13 +13,13 @@
     "ActiveNavigation": true,
     "FocusMode": true,
     "FooterEnabled": true,
-    "FooterLinkName": "GitPageDocs",
-    "FooterLinkUrl": "https://github.com/Vidigal-code/git-page-docs",
+    "FooterLinkName": "Git Page Link Create",
+    "FooterLinkUrl": "https://github.com/Vidigal-code/git-page-link-create",
     "FooterDateMode": "browser",
     "FooterDateCustom": "",
-    "ProjectLink": "https://github.com/Vidigal-code/git-page-docs",
+    "ProjectLink": "https://github.com/Vidigal-code/git-page-link-create",
     "SiteIconPath": "/icon.svg",
-    "SiteHeaderName": "Git Pages Docs",
+    "SiteHeaderName": "Git Page Link Create",
     "IconImageMenuHeaderImgWidth": 20,
     "IconImageMenuHeaderImgHeight": 20,
     "IconImageMenuHeaderLightImg": "",
@@ -120,12 +120,12 @@
     "IconNavMenuBlockInactiveImgHeight": 20,
     "RouteguideBrandPositionDefault": "center",
     "RouteguideBrandContainerTopDefault": false,
-    "audioPlayerEnabled": true,
+    "audioPlayerEnabled": false,
     "audioAutoPlayOnLoad": false,
     "audioLoopEnabled": false,
     "audioSequentialPlayback": false,
     "audioPopoverHideSource": false,
-    "audioPopoverShowMinutes": true,
+    "audioPopoverShowMinutes": false,
     "audioTracks": [
       {
         "url": "https://www.youtube.com/watch?v=xAR6N9N8e6U",
