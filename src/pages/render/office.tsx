@@ -12,6 +12,7 @@ import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import * as XLSX from 'xlsx';
 import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
 import { safeOpenUrl } from '@/shared/lib/browser';
+import { getOfficeHashPayload, hasOfficeDataPayload } from '@/features/render-office/lib/payload';
 import {
     RenderContainer,
     ErrorContainer,
@@ -37,10 +38,7 @@ export default function RenderOffice() {
 
     useEffect(() => {
         // First try to get data from hash (fragment) - preferred for large payloads
-        let dataPayload = '';
-        const hash = window.location.hash;
-        if (hash.startsWith('#data=')) dataPayload = hash.substring('#data='.length);
-        else if (hash.startsWith('#d=')) dataPayload = hash.substring('#d='.length);
+        let dataPayload = getOfficeHashPayload(window.location.hash);
 
         // Fallback to query parameter (for legacy links)
         if (!dataPayload) {
@@ -86,7 +84,7 @@ export default function RenderOffice() {
     }, [router.query.data]);
 
     useEffect(() => {
-        const hasData = sourceUrl || window.location.hash.includes('data=') || router.query.data;
+        const hasData = sourceUrl || hasOfficeDataPayload(window.location.hash) || router.query.data;
         if (!hasData) {
             setError(true);
             return;

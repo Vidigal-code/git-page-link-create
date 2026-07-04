@@ -7,7 +7,9 @@ import {
     getMaxLengthForContentType,
     mapContentTypeToTool,
 } from '../src/entities/content/lib/contracts';
+import { buildOfficeDataLink, buildOfficeSourceLink } from '../src/features/create/lib/office';
 import { generateHtmlRenderAllLink } from '../src/features/render-all/lib/generateHtmlRenderAllLink';
+import { getOfficeHashPayload, hasOfficeDataPayload } from '../src/features/render-office/lib/payload';
 
 test('generateContentHashLink keeps r/ra + #d contract', () => {
     const origin = 'https://example.com';
@@ -57,4 +59,53 @@ test('generateHtmlRenderAllLink keeps /ra/#d contract', () => {
     const link = generateHtmlRenderAllLink('https://example.com', '<main>ok</main>');
     assert.match(link, /^https:\/\/example\.com\/ra\/#d=/);
     assert.ok(link.includes(`${encodePlatformType('html')}-`));
+});
+
+test('buildOfficeDataLink creates renderable upload links without source URL', () => {
+    const link = buildOfficeDataLink({
+        origin: 'https://example.com',
+        dataUrl: 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,SGVsbG8=',
+        fileName: 'document.docx',
+    });
+
+    assert.match(link, /^https:\/\/example\.com\/render\/office#d=/);
+    assert.ok(link.includes(`${encodePlatformType('docx')}-`));
+    assert.ok(hasOfficeDataPayload(new URL(link).hash));
+});
+
+test('buildOfficeDataLink keeps fullscreen upload contract', () => {
+    const link = buildOfficeDataLink({
+        origin: 'https://example.com',
+        dataUrl: 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,SGVsbG8=',
+        fileName: 'sheet.xlsx',
+        fullscreen: true,
+    });
+
+    const url = new URL(link);
+
+    assert.equal(url.pathname, '/render/office');
+    assert.equal(url.searchParams.get('fullscreen'), '1');
+    assert.ok(getOfficeHashPayload(url.hash).startsWith(`${encodePlatformType('xlsx')}-`));
+});
+
+test('buildOfficeSourceLink keeps public source URL contract', () => {
+    const link = buildOfficeSourceLink({
+        origin: 'https://example.com',
+        sourceUrl: 'https://cdn.example.com/file.docx?a=1',
+        fullscreen: true,
+    });
+
+    const url = new URL(link);
+
+    assert.equal(url.pathname, '/render/office');
+    assert.equal(url.searchParams.get('source'), 'https://cdn.example.com/file.docx?a=1');
+    assert.equal(url.searchParams.get('fullscreen'), '1');
+    assert.equal(url.hash, '');
+});
+
+test('office hash payload accepts #d and #data contracts', () => {
+    assert.equal(getOfficeHashPayload('#d=docx-payload'), 'docx-payload');
+    assert.equal(getOfficeHashPayload('#data=docx-payload'), 'docx-payload');
+    assert.equal(hasOfficeDataPayload('#d=docx-payload'), true);
+    assert.equal(hasOfficeDataPayload('#source=https%3A%2F%2Fexample.com'), false);
 });

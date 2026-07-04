@@ -6,8 +6,8 @@ import * as XLSX from 'xlsx';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
-import { compress, compressBytes, decompress, decompressBytes } from '@/shared/lib/compression';
-import { downloadFile, getFileExtension, getMimeType, getFileTypeFromFilename } from '@/shared/lib/download';
+import { compress, decompress, decompressBytes } from '@/shared/lib/compression';
+import { downloadFile, getFileExtension, getMimeType } from '@/shared/lib/download';
 import { convertDocxToHtml } from '@/shared/lib/office-docx';
 import { parseRecoveryInput } from '@/shared/lib/recovery';
 import { encodePlatformType } from '@/shared/lib/shorturl/typeCodes';
@@ -38,7 +38,13 @@ import {
     isValidHttpUrl as isValidSourceUrl,
     mapContentTypeToTool,
 } from '@/entities/content/lib/contracts';
-import { extractOfficeUrlFromCode, resolveOfficeSource } from '@/features/create/lib/office';
+import {
+    buildOfficeDataLink,
+    buildOfficeSourceLink,
+    extractOfficeUrlFromCode,
+    isOfficeDataUrl,
+    resolveOfficeSource,
+} from '@/features/create/lib/office';
 import {
     getExtensionFromMimeType,
     resolveDataUrlForEncoding,
@@ -1354,24 +1360,14 @@ export default function Create() {
         setOfficeError('');
         setOfficeLink('');
 
-        if (sourceValue.startsWith('data:')) {
-            // It's an uploaded file, generate hash link
+        if (isOfficeDataUrl(sourceValue)) {
             try {
-                // Extract base64 part
-                const base64Data = sourceValue.split(',')[1];
-                const binaryString = atob(base64Data);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-
-                const compressed = compressBytes(bytes);
-                const type = getFileTypeFromFilename(officeFile?.name || 'file.docx');
-
                 if (typeof window === 'undefined') return;
-                const baseUrl = window.location.origin;
-                const fullPath = withBasePath('render/office');
-                const link = `${baseUrl}${fullPath}#d=${encodePlatformType(type)}-${compressed}`;
+                const link = buildOfficeDataLink({
+                    origin: window.location.origin,
+                    dataUrl: sourceValue,
+                    fileName: officeFile?.name,
+                });
 
                 if (link.length > getMaxOfficeUrlLength()) {
                     setOfficeError(t('create.urlTooLong'));
@@ -1380,8 +1376,7 @@ export default function Create() {
 
                 setOfficeLink(link);
                 return;
-            } catch (err) {
-                //console.error('Error generating office hash link:', err);
+            } catch {
                 setOfficeError(t('create.error'));
                 return;
             }
@@ -1393,9 +1388,10 @@ export default function Create() {
         }
 
         if (typeof window === 'undefined') return;
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`render/office?source=${encodeURIComponent(sourceValue)}`);
-        const link = `${baseUrl}${fullPath}`;
+        const link = buildOfficeSourceLink({
+            origin: window.location.origin,
+            sourceUrl: sourceValue,
+        });
 
         if (link.length > getMaxOfficeUrlLength()) {
             setOfficeError(t('create.urlTooLong'));
@@ -1412,23 +1408,15 @@ export default function Create() {
         setOfficeError('');
         setOfficeRenderAllLink('');
 
-        if (sourceValue.startsWith('data:')) {
-            // It's an uploaded file, generate hash link
+        if (isOfficeDataUrl(sourceValue)) {
             try {
-                const base64Data = sourceValue.split(',')[1];
-                const binaryString = atob(base64Data);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-
-                const compressed = compressBytes(bytes);
-                const type = getFileTypeFromFilename(officeFile?.name || 'file.docx');
-
                 if (typeof window === 'undefined') return;
-                const baseUrl = window.location.origin;
-                const fullPath = withBasePath('render/office?fullscreen=1');
-                const link = `${baseUrl}${fullPath}#d=${encodePlatformType(type)}-${compressed}`;
+                const link = buildOfficeDataLink({
+                    origin: window.location.origin,
+                    dataUrl: sourceValue,
+                    fileName: officeFile?.name,
+                    fullscreen: true,
+                });
 
                 if (link.length > getMaxOfficeUrlLength()) {
                     setOfficeError(t('create.urlTooLong'));
@@ -1437,8 +1425,7 @@ export default function Create() {
 
                 setOfficeRenderAllLink(link);
                 return;
-            } catch (err) {
-                //console.error('Error generating office hash link:', err);
+            } catch {
                 setOfficeError(t('create.error'));
                 return;
             }
@@ -1450,9 +1437,11 @@ export default function Create() {
         }
 
         if (typeof window === 'undefined') return;
-        const baseUrl = window.location.origin;
-        const fullPath = withBasePath(`render/office?source=${encodeURIComponent(sourceValue)}&fullscreen=1`);
-        const link = `${baseUrl}${fullPath}`;
+        const link = buildOfficeSourceLink({
+            origin: window.location.origin,
+            sourceUrl: sourceValue,
+            fullscreen: true,
+        });
 
         if (link.length > getMaxOfficeUrlLength()) {
             setOfficeError(t('create.urlTooLong'));
@@ -1838,6 +1827,11 @@ export default function Create() {
                         generateLabel={t('create.officeUrlGenerate')}
                         renderAllLabel={t('create.officeRenderAll')}
                         clearLabel={t('create.officeClear')}
+                        uploadedFileLabel={t('create.officeUploadedFile')}
+                        uploadedSizeLabel={t('create.officeUploadedSize')}
+                        uploadedTypeLabel={t('create.officeUploadedType')}
+                        uploadedReadyLabel={t('create.officeUploadedReady')}
+                        genericFileTypeLabel={t('create.officeGenericFileType')}
                         linkTitle={t('create.officeLinkTitle')}
                         renderAllTitle={t('create.officeRenderAllTitle')}
                         copyLabel={t('create.copyLink')}

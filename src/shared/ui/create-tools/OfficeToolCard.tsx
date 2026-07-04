@@ -17,6 +17,14 @@ import {
     ResultSection,
 } from '@/shared/styles/pages/create.styles';
 
+const FILE_SIZE_UNIT_LABEL = 'KB';
+const BYTES_PER_KILOBYTE = 1024;
+const READY_STATUS_COLOR = '#4caf50';
+
+function formatFileSize(bytes: number): string {
+    return `${(bytes / BYTES_PER_KILOBYTE).toFixed(2)} ${FILE_SIZE_UNIT_LABEL}`;
+}
+
 interface OfficeToolCardProps {
     title: string;
     description: string;
@@ -29,6 +37,11 @@ interface OfficeToolCardProps {
     generateLabel: string;
     renderAllLabel: string;
     clearLabel: string;
+    uploadedFileLabel: string;
+    uploadedSizeLabel: string;
+    uploadedTypeLabel: string;
+    uploadedReadyLabel: string;
+    genericFileTypeLabel: string;
     linkTitle: string;
     renderAllTitle: string;
     copyLabel: string;
@@ -64,6 +77,11 @@ export function OfficeToolCard({
     generateLabel,
     renderAllLabel,
     clearLabel,
+    uploadedFileLabel,
+    uploadedSizeLabel,
+    uploadedTypeLabel,
+    uploadedReadyLabel,
+    genericFileTypeLabel,
     linkTitle,
     renderAllTitle,
     copyLabel,
@@ -124,11 +142,11 @@ export function OfficeToolCard({
                 <OfficePreview>
                     {officeFile ? (
                         <div style={{ padding: '20px', textAlign: 'center' }}>
-                            <p><strong>Arquivo carregado:</strong> {officeFile.name}</p>
-                            <p><strong>Tamanho:</strong> {(officeFile.size / 1024).toFixed(2)} KB</p>
-                            <p><strong>Tipo:</strong> {officeFile.type || 'Office Document'}</p>
-                            <div style={{ marginTop: '10px', color: '#4caf50' }}>
-                                ✓ Pronto para gerar o link
+                            <p><strong>{uploadedFileLabel}:</strong> {officeFile.name}</p>
+                            <p><strong>{uploadedSizeLabel}:</strong> {formatFileSize(officeFile.size)}</p>
+                            <p><strong>{uploadedTypeLabel}:</strong> {officeFile.type || genericFileTypeLabel}</p>
+                            <div style={{ marginTop: '10px', color: READY_STATUS_COLOR }}>
+                                {uploadedReadyLabel}
                             </div>
                         </div>
                     ) : officeSourceUrl && isValidUrl(officeSourceUrl) ? (

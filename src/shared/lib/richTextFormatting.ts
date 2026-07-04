@@ -38,17 +38,31 @@ function ensureUniqueFontIds(fontIds: string[]): string[] {
     return fontIds.filter((value, index, arr) => value && arr.indexOf(value) === index);
 }
 
-export function buildRichTextFontsCss(): string {
-    return RICH_TEXT_FONTS
-        .map((font) => `.rt-font-${font.id}{font-family:${font.cssFontFamily}}`)
-        .join('');
+function formatTextPreservingFontMarkers(value: string, fontMarkerRegex: RegExp): string {
+    const chunks: string[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null = fontMarkerRegex.exec(value);
+
+    while (match) {
+        const before = value.slice(lastIndex, match.index);
+        if (before) {
+            chunks.push(applyInlineStyles(escapeHtml(before)));
+        }
+
+        chunks.push(escapeHtml(match[0]).replace(/\n/g, '<br />'));
+        lastIndex = match.index + match[0].length;
+        match = fontMarkerRegex.exec(value);
+    }
+
+    const remaining = value.slice(lastIndex);
+    if (remaining) {
+        chunks.push(applyInlineStyles(escapeHtml(remaining)));
+    }
+
+    return chunks.join('');
 }
 
-export function formatRichTextHtml(rawValue: string, selectedFontIds: string[] = []): string {
-    const value = rawValue || '';
-    const normalizedSelectedFonts = ensureUniqueFontIds(selectedFontIds);
-    const fontMarkerRegex = /\/\*(1[0-2]|[1-9])\*([\s\S]*?)\*\//g;
-
+function formatTextWithFontMarkers(value: string, fontMarkerRegex: RegExp): string {
     const chunks: string[] = [];
     let lastIndex = 0;
     let match: RegExpExecArray | null = fontMarkerRegex.exec(value);
@@ -70,10 +84,26 @@ export function formatRichTextHtml(rawValue: string, selectedFontIds: string[] =
         chunks.push(applyInlineStyles(escapeHtml(remaining)));
     }
 
-    const html = chunks.join('');
-    if (normalizedSelectedFonts.length === 1) {
-        return `<span class="rt-font-${normalizedSelectedFonts[0]}">${html}</span>`;
-    }
-    return html;
+    return chunks.join('');
 }
 
+export function buildRichTextFontsCss(): string {
+    return RICH_TEXT_FONTS
+        .map((font) => `.rt-font-${font.id}{font-family:${font.cssFontFamily}}`)
+        .join('');
+}
+
+export function formatRichTextHtml(rawValue: string, selectedFontIds: string[] = []): string {
+    const value = rawValue || '';
+    const normalizedSelectedFonts = ensureUniqueFontIds(selectedFontIds);
+    const fontMarkerRegex = /\/\*(1[0-2]|[1-9])\*([\s\S]*?)\*\//g;
+
+    if (normalizedSelectedFonts.length <= 1) {
+        const html = formatTextPreservingFontMarkers(value, fontMarkerRegex);
+        return normalizedSelectedFonts.length === 1
+            ? `<span class="rt-font-${normalizedSelectedFonts[0]}">${html}</span>`
+            : html;
+    }
+
+    return formatTextWithFontMarkers(value, fontMarkerRegex);
+}
