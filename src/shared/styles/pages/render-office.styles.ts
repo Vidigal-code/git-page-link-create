@@ -65,3 +65,62 @@ export const DocxContent = styled.div`
     height: auto;
   }
 `;
+
+export const OfficeContentPanel = styled.div`
+  margin-top: 20px;
+  padding: 24px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+`;
+
+export const OfficeStatusPanel = styled(OfficeContentPanel)`
+  text-align: center;
+`;
+
+export const OfficeSheetSection = styled.section`
+  margin-top: 24px;
+  overflow-x: auto;
+`;
+
+export const OfficeSheetTitle = styled.h2`
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+`;
+
+export const OfficeTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  color: inherit;
+`;
+
+export const OfficeCell = styled.td`
+  border: 1px solid #444;
+  padding: 8px;
+  vertical-align: top;
+  white-space: pre-wrap;
+`;
+
+export const OfficeTextContent = styled.pre`
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: inherit;
+  font-family: monospace;
+`;
+
+export const OfficeSlideSection = styled.section`
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+`;
+
+export const OfficeSlideTitle = styled.h2`
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+`;
+
+export const OfficeList = styled.ul`
+  margin: 0;
+  padding-left: 20px;
+`;

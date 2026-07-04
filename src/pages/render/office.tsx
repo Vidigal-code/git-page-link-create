@@ -6,13 +6,17 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { useI18n } from '@/shared/lib/i18n';
 import { getOfficeViewerUrl } from '@/shared/lib/office';
-import { decompressBytes } from '@/shared/lib/compression';
 import { downloadFile } from '@/shared/lib/download';
-import { convertDocxToHtml } from '@/shared/lib/office-docx';
-import * as XLSX from 'xlsx';
-import { decodePlatformType } from '@/shared/lib/shorturl/typeCodes';
+import { getOfficeMimeType } from '@/shared/lib/officeFormats';
 import { safeOpenUrl } from '@/shared/lib/browser';
 import { getOfficeHashPayload, hasOfficeDataPayload } from '@/features/render-office/lib/payload';
+import { decodeOfficePayload, type DecodedOfficePayload } from '@/features/render-office/lib/officePayload';
+import {
+    renderOfficeDocument,
+    type OfficeDocumentView,
+    type OfficeSheet,
+    type OfficeSlide,
+} from '@/features/render-office/lib/officeDocument';
 import {
     RenderContainer,
     ErrorContainer,
@@ -20,77 +24,176 @@ import {
     ErrorDescription,
     ButtonGroup,
 } from '@/shared/styles/pages/render.styles';
-import { OfficeWrapper, OfficeFrame, FullScreenOfficeFrame, DocxContent } from '@/shared/styles/pages/render-office.styles';
+import {
+    DocxContent,
+    FullScreenOfficeFrame,
+    OfficeCell,
+    OfficeContentPanel,
+    OfficeFrame,
+    OfficeList,
+    OfficeSheetSection,
+    OfficeSheetTitle,
+    OfficeSlideSection,
+    OfficeSlideTitle,
+    OfficeStatusPanel,
+    OfficeTable,
+    OfficeTextContent,
+    OfficeWrapper,
+} from '@/shared/styles/pages/render-office.styles';
+
+function getPayloadFromLocation(hash: string, query: Record<string, unknown>): string {
+    const hashPayload = getOfficeHashPayload(hash);
+    if (hashPayload) return hashPayload;
+
+    const shortPayload = query.d;
+    if (typeof shortPayload === 'string') return shortPayload;
+
+    const legacyPayload = query.data;
+    return typeof legacyPayload === 'string' ? legacyPayload : '';
+}
+
+function renderSheet(sheet: OfficeSheet) {
+    return (
+        <OfficeSheetSection key={sheet.name}>
+            <OfficeSheetTitle>{sheet.name}</OfficeSheetTitle>
+            <OfficeTable>
+                <tbody>
+                    {sheet.rows.map((row, rowIndex) => (
+                        <tr key={`${sheet.name}-${rowIndex}`}>
+                            {row.map((cell, cellIndex) => (
+                                <OfficeCell key={`${sheet.name}-${rowIndex}-${cellIndex}`}>
+                                    {cell}
+                                </OfficeCell>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </OfficeTable>
+        </OfficeSheetSection>
+    );
+}
+
+function renderSlideList(items: string[], emptyLabel: string) {
+    if (items.length === 0) return <p>{emptyLabel}</p>;
+
+    return (
+        <OfficeList>
+            {items.map((item, index) => (
+                <li key={`${index}-${item}`}>{item}</li>
+            ))}
+        </OfficeList>
+    );
+}
+
+function renderSlide(slide: OfficeSlide, emptyLabel: string, notesLabel: string) {
+    return (
+        <OfficeSlideSection key={slide.name}>
+            <OfficeSlideTitle>{slide.name}</OfficeSlideTitle>
+            {renderSlideList(slide.texts, emptyLabel)}
+            {slide.notes.length > 0 && (
+                <>
+                    <h3>{notesLabel}</h3>
+                    {renderSlideList(slide.notes, emptyLabel)}
+                </>
+            )}
+        </OfficeSlideSection>
+    );
+}
+
+function renderDocumentView(view: OfficeDocumentView, labels: {
+    empty: string;
+    unsupported: string;
+    notes: string;
+}) {
+    switch (view.kind) {
+        case 'spreadsheet':
+            return view.sheets.length > 0
+                ? <>{view.sheets.map(renderSheet)}</>
+                : <OfficeStatusPanel>{labels.empty}</OfficeStatusPanel>;
+        case 'document':
+            return <DocxContent dangerouslySetInnerHTML={{ __html: view.html }} />;
+        case 'presentation':
+            return view.slides.length > 0
+                ? <>{view.slides.map((slide) => renderSlide(slide, labels.empty, labels.notes))}</>
+                : <OfficeStatusPanel>{labels.empty}</OfficeStatusPanel>;
+        case 'text':
+            return (
+                <OfficeContentPanel>
+                    <OfficeTextContent>{view.text || labels.empty}</OfficeTextContent>
+                </OfficeContentPanel>
+            );
+        case 'unsupported':
+            return <OfficeStatusPanel>{labels.unsupported}</OfficeStatusPanel>;
+        default:
+            return <OfficeStatusPanel>{labels.unsupported}</OfficeStatusPanel>;
+    }
+}
 
 export default function RenderOffice() {
     const router = useRouter();
     const { t } = useI18n();
     const { source, fullscreen } = router.query;
     const [error, setError] = useState(false);
+    const [decodedData, setDecodedData] = useState<DecodedOfficePayload | null>(null);
+    const [documentView, setDocumentView] = useState<OfficeDocumentView | null>(null);
+    const [isLoadingDocument, setIsLoadingDocument] = useState(false);
 
     const sourceUrl = useMemo(() => (typeof source === 'string' ? source : ''), [source]);
     const isFullscreen = fullscreen === '1' || fullscreen === 'true';
 
-    const [decodedData, setDecodedData] = useState<{ type: string; bytes: Uint8Array } | null>(null);
-    const [tableData, setTableData] = useState<any[][] | null>(null);
-    const [docxHtml, setDocxHtml] = useState<string | null>(null);
-    const [isConverting, setIsConverting] = useState(false);
-
     useEffect(() => {
-        // First try to get data from hash (fragment) - preferred for large payloads
-        let dataPayload = getOfficeHashPayload(window.location.hash);
+        if (!router.isReady) return undefined;
 
-        // Fallback to query parameter (for legacy links)
-        if (!dataPayload) {
-            if (router.query.d && typeof router.query.d === 'string') dataPayload = router.query.d;
-            else if (router.query.data && typeof router.query.data === 'string') dataPayload = router.query.data;
-        }
+        const dataPayload = getPayloadFromLocation(window.location.hash, router.query);
+        if (!dataPayload) return undefined;
 
-        if (!dataPayload) return;
+        let isActive = true;
+        setIsLoadingDocument(true);
+        setDocumentView(null);
 
         try {
-            const separatorIndex = dataPayload.indexOf('-');
-            if (separatorIndex === -1) return;
-
-            const rawType = dataPayload.substring(0, separatorIndex);
-            const type = decodePlatformType(rawType);
-            const compressedContent = dataPayload.substring(separatorIndex + 1);
-            const bytes = decompressBytes(compressedContent);
-
-            setDecodedData({ type, bytes });
-
-            if (type === 'xlsx' || type === 'xls') {
-                const workbook = XLSX.read(bytes, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][];
-                setTableData(data);
-            } else if (type === 'docx') {
-                setIsConverting(true);
-                convertDocxToHtml(bytes.buffer as ArrayBuffer)
-                    .then(html => {
-                        setDocxHtml(html);
-                    })
-                    .catch(err => {
-                        //console.error('Word conversion error:', err);
-                    })
-                    .finally(() => {
-                        setIsConverting(false);
-                    });
+            const decoded = decodeOfficePayload(dataPayload);
+            if (!decoded) {
+                setError(true);
+                setIsLoadingDocument(false);
+                return undefined;
             }
-        } catch (err) {
-            //console.error('Error decoding office data:', err);
+
+            setDecodedData(decoded);
+            renderOfficeDocument(decoded.bytes, decoded.type)
+                .then((view) => {
+                    if (!isActive) return;
+                    setDocumentView(view);
+                    setError(false);
+                })
+                .catch(() => {
+                    if (!isActive) return;
+                    setError(true);
+                })
+                .finally(() => {
+                    if (!isActive) return;
+                    setIsLoadingDocument(false);
+                });
+        } catch {
             setError(true);
+            setIsLoadingDocument(false);
         }
-    }, [router.query.data]);
+
+        return () => {
+            isActive = false;
+        };
+    }, [router.isReady, router.query]);
 
     useEffect(() => {
-        const hasData = sourceUrl || hasOfficeDataPayload(window.location.hash) || router.query.data;
-        if (!hasData) {
-            setError(true);
-            return;
-        }
-        setError(false);
-    }, [sourceUrl, router.query.data]);
+        if (!router.isReady) return;
+
+        const hasData = sourceUrl
+            || hasOfficeDataPayload(window.location.hash)
+            || typeof router.query.data === 'string'
+            || typeof router.query.d === 'string';
+
+        setError(!hasData);
+    }, [router.isReady, sourceUrl, router.query]);
 
     if (error) {
         return (
@@ -144,57 +247,16 @@ export default function RenderOffice() {
                 {decodedData ? (
                     <Card title={`${t('renderOffice.title')} (${decodedData.type.toUpperCase()})`}>
                         <ButtonGroup>
-                            <Button onClick={() => downloadFile(decodedData.bytes, `file.${decodedData.type}`, 'application/octet-stream')}>
+                            <Button onClick={() => downloadFile(decodedData.bytes, `file.${decodedData.type}`, getOfficeMimeType(decodedData.type))}>
                                 {t('create.downloadOriginal')}
                             </Button>
                         </ButtonGroup>
-                        {tableData ? (
-                            <div style={{ marginTop: '20px', overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', color: 'inherit' }}>
-                                    <tbody>
-                                        {tableData.map((row, i) => (
-                                            <tr key={i}>
-                                                {row.map((cell, j) => (
-                                                    <td key={j} style={{ border: '1px solid #444', padding: '8px' }}>
-                                                        {cell}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : decodedData.type === 'txt' ? (
-                            <div style={{ marginTop: '20px', overflowX: 'auto' }}>
-                                <pre style={{
-                                    padding: '16px',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    borderRadius: '8px',
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-all',
-                                    color: 'inherit',
-                                    fontFamily: 'monospace'
-                                }}>
-                                    {new TextDecoder().decode(decodedData.bytes)}
-                                </pre>
-                            </div>
-                        ) : decodedData.type === 'docx' ? (
-                            isConverting ? (
-                                <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center' }}>
-                                    <p>Conversando documento...</p>
-                                </div>
-                            ) : docxHtml ? (
-                                <DocxContent dangerouslySetInnerHTML={{ __html: docxHtml }} />
-                            ) : (
-                                <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                                    <p>Falha ao renderizar documento Word.</p>
-                                </div>
-                            )
-                        ) : (
-                            <div style={{ marginTop: '20px', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                                <p>Este arquivo ({decodedData.type.toUpperCase()}) não pode ser visualizado diretamente no navegador, mas você pode baixá-lo acima.</p>
-                            </div>
-                        )}
+                        {isLoadingDocument && <OfficeStatusPanel>{t('renderOffice.loading')}</OfficeStatusPanel>}
+                        {!isLoadingDocument && documentView && renderDocumentView(documentView, {
+                            empty: t('renderOffice.empty'),
+                            unsupported: t('renderOffice.unsupported'),
+                            notes: t('renderOffice.notes'),
+                        })}
                     </Card>
                 ) : (
                     <>

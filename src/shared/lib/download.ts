@@ -1,3 +1,5 @@
+import { getOfficeFormatExtensions, getOfficeMimeType, isOfficeFileType } from '@/shared/lib/officeFormats';
+
 /**
  * Download a file to the user's computer
  * @param content - The file content as string or bytes
@@ -46,15 +48,13 @@ export function downloadFile(content: string | Uint8Array, filename: string, typ
  * @returns MIME type string
  */
 export function getMimeType(fileType: string): string {
+    if (isOfficeFileType(fileType)) {
+        return getOfficeMimeType(fileType);
+    }
+
     const mimeTypes: Record<string, string> = {
         html: 'text/html',
         md: 'text/markdown',
-        csv: 'text/csv',
-        txt: 'text/plain',
-        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        xls: 'application/vnd.ms-excel',
-        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         image: 'image/png', // Default to png for recovered images
         pdf: 'application/pdf',
         video: 'video/mp4',
@@ -70,15 +70,13 @@ export function getMimeType(fileType: string): string {
  * @returns File extension with dot
  */
 export function getFileExtension(fileType: string): string {
+    if (isOfficeFileType(fileType)) {
+        return `.${fileType}`;
+    }
+
     const extensions: Record<string, string> = {
         html: '.html',
         md: '.md',
-        csv: '.csv',
-        txt: '.txt',
-        xlsx: '.xlsx',
-        xls: '.xls',
-        docx: '.docx',
-        pptx: '.pptx',
         image: '.png',
         pdf: '.pdf',
         video: '.mp4',
@@ -95,17 +93,13 @@ export function getFileExtension(fileType: string): string {
  */
 export function getFileTypeFromFilename(filename: string): string {
     const ext = filename.split('.').pop()?.toLowerCase();
+    const officeExtensions = getOfficeFormatExtensions();
+    if (ext && officeExtensions.includes(ext as ReturnType<typeof getOfficeFormatExtensions>[number])) {
+        return ext;
+    }
 
     // Map extensions to our internal types if necessary
     const mapping: Record<string, string> = {
-        'docx': 'docx',
-        'xlsx': 'xlsx',
-        'pptx': 'pptx',
-        'xls': 'xls',
-        'doc': 'doc',
-        'ppt': 'ppt',
-        'txt': 'txt',
-        'csv': 'csv',
         'pdf': 'pdf',
         'png': 'image',
         'jpg': 'image',

@@ -640,7 +640,11 @@
         "title": "Ver archivo Office",
         "openSource": "Abrir archivo original",
         "missingSource": "Falta o es inválida la URL del archivo Office.",
-        "hint": "Los archivos Office deben estar alojados en una URL pública para renderizarse."
+        "hint": "Los archivos Office deben estar alojados en una URL pública para renderizarse.",
+        "loading": "Cargando documento...",
+        "empty": "No se encontró contenido legible en este archivo.",
+        "unsupported": "Este archivo Office no se pudo renderizar directamente, pero el archivo original está disponible para descarga.",
+        "notes": "Notas"
     },
     "renderVideo": {
         "title": "Ver video",

@@ -640,7 +640,11 @@
         "title": "View Office File",
         "openSource": "Open original file",
         "missingSource": "Missing or invalid Office file URL.",
-        "hint": "Office files must be hosted at a public URL to render in the viewer."
+        "hint": "Office files must be hosted at a public URL to render in the viewer.",
+        "loading": "Loading document...",
+        "empty": "No readable content was found in this file.",
+        "unsupported": "This Office file could not be rendered directly, but the original file is available for download.",
+        "notes": "Notes"
     },
     "renderVideo": {
         "title": "View Video",

@@ -3,6 +3,7 @@ import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Input, TextArea } from '@/shared/ui/Input';
 import { safeOpenUrl } from '@/shared/lib/browser';
+import { OFFICE_FILE_ACCEPT } from '@/shared/lib/officeFormats';
 import {
     ButtonGroup,
     ErrorMessage,
@@ -122,7 +123,7 @@ export function OfficeToolCard({
                     <FileInput
                         ref={fileInputRef}
                         type="file"
-                        accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                        accept={OFFICE_FILE_ACCEPT}
                         onChange={onFileUpload}
                         id="office-file-upload"
                     />
