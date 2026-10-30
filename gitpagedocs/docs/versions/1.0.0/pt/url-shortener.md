@@ -1,15 +1,19 @@
-# Encurtador de URLs (URL Shortener)
+# Encurtador reversível e QR Code
 
-Nossa plataforma implementa a funcionalidade de Encurtar Links visando fornecer URLs atrativas e rápidas aliadas a recursos empresariais (exibição contínua via redirecionador).
+/shorturl-create codifica a URL reversivelmente. O token AT2 usa dicionário de prefixos, gzip e Base64URL; AT1/AT0 são formatos decimais legados. O decoder rejeita destinos fora de HTTP/HTTPS. /shorturl lê c/code, hash ou caminho; o fallback 404 recupera caminhos profundos no hosting estático. A navegação ocorre no navegador, sem resposta HTTP 302 de uma API. Compressão não garante URL menor em todos os casos.
 
-## Criação Base (`/shorturl`)
-Ao acessar a base da ferramenta de Link Shortener, os usuários podem colar qualquer link extenso em uma interface simplificada, que interage com a nossa API nativa contida do repositório em `create/shorturl` para transladar a requisição de salvamento de estado do dado.
+buildShortUrlCandidates também gera refcodes, elimina links repetidos e ordena pelo comprimento. Transporte por caminho é limitado a códigos de até 1500 caracteres; há alternativa por hash. No modo instantRenderer, um refcode que representa caminho local pode abrir diretamente o renderizador. O resolvedor reconhece tokens AT e refcodes.
 
-**1. Geração Automática vs Manual**
-A ferramenta criará um Slug alfanumérico curto automaticamente (Ex: `/s/XkM8rW`). Porém, o usuário autenticado pode customizar a sub-linha final caso deseje um link nominal específico (Ex: `/s/PromocaoTech`).
+Base64URL/gzip não criptografam dados. Não coloque credenciais ou informação confidencial em links. HTML, documentos e URLs de terceiros são entrada não confiável; o comportamento de isolamento depende do renderizador e deve ser revisado antes de aceitar conteúdo sensível. O limite de payload do codec é 999.999 bytes; navegador, mensageiro e hospedagem podem impor limites menores à URL. Requisições remotas dependem de disponibilidade e CORS. O caminho de produção é /git-page-link-create.
 
-**2. Integração com QR Code**
-O projeto está configurado para emitir automaticamente `qrcodes` utilizando módulos de parser (como o pacote `qrcode`). Para cada link diminuído, o SVG ou a representação visual em imagem será passível de cópia para impressões, outdoors ou anexos digitais.
+## Código e navegação
 
-## Como o Redirecionamento Funciona (`/s/[slug]`)
-Na arquitetura do `GitPageLinkCreate` o diretório estático aninhado sobre a página root intercepta as chamadas que se enquadrem sob o prefixo configurado. Ele decodifica a instrução base no servidor e gera o HTTP _302 Found_ repassando o cliente a nova plataforma ou link extenso, validando analítica de uso no contorno.
+- [src/features/shorturl/model/createCandidates.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/shorturl/model/createCandidates.ts)
+- [src/features/shorturl/model/resolveTargetUrl.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/shorturl/model/resolveTargetUrl.ts)
+- [src/shared/lib/shorturl/shorturl.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/shorturl/shorturl.ts)
+- [src/pages/shorturl-create.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/shorturl-create.tsx)
+- [src/pages/shorturl.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/shorturl.tsx)
+- [src/pages/404.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/404.tsx)
+
+- [Project guide](?menu=pt&lang=pt&id=9)
+- [Source reference](?menu=pt&lang=pt&id=10)

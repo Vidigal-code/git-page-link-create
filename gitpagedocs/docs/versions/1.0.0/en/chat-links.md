@@ -1,11 +1,18 @@
-# Chat Link Creator
+# Link-based conversation
 
-The structural strand nested inside `chat-link.tsx` dissolves essentially one of the highest frictions traversing corporate messaging and modern fast-paced B2C funnels: Redirecting audiences from native browsers deep into protected communication lines (like WhatsApp APIs, Telegram, Messengers) sporting nothing above a single click.
+/chat-link maintains a local message transcript. It does not send WhatsApp messages or run a real-time chat server. Each edit produces another link containing a snapshot; previously shared copies do not update automatically.
 
-## Core Application Scenes
-1. **Lead Capture Landing Pages:** Mapping up CTA button click events pulling the Direct Link fully stocked via parameter templates reading: "Hello, I want to join the Black Friday Sales scheme.".
-2. **Integrated Support Ticketing:** Embedded within technical admin tickets, operators engage straight up pushing complex Data System Logs right at Business verified tracking numbers.
-3. **Swift QrCode Conversion:** Instead of hard-printing tedious 12-digit strings causing manual conversion fails, this framework unifies an encoded tracking pattern behind a copyable QR visualizer straight up.
+Users enter name/text and can reply to an existing message. ChatLinkPayload uses v:1 and messages; each message has id, name, text, sentAtEpochMs, tzOffsetMinutes and optional replyToId. encodeChatPayload serializes JSON and applies gzip/Base64URL. buildChatLinkUrl produces /chat-link/#d=chat-<payload> with basePath support.
 
-## Platform Target Specification
-Inner routing components capture and decode structural queries like `app://` schemes natively bounding upon mobile device handlers natively mapping context behavior rules (example: triggering `whatsapp://send?phone=...` upon Android/iOS detections whilst securely wrapping UTF-8 accents escaping issues. Desk-web bounds trigger structural fallback hooks (`web.whatsapp...` namespaces) securing complete delivery lines regardless.
+Opening the link invokes tryReadChatPayloadFromUrl. decodeChatPayload requires version 1 and an array, normalizes fields and drops entries without ID/name/text or a finite timestamp. Invalid payloads return null during recovery. Display preserves the author's wall time. The page checks URL length before appending messages.
+
+Recipients can read the transcript; identity is unverified and content is not encrypted. IDs/names are presentation data, not authorship proof. Check replies, timestamps and URL length before sharing.
+
+## Code and navigation
+
+- [src/pages/chat-link.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/chat-link.tsx)
+- [src/shared/lib/chat-link.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/chat-link.ts)
+- [src/shared/lib/compression.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/compression.ts)
+
+- [Project guide](?menu=en&lang=en&id=9)
+- [Source reference](?menu=en&lang=en&id=10)

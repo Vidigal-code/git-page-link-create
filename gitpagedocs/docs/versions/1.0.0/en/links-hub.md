@@ -1,13 +1,15 @@
-# Links Hub Central
+# Profile and links page
 
-Deriving off the notorious organizational "Link-in-bio" setups, the core residing upon `create-links.tsx` natively caters toward a minimalist yet utterly resilient vertically stacked bio-list.
+/create-links accepts profileName, profileBio, bioFonts, avatarUrl, websiteUrl/websiteLabel, mode and social links with id/platform/url. Users choose a template and preview before generation.
 
-## What is this Hub?
-An idealistic resource mapped out for Social Networks ecosystems (Instagram profiles, TikTok bios) where the severe constraint concerning "Only One Website Allowed In the Bio" necessitates a reliable gateway index splitting your core targeting audience spanning varying portfolios simultaneously.
+loadTemplatesLinks loads templates, buildTemplateLinksHtml creates HTML and generateHtmlRenderAllLink builds a self-contained renderer link. Form/output state remains client-side. There is no database-backed profile or analytics dashboard.
 
-## Integrated Visual Modding
-Accessing this constructor layout off the `GitPageLinkCreate` platform, you will natively engage options:
-* **Background Mode:** Out-of-the-box CSS backing styling schemes encompassing organic dark hues, straightforward gradients, or hard-coded Solid Hex Themes directly within the toolbox.
-* **Button Customization:** Corner radial tweaking (`border-radius`), stroke thickness alongside secondary shadow casting emphasizing interactive areas heavily ("Shop Now", "Subscribe Here").
-* **Iconography Inbounds:** Throughout the underlying React Icons mapping, visually dropping pointers before heading blocks or external company logo SVGs becomes an incredibly swift undertaking.
-* **Low Latency Processing:** The repository compiles this structural matrix guaranteeing loading phase times down in low millisecond arrays—critical to dodge drop-outs traversing mobile ad campaigns!
+Check social URLs, remote images, alternative text and mobile preview. Form changes require sharing a new link; old snapshots remain unchanged.
+
+## Code and navigation
+
+- [src/pages/create-links.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create-links.tsx)
+- [src/features/render-all/lib/generateHtmlRenderAllLink.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-all/lib/generateHtmlRenderAllLink.ts)
+
+- [Project guide](?menu=en&lang=en&id=9)
+- [Source reference](?menu=en&lang=en&id=10)

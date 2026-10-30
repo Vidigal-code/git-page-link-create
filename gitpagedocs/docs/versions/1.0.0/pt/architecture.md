@@ -1,22 +1,33 @@
-# Arquitetura e Engenharia de Software
+# Arquitetura da Aplicação
 
-O ecossistema **GitPageLinkCreate** foi pensado do dia zero para ser tolerante a alta carga (escala de clientes) ao repassar 90% da sua carga reativa para processos puros do Client (Navegador). O único servidor central existe para hospedar assets imutáveis e APIs isoladas leves.
+Aplicação estática para criar e compartilhar conteúdo em URLs: HTML, Markdown, tabelas, mídia, vagas, portfólios, páginas de links e conversas compartilhadas por link. Os dados podem viajar compactados no próprio link. Não existe API de persistência, conta autenticada ou banco de slugs neste repositório.
 
-## Feature-Sliced Design (FSD)
-Como base, evitamos o caótico esquema de pastas onde componentes perdem a ligação com seu domínio semântico. Em `src/`, emprega-se os conceitos de Feature Sliced Design (FSD):
-1. **`app/` / `pages/`:** A camada Roteadora (Root/Framework). Concentra `index.tsx`, as chamadas SSG e Wrappers.
-2. **`widgets/`:** Elementos visuais massivos compostos. Um Header Global ou Footer que mesclam funcionalidades inteiras.
-3. **`features/`:** Lógicas e formulários isolados. Por exemplo: O encurtador de URL reside em `features/shorturl`, carregando seu sub-roteador ou estado Redux/Context próprio.
-4. **`entities/`:** Os Domínios Nucleares. Pode conter Interfaces TypeScript relativas aos tipos universais (usuários, repositórios).
-5. **`shared/`:** Componentes visuais burros (Botões genéricos, Inputs de Textos). Ferramentas utilitárias puras.
+## Comportamento implementado
 
-## Empacotamento de Estado via URL
-A maior cartada desta arquitetura é a evasão de bancos de dados relacionais e em nuvem custosos. O sistema armazena informações estendidas dentro do protocolo Hash do link.
-1. O criador escreve um Portfolio longo e insere imagens.
-2. A _Feature_ de submissão serializa tudo pra JSON.
-3. Pako aplica compressão Deflate/Inflate profunda e produzindo um texto.
-4. A Base64 final torna-se o caminho dinâmico (`/ra/[slug]`).
-Isso garante acesso assíncrono em velocidade nativa sem custo de chamadas Backend, apenas transferindo para o browser hospedeiro dos visitantes a incumbência de hidratar esse código e "remontar" a página.
+Next.js 15 com Pages Router, React 19, TypeScript 5.7 e styled-components 6. O build usa output: export e gera out/. Pako comprime, Marked interpreta Markdown, PapaParse/XLSX leem tabelas, Mammoth interpreta DOCX, JSZip trabalha com arquivos compactados e qrcode gera códigos. src/pages contém entradas; features, entities, widgets e shared separam interface e utilitários.
 
-## Suporte Nativo CSS 
-Usando pre-compiladores atrelados e subscrição de design puro do `styled-components` ou Tailwind, mantemos isolamento rígido evitando conflitos visuais quando diferentes documentos são renderizados simultaneamente.
+```mermaid
+flowchart LR
+  Input[Content or file] --> Encode[gzip and Base64URL]
+  Encode --> Link[Shareable URL or QR]
+  Link --> Decode[Browser decoder]
+  Decode --> Render[Viewer]
+  Decode --> Navigate[HTTP or HTTPS destination]
+```
+
+## Arquivos relacionados
+
+- [next.config.js](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/next.config.js)
+- [src/shared/lib/compression.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/compression.ts)
+- [src/shared/lib/shorturl/shorturl.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/shorturl/shorturl.ts)
+- [src/pages/404.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/404.tsx)
+- [src/pages/create.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create.tsx)
+- [src/pages/render/index.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/render/index.tsx)
+- [src/pages/shorturl.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/shorturl.tsx)
+- [.github/workflows/deploy.yml](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/.github/workflows/deploy.yml)
+- [src/features/shorturl/model/createCandidates.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/shorturl/model/createCandidates.ts)
+
+## Navegação
+
+- [Project guide](?menu=pt&lang=pt&id=9)
+- [Source reference](?menu=pt&lang=pt&id=10)

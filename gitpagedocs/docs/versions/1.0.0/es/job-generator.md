@@ -1,17 +1,15 @@
-# Creador de Ofertas de Trabajo (Generador Jobs)
+# Generador de páginas de empleo
 
-Esta asombrosa herramienta alojada bajo el directorio transicional `create-jobs` sobre el núcleo principal de `/pages` fomenta un ecosistema de documentación dinámica e integración asertiva, pensada para permitir a cazatalentos, consultoras o empresas despachar portales de ofertas limpias.
+/create-jobs carga templates, selecciona el primero y conserva formulario/preview en navegador. Campos: empresa/site, WhatsApp/email del reclutador, título/descripción, fuentes, modalidad, contrato/jornada, salario/moneda, candidatura, portada y tags.
 
-## ¿Por qué aprovechar este módulo?
-Dentro del entorno global del **GitPageLinkCreate**, extender llamados a puestos de tecnología evade completamente los embudos monótonos o restrictivos presentados en las redes de mercado tradicionales (paredes de LinkedIn clásicas).
+buildJobTemplateHtml y generateHtmlRenderAllLink producen HTML y enlace comprimido. Se puede copiar HTML o compartir. El contacto WhatsApp pertenece a este formulario, no a /chat-link.
 
-Tomas amplia ventaja usando el constructor integral de formularios que perpetúa persistentemente informaciones vitales tales como:
-* **Cobertura de la vacante y Alcance:** Ej: "Diseñador Senior UI/UX".
-* **Condiciones Contrato-Salariales:** Franjas monetarias o modelos (Remoto/Híbrido).
-* **Parámetros del Tech Stack:** Requisitos mínimos para filtros programáticos iniciales (React, Node, PostgreSQL).
-* **Botones Accionadores CTA:** Implementando disparos estáticos ligando a esquemas de correo tradicional (mailto:) posibilitando el acopio de currículums adjuntados orgánicamente sin plataformas terceras de pago.
+Errores de template/validación aparecen en la página. Imágenes/enlaces externos dependen de sus orígenes. No almacena candidaturas, publica en bolsas de empleo ni autentica reclutadores. Revise contenido, URLs y preview.
 
-## Mecanismos Resultantes
-Al consolidar esta base técnica, nuestro software envuelve los atributos dictados en propiedades JSON transitorias pre-compilándolas hacia interfaces independientes blindadas o hipervínculos codificados (Links Comprimidos). 
+## Código y navegación
 
-Ese material final (conocido como capa de render _render_job_page_), garantiza directrices SEO perfectas y respuestas "Mobile-friendly". Generando que la candidatura de usuarios entrantes resulte veloz, directa, descartando frustrantes recargas de interfaz o interrupciones en el embudo de captación.
+- [src/pages/create-jobs.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create-jobs.tsx)
+- [src/features/render-all/lib/generateHtmlRenderAllLink.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-all/lib/generateHtmlRenderAllLink.ts)
+
+- [Project guide](?menu=es&lang=es&id=9)
+- [Source reference](?menu=es&lang=es&id=10)

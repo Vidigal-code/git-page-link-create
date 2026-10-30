@@ -1,13 +1,15 @@
-# Centralizador de Links (Links Hub)
+# Página de links e perfil
 
-Seguindo o famoso design de agrupadores (_Link-in-bio_), a base contida em `create-links.tsx` fornece suporte nativo a uma bio-list vertical minimalista, mas completamente performática.
+/create-links recebe profileName, profileBio, bioFonts, avatarUrl, websiteUrl/websiteLabel, mode e uma lista de links sociais com id/platform/url. O editor permite escolher template e visualizar o resultado antes da geração.
 
-## O que é esse Agrupador?
-É um recurso ideal para redes sociais (Instagram, TikTok) onde a restrição de "Apenas Um Link na Biografia" necessita de um indexador confiável para dividir usuários do seu público-alvo pelas mais diversas fontes ou portfólios associados.
+loadTemplatesLinks carrega modelos; buildTemplateLinksHtml monta o HTML; generateHtmlRenderAllLink cria um link autocontido para o renderizador. O estado de formulário e saída permanece no cliente. Não existe perfil salvo em banco ou painel de analytics.
 
-## Customização Visual Integrada
-Ao acessar a geração deste construtor dentro da plataforma do _GitPageLinkCreate_, você será contemplado com as opções:
-* **Background Mode:** Suporte a CSS dinâmico (cores escuras orgânicas, gradientes simples e temas sólidos definidos por *Hex Code* direto na ferramenta).
-* **Estilização de Botões:** Definição de bordas radiais (`border-radius`), espessura e cores secundárias que destaquem as áreas interativas ("Comprar Agora", "Inscreva-se").
-* **Iconografia:** Através da sub-biblioteca do _React Icons_ associada internamente, é possível plugar visualmente com muita facilidade indicadores visuais nos links antes do título ou a adição externa em mini-imagens de logo de terceiros.
-* **Geração em Baixa Latência:** O projeto empacota toda sua estrutura para que a carga de carregamento seja na ordem das dezenas de milissegundos – vital para evitar drop-out mobile em campanhas pagas!
+Confira URLs de cada rede, imagem remota, texto alternativo e visualização móvel. Alterar o formulário exige distribuir o novo link; quem tem o snapshot anterior continua com a versão anterior.
+
+## Código e navegação
+
+- [src/pages/create-links.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create-links.tsx)
+- [src/features/render-all/lib/generateHtmlRenderAllLink.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-all/lib/generateHtmlRenderAllLink.ts)
+
+- [Project guide](?menu=pt&lang=pt&id=9)
+- [Source reference](?menu=pt&lang=pt&id=10)

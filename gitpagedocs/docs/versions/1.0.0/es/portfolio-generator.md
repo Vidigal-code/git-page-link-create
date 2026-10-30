@@ -1,12 +1,15 @@
-# Generador Dinámico de Portafolios (Portfolio)
+# Generador de portafolio
 
-Forjado pensando puntualmente en creadores autónomos, programadores, y artistas independientes interactuando sobre un contexto digital competitivo, este sistema de la plataforma concede en la sub-ruta aislada `create-portfolio.tsx` la potestad de crear y engranar muestrarios hiper-visuales integrados a un solo clic.
+/create-portfolio organiza presentación/proyectos en un template. El formulario controla modelo, datos y preview; genera HTML y enlace al visor. Consulte formulario/builders para campos admitidos.
 
-## Dinámica de Ensamblaje
-La interfaz abstracta y moderna recusa los impedimentos de la programación pura por parte del emisor, apostando a módulos rápidos interconectables, dependiendo intrínsecamente del fraccionamiento modular del modelo FSD:
-1. **Puesta a Punto Basal:** Espacios pre-asignados orientados al registro sintético inicial (Fotografía circular, Nombre artístico, Biografía descriptiva encapsulada).
-2. **Creación de Repertorio Múltiple:** Posibilidad repetible sumando entradas al registro de Proyectos. Involucrando Imágenes visuales destacables, enunciados conceptuales clave, glosario tech (Next, Angular, C#), y su respectiva derivación hacia el sitio exterior productivo o Repositorio en GitHub.
-3. **Remate y Despliegue (Capa Render):** Intervención decisiva del motor principal de codificación logrando aglomerar tu creatividad final emitiendo hipervínculos comprimidos compartibles universalmente.
+Compartir transporta snapshot. No crea repositorio GitHub, dominio ni sincroniza proyectos. Recursos remotos permanecen en origen.
 
-## Resiliencia de Interfaz Visual
-Nuestro constructor integra murallas algorítmicas manteniendo salvaguardadas íntegramente las variables de Diseño en Paletas de colores asociadas sobre los Themes (Esquemas) nativos inyectados originalmente en el contenedor Next.js. De la misma forma, el escalado asincrónico minimizando fotogramas entrantes (convertidos internamente a extensiones optimizadas WebP) abate costos absurdos de descargas excesivas logrando paralelamente índices elevadísimos de retención en escrutinios técnicos oficiales tipo Google Lighthouse.
+Compruebe enlaces, imágenes y lectura móvil. Cambios requieren enlace nuevo. Texto/URLs del payload son legibles por destinatarios.
+
+## Código y navegación
+
+- [src/pages/create-portfolio.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create-portfolio.tsx)
+- [src/features/render-all/lib/generateHtmlRenderAllLink.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-all/lib/generateHtmlRenderAllLink.ts)
+
+- [Project guide](?menu=es&lang=es&id=9)
+- [Source reference](?menu=es&lang=es&id=10)

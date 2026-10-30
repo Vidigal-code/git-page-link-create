@@ -1,17 +1,19 @@
-# The Rendering Logic (Render Engine)
+# Content, files and rendering
 
-The genuine beating heart cementing `GitPageLinkCreate` entirely across this whole documentation and functionality framework lives via its Multi-node dynamic interpretation engine standing upon `render` directories routed over central application paths.
+/create transforms text/files into renderer payloads. The type contract lives in entities/content; compression uses UTF-8 bytes, gzip and Base64URL. /render and /render-all have /r and /ra aliases plus dedicated audio, video, image, PDF and Office pages.
 
-## How Operations Instigate
-Traditionarily, every single parsing callback link (wether `.md`, `.docx`, `.csv`, `.html`) initiates via core Client compression flows intercepting provided Markdown chunks/files, strictly hashing everything out on deep Deflate paths nested commonly via `pako` modules. This chunk constitutes either an ungodly huge payload Slug URL format, or remains secured structurally onto local databases when mapping Shorter equivalents.
+Markdown uses Marked; CSV/spreadsheets use their parsers; Office separates payload/document modules. Representation depends on detected type and page options. Binary content must not be indiscriminately decoded as text.
 
-## Client-Side Hydration Sequences
-1. By hitting targeted URL parameters, the whole chunked array cascades to processing along parsed engine instructions keys.
-2. The Inflation decompression layer acts inversely (`pako.inflate`) returning humanly legible string buffers flawlessly.
-3. Switch Context Mapping: Predicated entirely on the mapped extension, a proxy wrapper intercepts:
-   - **Markdown Framework (`marked`)**: Renders Headers structs, guarded HTML properties alongside complex list trees.
-   - **Excel and CSV Grids (`xlsx`, `papaparse`)**: Spins Web-native data grids outputting legible financial sheets or data tracking formats graphically avoiding raw text clutter.
-   - **DOCX Workings (`mammoth`)**: Parses deep Document OLE properties breaking down word formats into browser formatted text preserving intrinsic properties astoundingly precisely.
-   - **Raw HTML Output**: Fires directly straight (adhering to rigorous cross-site sanitization parameters) the injected raw tree upon the target React DOM wrapper.
+Failures include malformed tokens, unknown types, invalid files, long URLs and CORS-blocked remote resources. Compressed content is not encrypted. Inspect each renderer's isolation behavior; Base64 does not imply universal sanitization.
 
-Such ecosystem entirely embraces absolute **Server-less Data Architecture**, eliminating expensive relational databases caching processes since the underlying context simply "lives" encoded adrift bridging across Link requests.
+## Code and navigation
+
+- [src/pages/create.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create.tsx)
+- [src/entities/content/lib/contracts.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/entities/content/lib/contracts.ts)
+- [src/shared/lib/compression.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/compression.ts)
+- [src/pages/render/index.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/render/index.tsx)
+- [src/pages/render-all/index.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/render-all/index.tsx)
+- [src/features/render-office/lib/officeDocument.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-office/lib/officeDocument.ts)
+
+- [Project guide](?menu=en&lang=en&id=9)
+- [Source reference](?menu=en&lang=en&id=10)

@@ -1,15 +1,19 @@
-# Acortador de URLs
+# Acortador reversible y QR
 
-La plataforma expone localizaciones que abarcan la generación del Enlace Corto con vistas explícitamente diseñadas a suministrar redirecciones ininterrumpidas a nivel corporativo combinando recursos ágiles analíticos y estéticos.
+/shorturl-create codifica la URL reversiblemente. AT2 usa diccionario de prefijos, gzip y Base64URL; AT1/AT0 son formatos decimales antiguos. El decoder rechaza destinos ajenos a HTTP/HTTPS. /shorturl lee c/code, hash o ruta; el fallback 404 recupera rutas profundas. La navegación ocurre en el navegador, sin HTTP 302 de una API. Comprimir no siempre reduce la URL.
 
-## Central de Creación (`/shorturl`)
-Acediendo al bloque raíz de operaciones alojado en la herramienta, los demandantes de enlaces rápidos colocan URLs titánicas en nuestras terminales minimalistas que comunican dinámicamente con el mapeador persistente anidado estructuralmente en los ficheros locales.
+buildShortUrlCandidates también genera refcodes, elimina duplicados y ordena por longitud. Transporte por ruta limita códigos a 1500 caracteres; hay alternativa por hash. En instantRenderer un refcode de ruta local puede abrir directamente el renderizador. El resolvedor reconoce AT y refcodes.
 
-**1. Disposición de Generaciones**
-El enrutador nativamente proporcionará _Slugs_ generados algorítmicamente y libres de interferencias (Ej: `/s/TyU8mQ`). Naturalmente, perfiles que estén debidamente autenticados, heredan un factor customizador pudiendo reclamar sufijos amigables por motivo de campañas de marketing explícitas.
+Base64URL/gzip no cifran datos. No incluya credenciales ni información confidencial en enlaces. HTML, documentos y URLs externos son entrada no confiable; el aislamiento depende del renderizador. El codec limita el payload a 999.999 bytes; navegador, mensajería y hosting pueden imponer límites menores. Solicitudes remotas dependen de disponibilidad y CORS. La base de producción es /git-page-link-create.
 
-**2. Disparador de Código QR Integrado**
-Mediante un procesamiento concurrente con la instancia generadora, componentes modulares acoplados escupen y dibujan instantáneamente vectores QR visuales referenciales sobre dicho enlace final. Pudiendo el operador guardarlos para emplear copias adjuntas masivas impresas sin cuellos de botella adicionales a software ajeno.
+## Código y navegación
 
-## Rutina interna de Re-enrutamientos 
-Bajo el paraguas estructural global (`GitPageLinkCreate`), la capa pasante localizada al final del dominio es interceptada verificando cruces existentes. Recompila la sub-llamada devolviendo códigos directos de transferencia de tráfico HTML (_HTTP 302_ comúnmente), guiando de forma fluida y nativa a todo clic hacia sus reposistemas expansivos vinculantes previos correspondientes.
+- [src/features/shorturl/model/createCandidates.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/shorturl/model/createCandidates.ts)
+- [src/features/shorturl/model/resolveTargetUrl.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/shorturl/model/resolveTargetUrl.ts)
+- [src/shared/lib/shorturl/shorturl.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/shared/lib/shorturl/shorturl.ts)
+- [src/pages/shorturl-create.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/shorturl-create.tsx)
+- [src/pages/shorturl.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/shorturl.tsx)
+- [src/pages/404.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/404.tsx)
+
+- [Project guide](?menu=es&lang=es&id=9)
+- [Source reference](?menu=es&lang=es&id=10)

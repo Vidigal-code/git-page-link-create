@@ -1,18 +1,15 @@
-# Job Generator
+# Job page generator
 
-The feature encapsulated within the `create-jobs` navigational scheme nested at `/pages` boosts straight structured markup and dynamic page documentation properties for Headhunters and Companies producing attractive hiring boards.
+/create-jobs loads templates, selects the first available one and keeps form/preview state in the browser. Fields include company/site, recruiter WhatsApp/email, title/description, fonts, work mode, contract/schedule, salary/currency, application URL, cover and tags.
 
-## Why employ this module?
-Within the **GitPageLinkCreate** platform, broadcasting job proposals transcends the conventional limited market formats (classical LinkedIn walls).
+Generation calls buildJobTemplateHtml and generateHtmlRenderAllLink to produce HTML and a compressed renderer link. Users can copy HTML or share the link. WhatsApp contact belongs to this form; it is not /chat-link behavior.
 
-You leverage the integrated forms placed inside the creation dashboard which persistently saves:
-* **Scope and Titles:** E.g: "Sr Backend Engineer".
-* **Employment and Payroll:** Salary scale and structure.
-* **Technology Stack:** Fundamental tracking layers (Node, .Net, AWS).
-* **CTA Buttoning:** Integration to generic Google Forms or email linking for direct, automated CV drop-offs.
+Template/validation errors appear in the page. External images/links depend on their origins. The project does not store applications, publish to job boards or authenticate recruiters. Review content, URLs and preview before sharing.
 
-## Generator Output
-Upon finalizing the content spread, the software digests these provisionary nested JSON properties into a pre-rendered standalone platform page (or compressed hashed links). 
-This result inherently holds high-yield standard SEO typologies whilst fully covering mobile responsiveness constraints.
+## Code and navigation
 
-Launching queries from this landing site (*render_job_page*) ensures seamless candidate transitions minimizing layout shifting drops, favoring fluid hiring journeys.
+- [src/pages/create-jobs.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create-jobs.tsx)
+- [src/features/render-all/lib/generateHtmlRenderAllLink.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-all/lib/generateHtmlRenderAllLink.ts)
+
+- [Project guide](?menu=en&lang=en&id=9)
+- [Source reference](?menu=en&lang=en&id=10)

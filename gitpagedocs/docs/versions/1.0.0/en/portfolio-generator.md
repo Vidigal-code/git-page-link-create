@@ -1,12 +1,15 @@
-# Dynamic Portfolio Generator
+# Portfolio generator
 
-Designed for freelance developers, graphic agencies, and independent professionals alike, this module hosts the capability of crafting exclusive sub-page portfolios isolated straight through the `create-portfolio.tsx` directory path.
+/create-portfolio organizes presentation/project data in a portfolio template. The form manages template selection, data and preview; generation produces HTML and a renderer link. Consult the linked form/builders for supported fields.
 
-## How Assembly Functions
-The composition suite abstracts coding demands offering unified fast card setups alongside drag-and-drop mechanics depending purely upon the slice architecture logic applied contextually:
-1. **Primary configuration:** Permits populating core Meta tags (Self-Portrait, Company name, bio summary lines).
-2. **Project Database Creation:** Multi-row inputs for Asset registries. You provide structural images, a short description covering its core concepts, plus routing it directly out to Github branches or live Production deployments.
-3. **End-page Dispatch (Render):** The `Render Engine` interweaves this layer rendering an output URL drastically neat.
+Sharing transports a content snapshot. It does not create a GitHub repository, provision a domain or automatically synchronize projects. Remote assets stay at their original locations.
 
-## Layout Interactivity Features
-The builder utilizes structural shielding layers guaranteeing palettes stay true to the designated overarching `Next.js Theme` injected behaviors. Additionally, automated image downsizing to `WebP` formats slashes lateral hosting bandwidth costs by over 70%, concurrently handing visitors remarkably great feedback scores inside Google Lighthouse evaluations.
+Check project links, image availability and small-screen readability. Changes require a newly generated/shared link. Payload text/URLs are readable by recipients.
+
+## Code and navigation
+
+- [src/pages/create-portfolio.tsx](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/pages/create-portfolio.tsx)
+- [src/features/render-all/lib/generateHtmlRenderAllLink.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/src/features/render-all/lib/generateHtmlRenderAllLink.ts)
+
+- [Project guide](?menu=en&lang=en&id=9)
+- [Source reference](?menu=en&lang=en&id=10)
