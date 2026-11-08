@@ -2,7 +2,7 @@
 
 Inventory extracted from manifests and code declarations. Versions using `^` or `~` are declared ranges; the lockfile determines the resolved version.
 
-Commit: `809f77e8fe2bd6c78a223db28a4c5e42973a0d91`. GitPageDocs: `0.0.17`.
+Commit: `809f77e8fe2bd6c78a223db28a4c5e42973a0d91`. GitPageDocs: `0.0.21`.
 
 ## Dependencies and tooling
 
@@ -91,3 +91,21 @@ Names are extracted only from example files and environment references in source
 - [tests/office-rendering.test.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/tests/office-rendering.test.ts)
 - [tests/richtext-formatting.test.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/tests/richtext-formatting.test.ts)
 - [tests/shorturl-contracts.test.ts](https://github.com/Vidigal-code/git-page-link-create/blob/809f77e8fe2bd6c78a223db28a4c5e42973a0d91/tests/shorturl-contracts.test.ts)
+
+## Documentation maintenance and local MCP
+
+The functional content above describes this project. Viewer configuration targets GitPageDocs **0.0.21**; it does not change the application version or the `1.0.0` documentation directory.
+
+With `@gitpagedocs/cli` 0.0.21 installed, run from this repository's root:
+
+```sh
+gitpagedocs mcp start
+```
+
+The MCP client starts a stdio process; there is no HTTP port or `--cwd` option. Set the process working directory to the project root. `list_files`, `read_file` and the `project://readme` and `project://structure` resources inspect content without an external provider. `write_file` writes the complete target file after review.
+
+`update_documentation` calls a provider and only replaces the region between `gitpagedocs:start` and `gitpagedocs:end`; without those markers, it appends a region. Do not use that flow to automatically replace these complete pages. `validate_docs` is a provider review, not a deterministic check of every link. The `gitpagedocs docs` command updates README/CONTRIBUTING/SECURITY regions with standard GitPageDocs content; it does not update these project-specific pages.
+
+Before publishing, validate JSON, paths for every language, the contents list and links in the viewer. Publication uses the repository workflow; its runtime pin must be updated separately to an available release. Preserve existing menus, themes, icons, public paths and the documentation version.
+
+The `.github/workflows/deploy.yml` workflow publishes the Git Page Link Create application. Do not replace it with a documentation workflow. These GitPageDocs pages require a separate viewer destination or the repository viewer.

@@ -60,7 +60,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/project-guide.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/project-guide.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 10,
@@ -74,7 +80,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/source-reference.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/source-reference.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 1,
@@ -93,7 +105,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/architecture.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/architecture.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 2,
@@ -112,7 +130,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/url-shortener.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/url-shortener.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 3,
@@ -131,7 +155,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/job-generator.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/job-generator.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 4,
@@ -150,7 +180,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/portfolio-generator.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/portfolio-generator.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 5,
@@ -169,7 +205,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/links-hub.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/links-hub.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 6,
@@ -188,7 +230,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/chat-links.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/chat-links.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     },
     {
       "id": 7,
@@ -207,7 +255,13 @@
         "en": "gitpagedocs/docs/versions/1.0.0/en/render-engine.md",
         "es": "gitpagedocs/docs/versions/1.0.0/es/render-engine.md"
       },
-      "fullscreenEnabled": true
+      "fullscreenEnabled": true,
+      "RouteguideBrand": true,
+      "RouteGuideTags": [
+        "h1",
+        "h2",
+        "h3"
+      ]
     }
   ],
   "routes-source-viewer": [
