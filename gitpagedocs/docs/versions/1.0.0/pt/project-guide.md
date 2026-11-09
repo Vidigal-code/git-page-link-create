@@ -1,6 +1,6 @@
 # git-page-link-create: Contexto e fluxos do projeto
 
-GitPageDocs **0.0.21** · 1.0.0 · 2026-11-08
+GitPageDocs **0.0.23** · 1.0.0 · 2026-11-08
 
 ## Contexto
 
@@ -63,9 +63,9 @@ Dependências, comandos, endpoints, variáveis, contratos e testes estão na [re
 
 - [Next.js static export](https://nextjs.org/docs/app/guides/static-exports)
 
-## Navegação da documentação com GitPageDocs 0.0.21
+## Navegação da documentação com GitPageDocs 0.0.23
 
-As opções desta seção requerem o runtime GitPageDocs **0.0.21**. A versão documental deste projeto continua **1.0.0**. Atualizar o texto e a configuração não atualiza, por si só, o runtime publicado pelo workflow.
+As opções desta seção requerem o runtime GitPageDocs **0.0.23**. A versão documental deste projeto continua **1.0.0**. Atualizar o texto e a configuração não atualiza, por si só, o runtime publicado pelo workflow.
 
 ### Índice por tags
 
@@ -87,4 +87,4 @@ Com a rolagem do índice desbloqueada, o item ativo é centralizado, inclusive a
 
 Ao validar em celular, confira o menu recolhido, alvos de toque, foco por teclado, tabelas e blocos de código com rolagem horizontal. Em dispositivos dobráveis, repita a navegação com a tela dobrada e aberta, nas duas orientações, e confirme que o item ativo permanece acessível após a mudança de largura. Use o controle de pausa quando houver efeitos animados e respeite a preferência de movimento reduzido.
 
-O GitPageDocs 0.0.21 usa `performance.mode: "auto"` nos efeitos dos temas: reduz moderadamente a densidade no desktop e usa um orçamento menor abaixo de 768px, mantendo as camadas do tema. Partículas ocultas ficam pausadas e retomam a mesma fase ao mudar a largura. Para manter a densidade completa, mescle `site.backgroundEffects.overrides.performance: { "mode": "full" }` em `gitpagedocs/config.json`; a mesma opção pode ser definida em `site.backgroundEffects.themes[themeId].performance`. Um override explícito de `layers` mantém a contagem completa quando não há mode definido nos overrides. Use `"auto"` explicitamente para aplicar o orçamento também às camadas personalizadas.
+O GitPageDocs 0.0.23 usa `performance.mode: "auto"` nos efeitos dos temas: reduz moderadamente a densidade no desktop e usa um orçamento menor abaixo de 768px, mantendo as camadas do tema. Partículas ocultas ficam pausadas e retomam a mesma fase ao mudar a largura. Para manter a densidade completa, mescle `site.backgroundEffects.overrides.performance: { "mode": "full" }` em `gitpagedocs/config.json`; a mesma opção pode ser definida em `site.backgroundEffects.themes[themeId].performance`. Um override explícito de `layers` mantém a contagem completa quando não há mode definido nos overrides. Use `"auto"` explicitamente para aplicar o orçamento também às camadas personalizadas.

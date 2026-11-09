@@ -1,6 +1,6 @@
 # git-page-link-create: Project context and workflows
 
-GitPageDocs **0.0.21** · 1.0.0 · 2026-11-08
+GitPageDocs **0.0.23** · 1.0.0 · 2026-11-08
 
 ## Context
 
@@ -63,9 +63,9 @@ Dependencies, commands, endpoints, variables, contracts and tests are in the [so
 
 - [Next.js static export](https://nextjs.org/docs/app/guides/static-exports)
 
-## Documentation navigation with GitPageDocs 0.0.21
+## Documentation navigation with GitPageDocs 0.0.23
 
-The options in this section require the GitPageDocs **0.0.21** runtime. This project's documentation version remains **1.0.0**. Updating text and configuration does not itself update the runtime deployed by the workflow.
+The options in this section require the GitPageDocs **0.0.23** runtime. This project's documentation version remains **1.0.0**. Updating text and configuration does not itself update the runtime deployed by the workflow.
 
 ### Tag-based contents
 
@@ -87,4 +87,4 @@ With contents scrolling unlocked, the active entry is centered, including naviga
 
 When validating on a phone, check the collapsed menu, touch targets, keyboard focus, tables and horizontally scrollable code blocks. On foldable devices, repeat navigation folded and unfolded, in both orientations, and confirm the active entry remains accessible after the width changes. Use the pause control when animated effects are present and respect reduced-motion preferences.
 
-GitPageDocs 0.0.21 uses `performance.mode: "auto"` for theme effects: it moderately reduces density on desktop and uses a smaller budget below 768px while retaining the theme's layers. Hidden particles pause and resume the same phase when the width changes. To keep full density, merge `site.backgroundEffects.overrides.performance: { "mode": "full" }` into `gitpagedocs/config.json`; the same option is available in `site.backgroundEffects.themes[themeId].performance`. An explicit `layers` override keeps the complete count when no mode is set in the overrides. Select `"auto"` explicitly to apply the budget to custom layers too.
+GitPageDocs 0.0.23 uses `performance.mode: "auto"` for theme effects: it moderately reduces density on desktop and uses a smaller budget below 768px while retaining the theme's layers. Hidden particles pause and resume the same phase when the width changes. To keep full density, merge `site.backgroundEffects.overrides.performance: { "mode": "full" }` into `gitpagedocs/config.json`; the same option is available in `site.backgroundEffects.themes[themeId].performance`. An explicit `layers` override keeps the complete count when no mode is set in the overrides. Select `"auto"` explicitly to apply the budget to custom layers too.

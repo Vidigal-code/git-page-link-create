@@ -2,7 +2,7 @@
 
 Inventario extraído de manifests y declaraciones del código. Las versiones con `^` o `~` son rangos declarados; el lockfile determina la versión resuelta.
 
-Commit: `809f77e8fe2bd6c78a223db28a4c5e42973a0d91`. GitPageDocs: `0.0.21`.
+Commit: `809f77e8fe2bd6c78a223db28a4c5e42973a0d91`. GitPageDocs: `0.0.23`.
 
 ## Dependencias y herramientas
 
@@ -94,9 +94,9 @@ Los nombres proceden solo de archivos de ejemplo y referencias del código. Conf
 
 ## Mantenimiento de la documentación y MCP local
 
-El contenido funcional anterior describe este proyecto. La configuración del visor corresponde a GitPageDocs **0.0.21**; no cambia la versión de la aplicación ni el directorio documental `1.0.0`.
+El contenido funcional anterior describe este proyecto. La configuración del visor corresponde a GitPageDocs **0.0.23**; no cambia la versión de la aplicación ni el directorio documental `1.0.0`.
 
-Con `@gitpagedocs/cli` 0.0.21 instalado, ejecute desde la raíz de este repositorio:
+Con `@gitpagedocs/cli` 0.0.23 instalado, ejecute desde la raíz de este repositorio:
 
 ```sh
 gitpagedocs mcp start
